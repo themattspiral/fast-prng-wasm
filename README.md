@@ -1,4 +1,5 @@
 # fast-prng-wasm
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/themattspiral/fast-prng-wasm/blob/main/LICENSE.md) [![npm version](https://img.shields.io/npm/v/fast-prng-wasm.svg?style=flat)](https://www.npmjs.com/package/fast-prng-wasm)
 
 A collection of fast pseudo random number generators that run in WebAssembly.
 
