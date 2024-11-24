@@ -1,0 +1,66 @@
+{
+  "name": "fast-prng-wasm",
+  "version": "0.3.0",
+  "description": "A collection of fast, SIMD-enabled, pseudo random number generators in WebAssembly. Simple to use from JavaScript (node or browser), and AssemblyScript.",
+  "author": "Matt Ritter <matthew.d.ritter@gmail.com>",
+  "license": "MIT",
+  "keywords": [
+    "prng",
+    "random",
+    "pseudo",
+    "number",
+    "generator",
+    "wasm",
+    "webassembly",
+    "assemblyscript",
+    "pcg",
+    "xoroshiro128",
+    "xoshiro256",
+    "simd"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "unpkg": "./dist/index.umd.js",
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    },
+    "./assembly/*": {
+      "import": "./dist/assembly/*"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "@rollup/plugin-wasm": "^6.2.2",
+    "assemblyscript": "^0.27.31",
+    "rollup": "^4.27.3",
+    "rollup-plugin-copy": "^3.5.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/themattspiral/fast-prng-wasm.git"
+  },
+  "scripts": {
+    "---- // build npm package ------------": "",
+    "build": "npm run clean && npm run wasm:all && npm run build:lib",
+    "build:lib": "rollup -c",
+    "clean": "node util/clean.mjs",
+    "---- // WASM Release -----------------": "",
+    "wasm:all": "npm run wasm:pcg && npm run wasm:xoroshiro128plus && npm run wasm:xoroshiro128plus-simd && npm run wasm:xoshiro256plus && npm run wasm:xoshiro256plus-simd",
+    "wasm:pcg": "asc src/assembly/pcg.ts --target pcg --config asconfig.release.json",
+    "wasm:xoroshiro128plus": "asc src/assembly/xoroshiro128plus.ts --target xoroshiro128plus --config asconfig.release.json",
+    "wasm:xoroshiro128plus-simd": "asc src/assembly/xoroshiro128plus-simd.ts --target xoroshiro128plus-simd --config asconfig.release.json",
+    "wasm:xoshiro256plus": "asc src/assembly/xoshiro256plus.ts --target xoshiro256plus --config asconfig.release.json",
+    "wasm:xoshiro256plus-simd": "asc src/assembly/xoshiro256plus-simd.ts --target xoshiro256plus-simd --config asconfig.release.json",
+    "---- // WASM Debug -------------------": "",
+    "wasm:dev:all": "npm run wasm:dev:pcg && npm run wasm:dev:xoroshiro128plus && npm run wasm:dev:xoroshiro128plus-simd && npm run wasm:dev:xoshiro256plus && npm run wasm:dev:xoshiro256plus-simd",
+    "wasm:dev:pcg": "asc src/assembly/pcg.ts --target pcg --config asconfig.debug.json",
+    "wasm:dev:xoroshiro128plus": "asc src/assembly/xoroshiro128plus.ts --target xoroshiro128plus --config asconfig.debug.json",
+    "wasm:dev:xoroshiro128plus-simd": "asc src/assembly/xoroshiro128plus-simd.ts --target xoroshiro128plus-simd --config asconfig.debug.json",
+    "wasm:dev:xoshiro256plus": "asc src/assembly/xoshiro256plus.ts --target xoshiro256plus --config asconfig.debug.json",
+    "wasm:dev:xoshiro256plus-simd": "asc src/assembly/xoshiro256plus-simd.ts --target xoshiro256plus-simd --config asconfig.debug.json"
+  }
+}

@@ -1,0 +1,8 @@
+# dependencies
+/node_modules
+
+# generated
+/debug
+/bin
+/dist
+fast-prng-wasm-*.tgz

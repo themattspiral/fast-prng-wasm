@@ -1,0 +1,36 @@
+{
+    "options": {
+        "sourceMap": false,
+        "optimizeLevel": 3,
+        "shrinkLevel": 2,
+        "converge": true,
+        "noAssert": true,
+        "uncheckedBehavior": "always",
+        "initialMemory": 1,
+        "maximumMemory": 1,
+        "runtime": "stub"
+    },
+    "targets": {
+        "pcg": {
+            "outFile": "bin/pcg.wasm"
+        },
+        "pcg-simd": {
+            "outFile": "bin/pcg-simd.wasm",
+            "enable": ["simd"]
+        },
+        "xoroshiro128plus": {
+            "outFile": "bin/xoroshiro128plus.wasm"
+        },
+        "xoroshiro128plus-simd": {
+            "outFile": "bin/xoroshiro128plus-simd.wasm",
+            "enable": ["simd"]
+        },
+        "xoshiro256plus": {
+            "outFile": "bin/xoshiro256plus.wasm"
+        },
+        "xoshiro256plus-simd": {
+            "outFile": "bin/xoshiro256plus-simd.wasm",
+            "enable": ["simd"]
+        }
+    }
+}
