@@ -1,4 +1,4 @@
-import { seed64Array } from './seeds';
+import { seed64Array } from './seeds.js';
 
 // @rollup/plugin-wasm imports these as base64 strings, and provides us a 
 // function so that each can be compiled and loaded synchronously.

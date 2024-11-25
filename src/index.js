@@ -1,2 +1,2 @@
-export * from './seeds';
-export * from './random-generator';
+export * from './seeds.js';
+export * from './random-generator.js';

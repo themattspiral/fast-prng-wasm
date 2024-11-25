@@ -14,14 +14,17 @@ A collection of fast, SIMD-enabled pseudo random number generators that run in W
 - Can be imported to other [AssemblyScript](https://www.assemblyscript.org/) projects as part of a larger WASM compilation
 
 ### PRNG Algorithms:
-- PCG (XSH RR)
-  - [PCG: A Family of Better Random Number Generators](https://www.pcg-random.org)
-- Xoroshiro128+
-- Xoroshiro128+ (SIMD)  **[default]**
-- Xoshiro256+
-- Xoshiro256+ (SIMD)
-  - [`xoshiro` / `xoroshiro` generators and the PRNG shootout](https://prng.di.unimi.it/)
+- `PRNG.PCG` (PCG XSH RR): 32-bit generator with 64 bits of state
+- `PRNG.Xoroshiro128Plus` (Xoroshiro128+): 32-bit generator with 128 bits of state, and period of 2<sup>128</sup>
+- `PRNG.Xoroshiro128Plus_SIMD` (Xoroshiro128+): 32-bit generator with 128 bits of state, and period of 2<sup>128</sup>
+  - This version is SIMD-enabled, and so provides 2 random outputs for the price of 1
+- `PRNG.Xoshiro256Plus` (Xoshiro256+): 64-bit generator with 256 bits of state, and period of 2<sup>256</sup>
+- `PRNG.Xoshiro256Plus_SIMD` (Xoshiro256+): 64-bit generator with 256 bits of state, and period of 2<sup>256</sup>
+  - This version is SIMD-enabled, and so provides 2 random outputs for the price of 1
 
+#### Further Reading:
+- [PCG: A Family of Better Random Number Generators](https://www.pcg-random.org)
+- [`xoshiro` / `xoroshiro` generators and the PRNG shootout](https://prng.di.unimi.it/)
 
 ## Usage
 
@@ -121,7 +124,8 @@ Coming soon.
 
 
 ## Demos
-Coming soon.
+See the `demo/` folder for all available demos. Each one is treated as a separate project:
+- **`pmc`**: Pi Monte Carlo - A [Monte Carlo estimation of pi (π)](https://www.geeksforgeeks.org/estimating-value-pi-using-monte-carlo/) using a large quantity of random numbers
 
 
 ## Working With This Repo
