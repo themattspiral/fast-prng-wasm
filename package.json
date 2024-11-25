@@ -1,6 +1,6 @@
 {
   "name": "fast-prng-wasm",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "A collection of fast, SIMD-enabled, pseudo random number generators in WebAssembly. Simple to use from JavaScript (node or browser), and AssemblyScript.",
   "author": "Matt Ritter <matthew.d.ritter@gmail.com>",
   "license": "MIT",
