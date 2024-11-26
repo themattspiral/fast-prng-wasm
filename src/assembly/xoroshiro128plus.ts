@@ -43,6 +43,11 @@ export function next(): u64 {
     return result;
 };
 
+@inline
+export function nextPositive(): u64 {
+    return next() & 0xFFFFFFFFFFFFFFFF;
+}
+
 /**
  * No runtime function call penalty is incurred here because 
  * we inline and optimize the build at compile time.
