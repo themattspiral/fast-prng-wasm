@@ -9,8 +9,7 @@ import Xoshiro256Plus from '../bin/xoshiro256plus.wasm';
 import Xoshiro256Plus_SIMD from '../bin/xoshiro256plus-simd.wasm';
 
 /**
- * PRNG Algorithm Type
- * @enum {string}
+ * @enum {string} PRNG Algorithm Type
  * */
 export const PRNGType = {
     PCG: 'PCG',
@@ -145,13 +144,15 @@ export class RandomGenerator {
     }
 
     /**
-     * Get the generator's next **signed** 64-bit number
-     * @returns {bigint} A `u64` value in WASM converted to a **signed** BigInt
-     * in JS. ⚠️Note⚠️: This behavior is different than the unsigned values
-     * returned by nextArray_BigInt() and so is currently considered a bug.
+     * Get the generator's next unsigned 64-bit integer
+     * @returns {bigint} An unsigned `bigint` providing 64-bits of 
+     * randomness.
      */
     nextBigInt() {
-        return this.#instance.next();
+        // `u64` return type in WASM is treated as an `i64` and converted to a
+        // signed BigInt in JS, so we mask it before returning to ensure the 
+        // value is treated as unsigned
+        return this.#instance.next() & 0xFFFFFFFFFFFFFFFFn;
     }
 
     /**
@@ -181,7 +182,7 @@ export class RandomGenerator {
     }
 
     /**
-     * Get the generator's next set of 64-bit numbers. Array size is set when
+     * Get the generator's next set of 64-bit integers. Array size is set when
      * generator is created, or by changing {@link outputArraySize}.
      * @returns {BigUint64Array} An array of `u64` values in WASM viewed as
      * unsigned `bigint` values. This output buffer is reused with each call.
