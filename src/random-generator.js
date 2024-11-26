@@ -145,9 +145,10 @@ export class RandomGenerator {
     }
 
     /**
-     * Get the generator's next 64-bit number
-     * @returns {bigint} A `u64` value in WASM converted to a (signed) BigInt
-     * in JS.
+     * Get the generator's next **signed** 64-bit number
+     * @returns {bigint} A `u64` value in WASM converted to a **signed** BigInt
+     * in JS. ⚠️Note⚠️: This behavior is different than the unsigned values
+     * returned by nextArray_BigInt() and so is currently considered a bug.
      */
     nextBigInt() {
         return this.#instance.next();
@@ -182,8 +183,8 @@ export class RandomGenerator {
     /**
      * Get the generator's next set of 64-bit numbers. Array size is set when
      * generator is created, or by changing {@link outputArraySize}.
-     * @returns {Array<bigint>} An array of `u64` values in WASM converted to
-     * (signed) BigInts
+     * @returns {BigUint64Array} An array of `u64` values in WASM viewed as
+     * unsigned `bigint` values. This output buffer is reused with each call.
      */
     nextArray_BigInt() {
         this.#instance.fillUint64Array(this.#bigIntOutputArrayPtr);
@@ -194,7 +195,8 @@ export class RandomGenerator {
      * Get the generator's next set of Float numbers in range [0, 1).
      * Array size is set when generator is created, or by changing 
      * {@link outputArraySize}.
-     * @returns {Array<number>}
+     * @returns {Float64Array} An array of `f64` values in WASM viewed as
+     * `number` values. This output buffer is reused with each call.
      */
     nextArray_Numbers() {
         this.#instance.fillFloat64Array_Numbers(this.#floatOutputArrayPtr);
@@ -205,7 +207,8 @@ export class RandomGenerator {
      * Get the generator's next set of Float numbers in range (-1, 1).
      * Array size is set when generator is created, or by changing 
      * {@link outputArraySize}. Useful for Monte Carlo simulation.
-     * @returns {Array<number>}
+     * @returns {Float64Array} An array of `f64` values in WASM viewed as
+     * `number` values. This output buffer is reused with each call.
      */
     nextArray_Coords() {
         this.#instance.fillFloat64Array_Coords(this.#floatOutputArrayPtr);
@@ -216,7 +219,8 @@ export class RandomGenerator {
      * Get the generator's next set of squared Float numbers in range (-1, 1).
      * Array size is set when generator is created, or by changing 
      * {@link outputArraySize}. Useful for Monte Carlo simulation.
-     * @returns {Array<number>}
+     * @returns {Float64Array} An array of `f64` values in WASM viewed as
+     * `number` values. This output buffer is reused with each call.
      */
     nextArray_CoordsSquared() {
         this.#instance.fillFloat64Array_CoordsSquared(this.#floatOutputArrayPtr);

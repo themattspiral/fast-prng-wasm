@@ -79,32 +79,53 @@ console.log(num1 === num3);           // false
 
 ### Array Output
 
-The fastest way to get random numbers in bulk is to use the `nextArray_*` methods of `RandomGenerator`.
+The fastest way to get random numbers in bulk is to use the `nextArray_*` methods of `RandomGenerator`. Each call to one of these functions fills an internal buffer with the next 1000 (by default) random numbers, and then **returns a view** of the buffer to JavaScript as an appropriate `TypedArray`, either `BigUint64Array` or `Float64Array`.
 
-💡 Array functions must be used instead of single-value functions to get the additional throughput offered by SIMD algorithm types (these have higher throughput because they produce multiple numbers at the same time).
+#### 💡 SIMD
+Array functions must be used instead of single-value functions to get the additional throughput offered by SIMD algorithm types (these have higher throughput because they produce multiple numbers at the same time).
+
+#### ⚠️Warning
+Because you are consuming random numbers out of a view on a portion of shared WebAssembly memory, and this memory is reused between calls to the `nextArray_*` functions, you must actually consume (e.g. test/calculate, or copy) these numbers between each call.
 
 ``` js
 const gen = new RandomGenerator();
-let randomArray = gen.nextArray_Numbers();    // 1000 random floats in [0, 1)
+const randomArray1 = gen.nextArray_Numbers();   // 1000 random floats in [0, 1)
 
 // ⚠️ Warning: Consume these numbers before making another call to nextArray_*
-console.log(randomArray);
+console.log(randomArray1);
 
-randomArray = gen.nextArray_Numbers();        // 1000 more floats in [0, 1)
-console.log(randomArray);
+const randomArray2 = gen.nextArray_Numbers();   // 1000 more floats in [0, 1)
+console.log(randomArray2);
+
+// Take Note!
+console.log(randomArray1 === randomArray2);     // true (same buffer!)
+```
+
+#### Array Size
+``` js
+const gen = new RandomGenerator();
+const randomArray = gen.nextArray_Numbers();    // 1000 random floats in [0, 1)
 
 // resize output buffer reserved by WASM instance
-gen.outputArraySize = 42;                     // change output array size
-randomArray = gen.nextArray_Numbers();        // 42 random floats in [0, 1)
+gen.outputArraySize = 42;                       // change output array size
+randomArray = gen.nextArray_Numbers();          // 42 random floats in [0, 1)
 console.log(randomArray);
 
 // this exceeds the set memory limits of the WASM instance
-gen.outputArraySize = 5000;                   // Runtime Error ⚠️
+gen.outputArraySize = 5000;                     // Runtime Error ⚠️
 ```
 
 The AssemblyScript configuration in `asconfig.release.json` specifies a fixed WASM memory size of 1 page. This is intentionally kept small to limit resources allocated to WASM instances -- and because output arrays larger than the default of 1000 don't increase performance any further, even when generating very large quantities of random numbers.
 
 If for some reason you need a larger array, you can increase the configured memory size and [rebuild the library](#working-with-this-repo).
+
+
+
+
+
+
+
+
 
 
 ## JavaScript API
