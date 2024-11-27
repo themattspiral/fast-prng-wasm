@@ -1,28 +1,27 @@
 # fast-prng-wasm
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/themattspiral/fast-prng-wasm/blob/main/LICENSE.md) [![npm version](https://img.shields.io/npm/v/fast-prng-wasm.svg?style=flat)](https://www.npmjs.com/package/fast-prng-wasm)
 
-A collection of fast, SIMD-enabled pseudo random number generators that run in WebAssembly.
+A collection of fast, SIMD-enabled pseudo random number generators that run in [WebAssembly](https://developer.mozilla.org/en-US/docs/WebAssembly).
 
 ### Features:
 - Simple usage from JavaScript
 - Supports both Node and browsers
-- Transparent, synchronous WASM loading (embedded binaries - no `fs` or `fetch`)
+- Transparent, synchronous WASM loading (embedded binaries - no `fs` or `fetch` required)
 - Seedable (or auto-seeded)
 - Jumpable (for shared-seed/unique-stream parallelization)
-- Single value and bulk array outputs
-- Designed for speed - SIMD versions allow higher throughput
+- Float, Integer, and BigInt outputs
+- Single value and bulk array functions
+- Designed for speed - [WASM SIMD](https://github.com/WebAssembly/simd/blob/master/proposals/simd/SIMD.md) versions allow higher throughput
 - Can be imported to other [AssemblyScript](https://www.assemblyscript.org/) projects as part of a larger WASM compilation
 
 ### PRNG Algorithms:
-- `PRNG.PCG` (PCG XSH RR): 32-bit generator with 64 bits of state
-- `PRNG.Xoroshiro128Plus` (Xoroshiro128+): 32-bit generator with 128 bits of state, and period of 2<sup>128</sup>
-- `PRNG.Xoroshiro128Plus_SIMD` (Xoroshiro128+): 32-bit generator with 128 bits of state, and period of 2<sup>128</sup>
-  - This version is SIMD-enabled, and so provides 2 random outputs for the price of 1
-- `PRNG.Xoshiro256Plus` (Xoshiro256+): 64-bit generator with 256 bits of state, and period of 2<sup>256</sup>
-- `PRNG.Xoshiro256Plus_SIMD` (Xoshiro256+): 64-bit generator with 256 bits of state, and period of 2<sup>256</sup>
-  - This version is SIMD-enabled, and so provides 2 random outputs for the price of 1
+- **PCG XSH RR:** 32-bit generator with 64 bits of state
+- **Xoroshiro128+:** 64-bit generator with 128 bits of state (2<sup>128</sup> period)
+- **Xoroshiro128+ (SIMD):** A SIMD-enabled version of above; provides 2 random outputs for the price of 1
+- **Xoshiro256+:** 64-bit generator with 256 bits of state (2<sup>256</sup> period)
+- **Xoshiro256+ (SIMD):** SIMD-enabled version of above; provides 2 random outputs for the price of 1
 
-#### Further Reading:
+#### Further PRNG Reading:
 - [PCG: A Family of Better Random Number Generators](https://www.pcg-random.org)
 - [`xoshiro` / `xoroshiro` generators and the PRNG shootout](https://prng.di.unimi.it/)
 
@@ -43,12 +42,16 @@ A collection of fast, SIMD-enabled pseudo random number generators that run in W
 
 ### Basics
 ``` js
-const gen = new RandomGenerator();    // default is Xoroshiro128Plus_SIMD
-console.log(gen.nextBigInt());        // random 64-bit BigInt value
-console.log(gen.nextNumber());        // random float Number in [0, 1)
+const gen = new RandomGenerator();      // default is Xoroshiro128Plus_SIMD
+console.log(gen.nextBigInt());          // random 64-bit BigInt value
+console.log(gen.nextIntegerNumber());   // random 53-bit integer value as a Number
+console.log(gen.nextNumber());          // random float Number in [0, 1)
 
-const pcgGen = new RandomGenerator(PRNGType.PCG);   // a PCG generator
-console.log(pcgGen.nextNumber());     // random float Number in [0, 1)
+// a PCG generator, exposing the same interface
+const pcgGen = new RandomGenerator(PRNGType.PCG);
+console.log(gen.nextBigInt());          // random 64-bit BigInt value
+console.log(gen.nextIntegerNumber());   // random 53-bit integer value as a Number
+console.log(gen.nextNumber());          // random float Number in [0, 1)
 ```
 
 ### Seeding
@@ -59,6 +62,8 @@ const customSeeds = [7n, 9876543210818181n];
 const customSeededGen = new RandomGenerator(PRNGType.Xoroshiro128Plus, customSeeds);
 
 // 2) auto-generated seed set, shared between multiple generators
+// Uses SplitMix64 generator (with current time and Math.random seeds) to
+// generate 8 random 64-bit seeds suitable for any PRNG type in this lib
 const sharedSeeds = seed64Array();    // Array<bigint> (8)
 
 const seededGen1 = new RandomGenerator(PRNGType.Xoshiro256Plus, sharedSeeds);
@@ -84,27 +89,35 @@ The fastest way to get random numbers in bulk is to use the `nextArray_*` method
 #### 💡 SIMD
 Array functions must be used instead of single-value functions to get the additional throughput offered by SIMD algorithm types (these have higher throughput because they produce multiple numbers at the same time).
 
-#### ⚠️Warning
-Because you are consuming random numbers out of a view on a portion of shared WebAssembly memory, and this memory is reused between calls to the `nextArray_*` functions, you must actually consume (e.g. test/calculate, or copy) these numbers between each call.
+``` js
+const gen = new RandomGenerator();
+const randomArray = gen.nextArray_BigInts();          // 1000 unsigned BigInts
+const randomArray2 = gen.nextArray_IntegerNumbers();  // 1000 unsigned integer Numbers
+const randomArray3 = gen.nextArray_Numbers();         // 1000 float Numbers in [0, 1)
+```
+
+#### ⚠️Shared Buffer Warning⚠️
+Because you are consuming random numbers out of a view on a portion of shared WebAssembly memory, and this *memory is reused between calls* to the `nextArray_*` functions, **you must actually consume (e.g. test/calculate, or copy) these numbers between each call**.
 
 ``` js
 const gen = new RandomGenerator();
-const randomArray1 = gen.nextArray_Numbers();   // 1000 random floats in [0, 1)
 
-// ⚠️ Warning: Consume these numbers before making another call to nextArray_*
+// ⚠️Warning⚠️: Consume these numbers before making another call to nextArray_*
+const randomArray1 = gen.nextArray_Numbers();   // 1000 float Numbers in [0, 1)
 console.log(randomArray1);
 
-const randomArray2 = gen.nextArray_Numbers();   // 1000 more floats in [0, 1)
+// the values originally in randomArray1 will be replaced now!
+const randomArray2 = gen.nextArray_Numbers();   // 1000 floats in [0, 1)
 console.log(randomArray2);
 
-// Take Note!
 console.log(randomArray1 === randomArray2);     // true (same buffer!)
 ```
 
 #### Array Size
 ``` js
-const gen = new RandomGenerator();
-const randomArray = gen.nextArray_Numbers();    // 1000 random floats in [0, 1)
+// providing null seeds on instantiation will auto-seed the generator
+const gen = new RandomGenerator(PRNGType.PCG, null, 0, 200);
+const randomArray = gen.nextArray_Numbers();    // 200 random floats in [0, 1)
 
 // resize output buffer reserved by WASM instance
 gen.outputArraySize = 42;                       // change output array size
@@ -120,36 +133,42 @@ The AssemblyScript configuration in `asconfig.release.json` specifies a fixed WA
 If for some reason you need a larger array, you can increase the configured memory size and [rebuild the library](#working-with-this-repo).
 
 
-
-
-
-
-
-
-
-
 ## JavaScript API
 Docs coming soon.
 
 Code contains JSDoc comments which should be visible in IDEs.
 
+Also see [`RandomGenerator` source](https://github.com/themattspiral/fast-prng-wasm/blob/main/src/random-generator.js).
+
 
 ## AssemblyScript API
 Docs coming soon.
 
-For now, see `RandomGenerator` source, and/or individual generator AssemblyScript source to see the interface.
+For now, see individual generator [AssemblyScript source](https://github.com/themattspiral/fast-prng-wasm/tree/main/src/assembly) to see the interface.
 
 
 ## Compatibility
-Coming soon.
+See the [WebAssembly Features Roadmap](https://webassembly.org/features/) for the latest compatibility information across various browsers and Node versions.
+
+Note that this library makes use of the following feature extensions:
+- [JS BigInt to Wasm i64 Integration](https://github.com/WebAssembly/JS-BigInt-integration) - Any function that returns `BigInt`s uses this feature
+- [Fixed-width SIMD](https://github.com/WebAssembly/simd/blob/master/proposals/simd/SIMD.md) - Any SIMD PRNG Algorithm Type uses this feature
 
 
 ## Demos
-See the `demo/` folder for all available demos. Each one is treated as a separate project:
-- **`pmc`**: Pi Monte Carlo - A [Monte Carlo estimation of pi (π)](https://www.geeksforgeeks.org/estimating-value-pi-using-monte-carlo/) using a large quantity of random numbers
+See the [`demo/` folder](https://github.com/themattspiral/fast-prng-wasm/tree/main/demo) for all available demos. Each one is treated as a separate project.
+- [**`pmc` - Pi Monte Carlo:**](https://github.com/themattspiral/fast-prng-wasm/tree/main/demo/pmc) A Monte Carlo estimation of pi (π) using a large quantity of random numbers
+  - Node CLI demo app
+  - Uses multiple generator instances (one per worker thread)
+  - Shares a single seed set across generators
+  - Uses generator jump function to select unique stream per worker
 
 
 ## Working With This Repo
 Coming soon.
 
 For now, see scripts in `package.json`.
+
+
+## Roadmap
+Planned features are listed in [TODO.md](https://github.com/themattspiral/fast-prng-wasm/blob/main/TODO.md)
