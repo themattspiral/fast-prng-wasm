@@ -51,10 +51,10 @@ console.log(gen.nextNumber());          // 53-bit float Number in [0, 1)
 
 // all PRNG types expose the same interface
 const pcgGen = new RandomGenerator(PRNGType.PCG);
-console.log(gen.nextBigInt());          // unsigned 64-bit BigInt
-console.log(gen.nextInteger());         // unsigned 53-bit integer Number
-console.log(gen.nextInteger32());       // unsigned 32-bit integer Number
-console.log(gen.nextNumber());          // 53-bit float Number in [0, 1)
+console.log(pcgGen.nextBigInt());       // unsigned 64-bit BigInt
+console.log(pcgGen.nextInteger());      // unsigned 53-bit integer Number
+console.log(pcgGen.nextInteger32());    // unsigned 32-bit integer Number
+console.log(pcgGen.nextNumber());       // 53-bit float Number in [0, 1)
 ```
 
 ### Seeding
@@ -93,9 +93,9 @@ Array functions must be used instead of single-value functions to get the additi
 
 ``` js
 const gen = new RandomGenerator();
-const randomArray = gen.nextArray_BigInt();           // 1000 unsigned BigInts
-const randomArray2 = gen.nextArray_Integer();         // 1000 unsigned integer Numbers
-const randomArray3 = gen.nextArray_Integer32();       // 1000 unsigned integer Numbers
+const randomArray = gen.nextArray_BigInt();           // 1000 unsigned 64-bit BigInts
+const randomArray2 = gen.nextArray_Integer();         // 1000 unsigned 53-bit integer Numbers
+const randomArray3 = gen.nextArray_Integer32();       // 1000 unsigned 32-bit integer Numbers
 const randomArray4 = gen.nextArray_Number();          // 1000 float Numbers in [0, 1)
 ```
 
