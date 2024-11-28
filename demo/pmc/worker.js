@@ -32,7 +32,7 @@ if (!isMainThread) {
             // each point we test consums 2 numbers from the output array, 
             // so point batch size can be at most half of the output array size.
             const batchPointCount = Math.min(generator.outputArraySize / 2, workerData.pointCount - pointsGenerated);
-            const nums = generator.nextArray_CoordsSquared();
+            const nums = generator.nextArray_CoordSquared();
 
             for (let i = 0; i < batchPointCount * 2; i += 2) {
                 if (nums[i] + nums[i + 1] <= 1) {

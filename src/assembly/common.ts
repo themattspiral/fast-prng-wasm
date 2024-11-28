@@ -3,6 +3,20 @@
 export const JUMP_128: StaticArray<u64> = [0x2bd7a6a6e99c2ddc, 0x0992ccaf6a6fca05];
 export const JUMP_256: StaticArray<u64> = [0x180ec6d33cfd0aba, 0xd5a61266f0c9392c, 0xa9582618e03fc9aa, 0x39abdc4529b1661c];
 
+@inline
+// return a random 53-bit integer between 0 and 2^53 - 1
+// as an f64 so that JS converts it to Number
+export function int53Number(next: u64): f64 {
+    return <f64>(next >> 11);
+}
+
+@inline
+// return a random 32-bit integer between 0 and 2^32 - 1
+// as an f64 so that JS converts it to Number
+export function int32Number(next: u64): f64 {
+    return <f64>(next >> 32);
+}
+
 // return a random f64 number in range [0, 1)
 @inline
 export function number(next: u64): f64 {

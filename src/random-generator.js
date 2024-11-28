@@ -1,7 +1,7 @@
 import { seed64Array } from './seeds.js';
 
-// @rollup/plugin-wasm imports these as base64 strings, and provides us a 
-// function so that each can be compiled and loaded synchronously.
+// @rollup/plugin-wasm imports these binaries as base64 strings, and provides a 
+// function to synchronously compile and instantiate each WASM generator.
 import PCG from '../bin/pcg.wasm';
 import Xoroshiro128Plus from '../bin/xoroshiro128plus.wasm';
 import Xoroshiro128Plus_SIMD from '../bin/xoroshiro128plus-simd.wasm';
@@ -10,7 +10,7 @@ import Xoshiro256Plus_SIMD from '../bin/xoshiro256plus-simd.wasm';
 
 /**
  * @enum {string} PRNG Algorithm Type
- * */
+ */
 export const PRNGType = {
     PCG: 'PCG',
     Xoroshiro128Plus: 'Xoroshiro128Plus',
@@ -73,6 +73,7 @@ export class RandomGenerator {
     /**
      * Creates a seedable pseudo random number generator that 
      * runs in WebAssembly.
+     * 
      * @param {PRNGType} prngType The PRNG algorithm to use. Defaults to 
      * Xoroshiro128Plus.
      * @param {Array<bigint>} seeds Collection of 64-bit integers used to seed 
@@ -145,61 +146,120 @@ export class RandomGenerator {
 
     /**
      * Get the generator's next unsigned 64-bit integer
-     * @returns {bigint} An unsigned `bigint` providing 64-bits of 
-     * randomness.
+     * 
+     * @returns {bigint} An unsigned `bigint` providing 64-bits of randomness,
+     * between 0 and 2^64 - 1
      */
     nextBigInt() {
         // `u64` return type in WASM is treated as an `i64` and converted to a
         // signed BigInt in JS, so we mask it before returning to ensure the 
         // value is treated as unsigned
-        return this.#instance.next() & 0xFFFFFFFFFFFFFFFFn;
+        return this.#instance.nextInt64() & 0xFFFFFFFFFFFFFFFFn;
     }
 
     /**
-     * Get the generator's next Float number in range [0, 1)
-     * @returns {number} A Float between 0 and 1
+     * Get the generator's next unsigned 53-bit integer
+     * 
+     * @returns {number} An unsigned integer `number` providing 53-bits of 
+     * randomness (the most we can fit into a JavaScript `number`), between
+     * 0 and 2^53 - 1 (`Number.MAX_SAFE_INTEGER`)
+     */
+    nextInteger() {
+        // bit-shifted and returned as an f64 from WASM, so we get an unsigned
+        // integer that fits nicely into a `number` without any more transformation
+        return this.#instance.nextInt53Number();
+    }
+
+    /**
+     * Get the generator's next unsigned 32-bit integer
+     * @returns {number} An unsigned integer `number` providing 32-bits of 
+     * randomness, between 0 and 2^32 - 1
+     */
+    nextInteger32() {
+        // bit-shifted and returned as an f64 from WASM, so we get an unsigned
+        // integer that fits nicely into a `number` without any more transformation
+        return this.#instance.nextInt32Number();
+    }
+
+    /**
+     * Get the generator's next floating point number in range [0, 1)
+     * 
+     * @returns {number} A floating point `number` between 0 and 1
      */
     nextNumber() {
         return this.#instance.nextNumber();
     }
 
     /**
-     * Get the generator's next Float number in range (-1, 1). Can be viewed
-     * as a "coordinate" in a unit circle. Useful for Monte Carlo simulation.
-     * @returns {number} A Float between -1 and 1
+     * Get the generator's next floating point number in range (-1, 1).
+     * Can be considered a "coordinate" in a unit circle. Useful for Monte
+     * Carlo simulation.
+     * 
+     * @returns {number} A floating point `number` between -1 and 1
      */
     nextCoord() {
         return this.#instance.nextCoord();
     }
 
     /**
-     * Get the square of the generator's next Float number in range (-1, 1).
-     * Useful for Monte Carlo simulation.
-     * @returns {number} A Float between -1 and 1 multiplied by itself
+     * Get the square of the generator's next floating point number in range
+     * (-1, 1). Useful for Monte Carlo simulation.
+     * 
+     * @returns {number} A floating point `number` between -1 and 1, multiplied
+     * by itself
      */
     nextCoordSquared() {
         return this.#instance.nextCoordSquared();
     }
 
     /**
-     * Get the generator's next set of 64-bit integers. Array size is set when
-     * generator is created, or by changing {@link outputArraySize}.
-     * @returns {BigUint64Array} An array of `u64` values in WASM viewed as
-     * unsigned `bigint` values. This output buffer is reused with each call.
+     * Get the generator's next set of 64-bit integers between
+     * 0 and 2^64 - 1. Array size is set when generator is created, 
+     * or by changing {@link outputArraySize}.
+     * 
+     * @returns {BigUint64Array} An array of 64-bit integers, represented as 
+     * `u64` values in WASM and viewed as unsigned `bigint` values in
+     * JavaScript. This output buffer is reused with each call.
      */
     nextArray_BigInt() {
-        this.#instance.fillUint64Array(this.#bigIntOutputArrayPtr);
+        this.#instance.fillUint64Array_Int64(this.#bigIntOutputArrayPtr);
         return this.#bigIntOutputArray;
+    }
+    
+    /**
+     * Get the generator's next set of 53-bit integers between
+     * 0 and 2^53 - 1 (i.e. `Number.MAX_SAFE_INTEGER`). Array size is set
+     * when generator is created, or by changing {@link outputArraySize}.
+     * @returns {Float64Array} An array of 53-bit integers, represented as
+     * `f64` values in WASM so they can be viewed as `number` values in
+     * JavaScript. This output buffer is reused with each call.
+     */
+    nextArray_Integer() {
+        this.#instance.fillFloat64Array_Int53Numbers(this.#floatOutputArrayPtr);
+        return this.#floatOutputArray;
+    }
+    
+    /**
+     * Get the generator's next set of 32-bit integers between
+     * 0 and 2^32 - 1. Array size is set when generator is created, 
+     * or by changing {@link outputArraySize}.
+     * @returns {Float64Array} An array of 32-bit integers, represented as
+     * `f64` values in WASM so they can be viewed as `number` values in
+     * JavaScript. This output buffer is reused with each call.
+     */
+    nextArray_Integer32() {
+        this.#instance.fillFloat64Array_Int32Numbers(this.#floatOutputArrayPtr);
+        return this.#floatOutputArray;
     }
 
     /**
-     * Get the generator's next set of Float numbers in range [0, 1).
+     * Get the generator's next set of floating point numbers in range [0, 1).
      * Array size is set when generator is created, or by changing 
      * {@link outputArraySize}.
      * @returns {Float64Array} An array of `f64` values in WASM viewed as
      * `number` values. This output buffer is reused with each call.
      */
-    nextArray_Numbers() {
+    nextArray_Number() {
         this.#instance.fillFloat64Array_Numbers(this.#floatOutputArrayPtr);
         return this.#floatOutputArray;
     }
@@ -211,7 +271,7 @@ export class RandomGenerator {
      * @returns {Float64Array} An array of `f64` values in WASM viewed as
      * `number` values. This output buffer is reused with each call.
      */
-    nextArray_Coords() {
+    nextArray_Coord() {
         this.#instance.fillFloat64Array_Coords(this.#floatOutputArrayPtr);
         return this.#floatOutputArray;
     }
@@ -223,19 +283,19 @@ export class RandomGenerator {
      * @returns {Float64Array} An array of `f64` values in WASM viewed as
      * `number` values. This output buffer is reused with each call.
      */
-    nextArray_CoordsSquared() {
+    nextArray_CoordSquared() {
         this.#instance.fillFloat64Array_CoordsSquared(this.#floatOutputArrayPtr);
         return this.#floatOutputArray;
     }
 
     /**
-     * Perform a batch test of random (x, y) points between -1 and 1 to see
-     * if they fall within the corresponding unit circle of radius 1.
+     * Perform a batch test in WASM of random (x, y) points between -1 and 1
+     * and check if they fall within the corresponding unit circle of radius 1.
      * Useful for Monte Carlo simulation.
      * @param {number} pointCount Number of random (x, y) points to generate
      * and test
      * @returns {number} Number of tested points which fall inside of the
-     * unit circle.  
+     * unit circle.
      */
     batchTestUnitCirclePoints(pointCount) {
         return this.#instance.batchTestUnitCirclePoints(pointCount);
