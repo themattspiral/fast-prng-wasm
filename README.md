@@ -95,8 +95,8 @@ Array functions must be used instead of single-value functions to get the additi
 const gen = new RandomGenerator();
 const randomArray = gen.nextArray_BigInt();           // 1000 unsigned BigInts
 const randomArray2 = gen.nextArray_Integer();         // 1000 unsigned integer Numbers
-const randomArray2 = gen.nextArray_Integer32();       // 1000 unsigned integer Numbers
-const randomArray3 = gen.nextArray_Number();          // 1000 float Numbers in [0, 1)
+const randomArray3 = gen.nextArray_Integer32();       // 1000 unsigned integer Numbers
+const randomArray4 = gen.nextArray_Number();          // 1000 float Numbers in [0, 1)
 ```
 
 #### ⚠️Shared Buffer Warning⚠️
