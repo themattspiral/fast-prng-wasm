@@ -6,8 +6,17 @@ A [Monte Carlo estimation of pi (π)](https://www.geeksforgeeks.org/estimating-v
 - This project is a good example of using a single set of shared seeds across multiple generators, combined with using unique `jumpCount` values (on generator creation) to select a unique random stream for each generator.
 
 ## Install Demo Deps & Run
-💡 Assumes your working directory is `demo/pmc/`
+This demo uses a local dependency for `fast-prng-wasm`, so you must build it first (or install a published version instead). 
+
+In the project root:
 ``` sh
+npm i
+npm run build
+```
+ 
+Change directory to `demo/pmc`, install dependencies, and run:
+``` sh
+cd demo/pmc
 npm i
 node pmc.js
 ```

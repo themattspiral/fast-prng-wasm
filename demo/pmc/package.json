@@ -1,6 +1,6 @@
 {
   "name": "pmc",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Pi Monte Carlo - A Monte Carlo pi (π) estimation for node, using worker_threads and fast-prng-wasm for speedy random point generation",
   "author": "Matt Ritter (matthew.d.ritter@gmail.com)",
   "license": "MIT",
@@ -11,6 +11,6 @@
   },
   "dependencies": {
     "bignumber.js": "^9.1.2",
-    "fast-prng-wasm": "^0.3.1"
+    "fast-prng-wasm": "file:../.."
   }
 }
