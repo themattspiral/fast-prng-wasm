@@ -1,4 +1,4 @@
-import { number, coord, coordSquared } from './common';
+import { int32Number, int53Number, number, coord, coordSquared } from './common';
 
 const MUL: u64 = 6364136223846793005;
 const INC: u64 = 1442695040888963407;
@@ -7,11 +7,15 @@ let state: u64 = 0;
 
 export function setSeed(seed: u64): void {
     state = seed;
-    next32();
+    nextInt32();
 }
 
+/**
+ * Main PCG state advancement / generator function.
+ * @returns This generator's next unsigned 32-bit integer.
+ */
 @inline
-export function next32(): u32 {
+export function nextInt32(): u32 {
     const oldState: u64 = state;
 
     state = oldState * MUL + INC;
@@ -23,36 +27,47 @@ export function next32(): u32 {
     return (xorshifted >> rot) | (xorshifted << (-rot & 31));
 }
 
-@inline
-export function next(): u64 {
-    return (<u64>next32() << 32) | <u64>next32();
-}
+// No runtime function call penalty is incurred by chaining these functions,
+// because we inline them and optimize the build at compile time
 
 /**
- * No runtime function call penalty is incurred here because 
- * we inline and optimize the build at compile time.
+ * Chain two u32s together to get a u64.
+ * @returns This generator's next unsigned 64-bit integer.
  */
 @inline
+export function nextInt64(): u64 {
+    return (<u64>nextInt32() << 32) | <u64>nextInt32();
+}
+
+@inline
+export function nextInt53Number(): f64 {
+    return int53Number(nextInt64());
+}
+
+@inline
+export function nextInt32Number(): f64 {
+    return int32Number(nextInt64());
+}
+
+@inline
 export function nextNumber(): f64 {
-    return number(next());
+    return number(nextInt64());
 }
 
 @inline
 export function nextCoord(): f64 {
-    return coord(next());
+    return coord(nextInt64());
 }
 
 @inline
 export function nextCoordSquared(): f64 {
-    return coordSquared(next());
+    return coordSquared(nextInt64());
 }
 
-/**
- * Expose array management functions from this module.
- */
+// Expose array management functions from this module
 export { allocUint64Array, allocFloat64Array, freeArray } from './common';
 
-/**
+/*
  * If we extract the following mostly-repeated functions to shared logic, 
  * define a type for the function, and pass the generator function as a 
  * parameter, it runs somewhat slower because of runtime function call overhead
@@ -65,7 +80,7 @@ export { allocUint64Array, allocFloat64Array, freeArray } from './common';
  *  Everything slows down. So we opt instead for static functions and speed.
  */
 
-// Monte Carlo test: Count how many random points fall inside a unit circle
+/** Monte Carlo test: Count how many random points fall inside a unit circle */
 export function batchTestUnitCirclePoints(count: i32): i32 {
     let inCircle: i32 = 0;
     let xSquared: f64;
@@ -83,9 +98,24 @@ export function batchTestUnitCirclePoints(count: i32): i32 {
     return inCircle;
 }
 
-export function fillUint64Array(arr: Uint64Array): void {
+/*
+ * Array Fill Functions 
+ */
+
+export function fillUint64Array_Int64(arr: Uint64Array): void {
     for (let i: i32 = 0; i < arr.length; i++) {
-        unchecked(arr[i] = next());
+        unchecked(arr[i] = nextInt64());
+    }
+}
+
+export function fillFloat64Array_Int53Numbers(arr: Float64Array): void {
+    for (let i: i32 = 0; i < arr.length; i++) {
+        unchecked(arr[i] = nextInt53Number());
+    }
+}
+export function fillFloat64Array_Int32Numbers(arr: Float64Array): void {
+    for (let i: i32 = 0; i < arr.length; i++) {
+        unchecked(arr[i] = nextInt32Number());
     }
 }
 

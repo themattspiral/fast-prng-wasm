@@ -73,6 +73,7 @@ export class RandomGenerator {
     /**
      * Creates a seedable pseudo random number generator that 
      * runs in WebAssembly.
+     * 
      * @param {PRNGType} prngType The PRNG algorithm to use. Defaults to 
      * Xoroshiro128Plus.
      * @param {Array<bigint>} seeds Collection of 64-bit integers used to seed 
@@ -145,6 +146,7 @@ export class RandomGenerator {
 
     /**
      * Get the generator's next unsigned 64-bit integer
+     * 
      * @returns {bigint} An unsigned `bigint` providing 64-bits of randomness,
      * between 0 and 2^64 - 1
      */
@@ -157,29 +159,31 @@ export class RandomGenerator {
 
     /**
      * Get the generator's next unsigned 53-bit integer
+     * 
      * @returns {number} An unsigned integer `number` providing 53-bits of 
      * randomness (the most we can fit into a JavaScript `number`), between
-     * 0 and 2^53 - 1 (i.e. `Number.MAX_SAFE_INTEGER`)
+     * 0 and 2^53 - 1 (`Number.MAX_SAFE_INTEGER`)
      */
-    nextIntegerNumber() {
+    nextInteger() {
         // bit-shifted and returned as an f64 from WASM, so we get an unsigned
-        // integer that fits nicely into a `number` without any more work
+        // integer that fits nicely into a `number` without any more transformation
         return this.#instance.nextInt53Number();
     }
 
-   /**
+    /**
      * Get the generator's next unsigned 32-bit integer
      * @returns {number} An unsigned integer `number` providing 32-bits of 
      * randomness, between 0 and 2^32 - 1
      */
-   nextInteger32Number() {
-    // bit-shifted and returned as an f64 from WASM, so we get an unsigned
-    // integer that fits nicely into a `number` without any more work
-    return this.#instance.nextInt32Number();
-}
+    nextInteger32() {
+        // bit-shifted and returned as an f64 from WASM, so we get an unsigned
+        // integer that fits nicely into a `number` without any more transformation
+        return this.#instance.nextInt32Number();
+    }
 
     /**
      * Get the generator's next floating point number in range [0, 1)
+     * 
      * @returns {number} A floating point `number` between 0 and 1
      */
     nextNumber() {
@@ -187,9 +191,10 @@ export class RandomGenerator {
     }
 
     /**
-     * Get the generator's next floating point number in range (-1, 1). 
-     * Can be viewed as a "coordinate" in a unit circle. Useful for Monte
+     * Get the generator's next floating point number in range (-1, 1).
+     * Can be considered a "coordinate" in a unit circle. Useful for Monte
      * Carlo simulation.
+     * 
      * @returns {number} A floating point `number` between -1 and 1
      */
     nextCoord() {
@@ -199,6 +204,7 @@ export class RandomGenerator {
     /**
      * Get the square of the generator's next floating point number in range
      * (-1, 1). Useful for Monte Carlo simulation.
+     * 
      * @returns {number} A floating point `number` between -1 and 1, multiplied
      * by itself
      */
@@ -210,11 +216,12 @@ export class RandomGenerator {
      * Get the generator's next set of 64-bit integers between
      * 0 and 2^64 - 1. Array size is set when generator is created, 
      * or by changing {@link outputArraySize}.
+     * 
      * @returns {BigUint64Array} An array of 64-bit integers, represented as 
      * `u64` values in WASM and viewed as unsigned `bigint` values in
      * JavaScript. This output buffer is reused with each call.
      */
-    nextArray_BigInts() {
+    nextArray_BigInt() {
         this.#instance.fillUint64Array_Int64(this.#bigIntOutputArrayPtr);
         return this.#bigIntOutputArray;
     }
@@ -227,7 +234,7 @@ export class RandomGenerator {
      * `f64` values in WASM so they can be viewed as `number` values in
      * JavaScript. This output buffer is reused with each call.
      */
-    nextArray_IntegerNumbers() {
+    nextArray_Integer() {
         this.#instance.fillFloat64Array_Int53Numbers(this.#floatOutputArrayPtr);
         return this.#floatOutputArray;
     }
@@ -240,7 +247,7 @@ export class RandomGenerator {
      * `f64` values in WASM so they can be viewed as `number` values in
      * JavaScript. This output buffer is reused with each call.
      */
-    nextArray_Integer32Numbers() {
+    nextArray_Integer32() {
         this.#instance.fillFloat64Array_Int32Numbers(this.#floatOutputArrayPtr);
         return this.#floatOutputArray;
     }
@@ -252,7 +259,7 @@ export class RandomGenerator {
      * @returns {Float64Array} An array of `f64` values in WASM viewed as
      * `number` values. This output buffer is reused with each call.
      */
-    nextArray_Numbers() {
+    nextArray_Number() {
         this.#instance.fillFloat64Array_Numbers(this.#floatOutputArrayPtr);
         return this.#floatOutputArray;
     }
@@ -264,7 +271,7 @@ export class RandomGenerator {
      * @returns {Float64Array} An array of `f64` values in WASM viewed as
      * `number` values. This output buffer is reused with each call.
      */
-    nextArray_Coords() {
+    nextArray_Coord() {
         this.#instance.fillFloat64Array_Coords(this.#floatOutputArrayPtr);
         return this.#floatOutputArray;
     }
@@ -276,7 +283,7 @@ export class RandomGenerator {
      * @returns {Float64Array} An array of `f64` values in WASM viewed as
      * `number` values. This output buffer is reused with each call.
      */
-    nextArray_CoordsSquared() {
+    nextArray_CoordSquared() {
         this.#instance.fillFloat64Array_CoordsSquared(this.#floatOutputArrayPtr);
         return this.#floatOutputArray;
     }

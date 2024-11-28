@@ -42,16 +42,19 @@ A collection of fast, SIMD-enabled pseudo random number generators that run in [
 
 ### Basics
 ``` js
-const gen = new RandomGenerator();      // default is Xoroshiro128Plus_SIMD
-console.log(gen.nextBigInt());          // random 64-bit BigInt value
-console.log(gen.nextIntegerNumber());   // random 53-bit integer value as a Number
-console.log(gen.nextNumber());          // random float Number in [0, 1)
+// default PRNG type is Xoroshiro128Plus_SIMD
+const gen = new RandomGenerator();
+console.log(gen.nextBigInt());          // unsigned 64-bit BigInt
+console.log(gen.nextInteger());         // unsigned 53-bit integer Number
+console.log(gen.nextInteger32());       // unsigned 32-bit integer Number
+console.log(gen.nextNumber());          // 53-bit float Number in [0, 1)
 
-// a PCG generator, exposing the same interface
+// all PRNG types expose the same interface
 const pcgGen = new RandomGenerator(PRNGType.PCG);
-console.log(gen.nextBigInt());          // random 64-bit BigInt value
-console.log(gen.nextIntegerNumber());   // random 53-bit integer value as a Number
-console.log(gen.nextNumber());          // random float Number in [0, 1)
+console.log(gen.nextBigInt());          // unsigned 64-bit BigInt
+console.log(gen.nextInteger());         // unsigned 53-bit integer Number
+console.log(gen.nextInteger32());       // unsigned 32-bit integer Number
+console.log(gen.nextNumber());          // 53-bit float Number in [0, 1)
 ```
 
 ### Seeding
@@ -62,8 +65,7 @@ const customSeeds = [7n, 9876543210818181n];
 const customSeededGen = new RandomGenerator(PRNGType.Xoroshiro128Plus, customSeeds);
 
 // 2) auto-generated seed set, shared between multiple generators
-// Uses SplitMix64 generator (with current time and Math.random seeds) to
-// generate 8 random 64-bit seeds suitable for any PRNG type in this lib
+// (returns 8 SplitMix64-generated seeds, good for all supported PRNG types)
 const sharedSeeds = seed64Array();    // Array<bigint> (8)
 
 const seededGen1 = new RandomGenerator(PRNGType.Xoshiro256Plus, sharedSeeds);
@@ -84,16 +86,17 @@ console.log(num1 === num3);           // false
 
 ### Array Output
 
-The fastest way to get random numbers in bulk is to use the `nextArray_*` methods of `RandomGenerator`. Each call to one of these functions fills an internal buffer with the next 1000 (by default) random numbers, and then **returns a view** of the buffer to JavaScript as an appropriate `TypedArray`, either `BigUint64Array` or `Float64Array`.
+The fastest way to get random numbers in bulk is to use the `nextArray_*` methods of `RandomGenerator`. Each call to one of these functions fills an internal buffer with the next 1000 (by default) random numbers, and then **returns a view** of the buffer to JavaScript as an appropriate [`TypedArray`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray), either `BigUint64Array` or `Float64Array`.
 
 #### 💡 SIMD
 Array functions must be used instead of single-value functions to get the additional throughput offered by SIMD algorithm types (these have higher throughput because they produce multiple numbers at the same time).
 
 ``` js
 const gen = new RandomGenerator();
-const randomArray = gen.nextArray_BigInts();          // 1000 unsigned BigInts
-const randomArray2 = gen.nextArray_IntegerNumbers();  // 1000 unsigned integer Numbers
-const randomArray3 = gen.nextArray_Numbers();         // 1000 float Numbers in [0, 1)
+const randomArray = gen.nextArray_BigInt();           // 1000 unsigned BigInts
+const randomArray2 = gen.nextArray_Integer();         // 1000 unsigned integer Numbers
+const randomArray2 = gen.nextArray_Integer32();       // 1000 unsigned integer Numbers
+const randomArray3 = gen.nextArray_Number();          // 1000 float Numbers in [0, 1)
 ```
 
 #### ⚠️Shared Buffer Warning⚠️
@@ -103,29 +106,29 @@ Because you are consuming random numbers out of a view on a portion of shared We
 const gen = new RandomGenerator();
 
 // ⚠️Warning⚠️: Consume these numbers before making another call to nextArray_*
-const randomArray1 = gen.nextArray_Numbers();   // 1000 float Numbers in [0, 1)
+const randomArray1 = gen.nextArray_Number();   // 1000 float Numbers in [0, 1)
 console.log(randomArray1);
 
 // the values originally in randomArray1 will be replaced now!
-const randomArray2 = gen.nextArray_Numbers();   // 1000 floats in [0, 1)
+const randomArray2 = gen.nextArray_Number();   // 1000 floats in [0, 1)
 console.log(randomArray2);
 
-console.log(randomArray1 === randomArray2);     // true (same buffer!)
+console.log(randomArray1 === randomArray2);    // true (same buffer!)
 ```
 
 #### Array Size
 ``` js
 // providing null seeds on instantiation will auto-seed the generator
 const gen = new RandomGenerator(PRNGType.PCG, null, 0, 200);
-const randomArray = gen.nextArray_Numbers();    // 200 random floats in [0, 1)
+const randomArray = gen.nextArray_Number();    // 200 random floats in [0, 1)
 
 // resize output buffer reserved by WASM instance
-gen.outputArraySize = 42;                       // change output array size
-randomArray = gen.nextArray_Numbers();          // 42 random floats in [0, 1)
+gen.outputArraySize = 42;                      // change output array size
+randomArray = gen.nextArray_Number();          // 42 random floats in [0, 1)
 console.log(randomArray);
 
 // this exceeds the set memory limits of the WASM instance
-gen.outputArraySize = 5000;                     // Runtime Error ⚠️
+gen.outputArraySize = 5000;                    // Runtime Error ⚠️
 ```
 
 The AssemblyScript configuration in `asconfig.release.json` specifies a fixed WASM memory size of 1 page. This is intentionally kept small to limit resources allocated to WASM instances -- and because output arrays larger than the default of 1000 don't increase performance any further, even when generating very large quantities of random numbers.
