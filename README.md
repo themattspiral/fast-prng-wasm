@@ -7,12 +7,12 @@ A collection of fast, SIMD-enabled pseudo random number generators that run in [
 - Simple usage from JavaScript
 - Supports both Node and browsers
 - Transparent, synchronous WASM loading (embedded binaries - no `fs` or `fetch` required)
-- Seedable (or auto-seeded)
-- Jumpable (for shared-seed/unique-stream parallelization)
-- Float, Integer, and BigInt outputs
-- Single value and bulk array functions
+- Seedable (or self/auto-seeded)
+- Unique stream selection (for shared-seed parallel generation)
+- Single value and bulk array output functions
+- Float (as `Number`), Integer (as `Number`), 32-bit Integer (as `Number`), and 64-bit `BigInt` output types
 - Designed for speed - [WASM SIMD](https://github.com/WebAssembly/simd/blob/master/proposals/simd/SIMD.md) versions allow higher throughput
-- Can be imported to other [AssemblyScript](https://www.assemblyscript.org/) projects as part of a larger WASM compilation
+- PRNGs can also be imported to other [AssemblyScript](https://www.assemblyscript.org/) projects and used as part of a larger WASM compilation
 
 ### PRNG Algorithms:
 - **PCG XSH RR:** 32-bit generator with 64 bits of state
@@ -24,6 +24,7 @@ A collection of fast, SIMD-enabled pseudo random number generators that run in [
 #### Further PRNG Reading:
 - [PCG: A Family of Better Random Number Generators](https://www.pcg-random.org)
 - [`xoshiro` / `xoroshiro` generators and the PRNG shootout](https://prng.di.unimi.it/)
+
 
 ## Usage
 
@@ -42,7 +43,7 @@ A collection of fast, SIMD-enabled pseudo random number generators that run in [
 
 ### Basics
 ``` js
-// default PRNG type is Xoroshiro128Plus_SIMD
+// default PRNG type is Xoroshiro128Plus_SIMD, and self-seeds
 const gen = new RandomGenerator();
 console.log(gen.nextBigInt());          // unsigned 64-bit BigInt
 console.log(gen.nextInteger());         // unsigned 53-bit integer Number
@@ -57,57 +58,19 @@ console.log(pcgGen.nextInteger32());    // unsigned 32-bit integer Number
 console.log(pcgGen.nextNumber());       // 53-bit float Number in [0, 1)
 ```
 
-### Seeding
-``` js
-// 1) manually-defined custom seeds
-// note: different PRNG types are seeded with different numbers of parameters
-const customSeeds = [7n, 9876543210818181n];
-const customSeededGen = new RandomGenerator(PRNGType.Xoroshiro128Plus, customSeeds);
-
-// 2) auto-generated seed set, shared between multiple generators
-// (returns 8 SplitMix64-generated seeds, good for all supported PRNG types)
-const sharedSeeds = seed64Array();    // Array<bigint> (8)
-
-const seededGen1 = new RandomGenerator(PRNGType.Xoshiro256Plus, sharedSeeds);
-const num1 = seededGen1.nextNumber();
-
-const seededGen2 = new RandomGenerator(PRNGType.Xoshiro256Plus, sharedSeeds);
-const num2 = seededGen2.nextNumber();
-
-console.log(num1 === num2);           // true
-
-// 3) uses the same shared seed set, but also *jumps* to a different unique stream
-const jumpCount = 1;
-const seededGen3 = new RandomGenerator(PRNGType.Xoshiro256Plus, sharedSeeds, jumpCount);
-const num3 = seededGen3.nextNumber();
-
-console.log(num1 === num3);           // false
-
-// 4) uses the same shared seed set, but also chooses a unique PCG stream
-const streamIncrement1 = 17;
-const pcgGen1 = new RandomGenerator(PRNGType.PCG, sharedSeeds, streamIncrement1);
-const pcgNum1 = pcgGen1.nextNumber();
-
-const streamIncrement2 = 12345678901234n;
-const pcgGen2 = new RandomGenerator(PRNGType.PCG, sharedSeeds, streamIncrement2);
-const pcgNum2 = pcgGen2.nextNumber();
-
-console.log(pcgNum1 === pcgNum2);     // false
-```
-
 ### Array Output
 
-The fastest way to get random numbers in bulk is to use the `nextArray_*` methods of `RandomGenerator`. Each call to one of these functions fills an internal buffer with the next 1000 (by default) random numbers, and then **returns a view** of the buffer to JavaScript as an appropriate [`TypedArray`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray), either `BigUint64Array` or `Float64Array`.
+The fastest way to get random numbers *in bulk* is to use the `nextArray_*` methods of `RandomGenerator`. Each call to one of these functions fills an internal buffer with the next 1000 (by default) random numbers, and then **returns a view** of the buffer to JavaScript as an appropriate [`TypedArray`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray), either `BigUint64Array` or `Float64Array`.
 
 #### 💡 SIMD
 Array functions must be used instead of single-value functions to get the additional throughput offered by SIMD algorithm types (these have higher throughput because they produce multiple numbers at the same time).
 
 ``` js
 const gen = new RandomGenerator();
-const randomArray = gen.nextArray_BigInt();           // 1000 unsigned 64-bit BigInts
-const randomArray2 = gen.nextArray_Integer();         // 1000 unsigned 53-bit integer Numbers
-const randomArray3 = gen.nextArray_Integer32();       // 1000 unsigned 32-bit integer Numbers
-const randomArray4 = gen.nextArray_Number();          // 1000 float Numbers in [0, 1)
+const randomArray = gen.nextArray_BigInt();       // 1000 unsigned 64-bit BigInts (in BigUint64Array)
+const randomArray2 = gen.nextArray_Integer();     // 1000 unsigned 53-bit integer Numbers (in Float64Array)
+const randomArray3 = gen.nextArray_Integer32();   // 1000 unsigned 32-bit integer Numbers (in Float64Array)
+const randomArray4 = gen.nextArray_Number();      // 1000 float Numbers in [0, 1) (in Float64Array)
 ```
 
 #### ⚠️Shared Buffer Warning⚠️
@@ -127,7 +90,7 @@ console.log(randomArray2);
 console.log(randomArray1 === randomArray2);    // true (same buffer!)
 ```
 
-#### Array Size
+#### Set Output Array Size
 ``` js
 // providing null seeds on instantiation will auto-seed the generator
 const gen = new RandomGenerator(PRNGType.PCG, null, 0, 200);
@@ -145,6 +108,58 @@ gen.outputArraySize = 5000;                    // Runtime Error ⚠️
 The AssemblyScript configuration in `asconfig.release.json` specifies a fixed WASM memory size of 1 page. This is intentionally kept small to limit resources allocated to WASM instances -- and because output arrays larger than the default of 1000 don't increase performance any further, even when generating very large quantities of random numbers.
 
 If for some reason you need a larger array, you can increase the configured memory size and [rebuild the library](#working-with-this-repo).
+
+### Seeding
+Seeding is optional, such that when no seeds are provided, a `RandomGenerator` will seed itself automatically (using the `seed64Array()` function internally). Using high quality seeds is important, as summarized on Vigna's Xoshiro page:
+> We suggest to use [SplitMix64](https://prng.di.unimi.it/splitmix64.c) to initialize the state of our generators starting from a 64-bit seed, as [research has shown](https://dl.acm.org/citation.cfm?doid=1276927.1276928) that initialization must be performed with a generator radically different in nature from the one initialized to avoid correlation on similar seeds.
+
+#### Manual Seeding
+Manual seeding is done by providing a collection of random `BigInt` values, which will be treated as unsigned 64-bit integers and used to initialize the generator state. Each generator type requires a different number of seeds (between 2 and 8) - see [API docs](#javascript-api) for more details.
+``` js
+const customSeeds = [7n, 9876543210818181n];    // Xoroshiro128+ takes 2 BigInt seeds
+const customSeededGen = new RandomGenerator(PRNGType.Xoroshiro128Plus, customSeeds);
+```
+
+#### Generate a Unique Seed Collection with `seed64Array()`
+The `seed64Array()` function is also provided as a means of generating your own random seeds, which can then be shared between multiple generators, e.g. each running in a different thread (see the [`pmc` demo](#demos) for an example of this).
+
+This function returns an `Array<BigInt>` containing 8 seeds generated with SplitMix64, which in turn was seeded with a combination of the current time and JavaScript's `Math.random()`. This collection of seeds is suitable to be provided as the `seeds` argument of any generator type.
+
+Sharing seeds between generators assumes you will also provide a unique `jumpCountOrSteamIncrement` argument:
+- For the PCG PRNG, this will set the internal increment value within the generator, which selects a unique random stream to be generated given a specific starting state
+- For Xoshiro family PRNGs, this will advance (jump) the initial state to a unique point within the period, allowing for effectively the same behavior - choosing a random stream to be generated given a specific starting state
+``` js
+const sharedSeeds = seed64Array();    // Array<bigint>(8)
+
+// 2 PCG generators, using the same seeds but choosing unique streams
+const streamIncrement1 = 17n;
+const pcgGen1 = new RandomGenerator(PRNGType.PCG, sharedSeeds, streamIncrement1);
+const pcgNum1 = pcgGen1.nextNumber();
+
+const streamIncrement2 = 12345678901234n;
+const pcgGen2 = new RandomGenerator(PRNGType.PCG, sharedSeeds, streamIncrement2);
+const pcgNum2 = pcgGen2.nextNumber();
+
+console.log(pcgNum1 === pcgNum2);     // false
+
+// Two Xoshiro256+ generators using the same seeds, but with unique jumpCounts
+const jumpCount1 = 0;
+const seededGen1 = new RandomGenerator(PRNGType.Xoshiro256Plus_SIMD, sharedSeeds, jumpCount1);
+const num1 = seededGen1.nextNumber();
+
+const jumpCount2 = 1;
+const seededGen2 = new RandomGenerator(PRNGType.Xoshiro256Plus_SIMD, sharedSeeds, jumpCount2);
+const num2 = seededGen2.nextNumber();
+
+console.log(num1 === num2);           // false
+
+// Another Xoshiro256+ generator using the same seeds, and same jumpCount as seededGen2
+const jumpCount3 = 1;
+const seededGen3 = new RandomGenerator(PRNGType.Xoshiro256Plus_SIMD, sharedSeeds, jumpCount3);
+const num3 = seededGen3.nextNumber();
+
+console.log(num2 === num3);           // true: using same seeds and jumpCount!!
+```
 
 
 ## JavaScript API
