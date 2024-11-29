@@ -167,7 +167,7 @@ export function batchTestUnitCirclePoints(pointCount: i32): i32 {
     return pointsInCircle;
 }
 
-export function fillUint64Array(arr: Uint64Array): void {
+export function fillUint64Array_Int64(arr: Uint64Array): void {
     let rand: v128;
 
     for (let i: i32 = 0; i < arr.length - 1; i += 2) {

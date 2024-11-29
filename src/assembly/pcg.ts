@@ -1,12 +1,28 @@
 import { int32Number, int53Number, number, coord, coordSquared } from './common';
 
-const MUL: u64 = 6364136223846793005;
-const INC: u64 = 1442695040888963407;
+const MULTIPLIER: u64 = 6364136223846793005;
+
+// In PCG, unique increment provides a unique stream.
+// This number must ALWAYS BE ODD!
+let increment: u64 = 1442695040888963407;
 
 let state: u64 = 0;
 
 export function setSeed(seed: u64): void {
     state = seed;
+    nextInt32();
+}
+
+/**
+ * Choose the unique stream to be provided by this generator.
+ * @param inc Any integer, provided it is unique amongst stream increments 
+ * used for other generator instances, if you want them to remain unique.
+ */
+export function setStreamIncrement(inc: u64): void {
+    // ensure the increment is odd regardless of value given
+    increment = (inc << 1) | 1;
+
+    // advance state
     nextInt32();
 }
 
@@ -18,7 +34,7 @@ export function setSeed(seed: u64): void {
 export function nextInt32(): u32 {
     const oldState: u64 = state;
 
-    state = oldState * MUL + INC;
+    state = oldState * MULTIPLIER + increment;
 
     // Calculate output function (XSH RR)
     const xorshifted: u32 = <u32>(((oldState >> 18) ^ oldState) >> 27);
@@ -46,7 +62,7 @@ export function nextInt53Number(): f64 {
 
 @inline
 export function nextInt32Number(): f64 {
-    return int32Number(nextInt64());
+    return <f64>nextInt32();
 }
 
 @inline
