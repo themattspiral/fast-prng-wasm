@@ -82,6 +82,17 @@ const seededGen3 = new RandomGenerator(PRNGType.Xoshiro256Plus, sharedSeeds, jum
 const num3 = seededGen3.nextNumber();
 
 console.log(num1 === num3);           // false
+
+// 4) uses the same shared seed set, but also chooses a unique PCG stream
+const streamIncrement1 = 17;
+const pcgGen1 = new RandomGenerator(PRNGType.PCG, sharedSeeds, streamIncrement1);
+const pcgNum1 = pcgGen1.nextNumber();
+
+const streamIncrement2 = 12345678901234n;
+const pcgGen2 = new RandomGenerator(PRNGType.PCG, sharedSeeds, streamIncrement2);
+const pcgNum2 = pcgGen2.nextNumber();
+
+console.log(pcgNum1 === pcgNum2);     // false
 ```
 
 ### Array Output

@@ -76,19 +76,29 @@ export class RandomGenerator {
      * 
      * @param {PRNGType} prngType The PRNG algorithm to use. Defaults to 
      * Xoroshiro128Plus.
+     * 
      * @param {Array<bigint>} seeds Collection of 64-bit integers used to seed 
      * the generator. 1-8 seeds are required depending on generator type. 
      * Defaults to auto-seed itself if no seeds are provided.
-     * @param {number} jumpCount Optional number of state jumps to make after
-     * seeding, which allows the generator to choose a unique stream. Intended
-     * to be used when sharing the same seeds across multiple generators in
-     * parallel (e.g. worker threads). This number should be unique across 
-     * generators if `seeds` are shared.
+     * 
+     * @param {number | bigint} jumpCountOrStreamIncrement Either:
+     *  - Optional number of state  jumps to make after seeding, which allows 
+     * Xoshiro generators to choose a unique random stream.
+     *  - Or for PCG generators, this value is set as the unique steam
+     * increment used by the generator, to accomplish the same purpose
+     * as the Xoshiro state jumps.
+     * 
+     * In both cases, this is intended to be used when sharing the same seeds 
+     * across multiple generators in parallel (e.g. worker threads or
+     * distributed computation environments).
+     * 
+     * This number should be unique across generators when `seeds` are shared.
+     * 
      * @param {number} outputArraySize Size of the output array used when 
      * fetching arrays from the generator. This size is pre-allocated in WASM
      * memory for performance, rather than a param in the nextArray methods.
      */
-    constructor(prngType, seeds, jumpCount = 0, outputArraySize = 1000) {
+    constructor(prngType, seeds, jumpCountOrStreamIncrement = 0, outputArraySize = 1000) {
         this.#prngType = prngType || PRNGType.Xoroshiro128Plus_SIMD;
         this.#seeds = seeds || seed64Array();
 
@@ -103,16 +113,26 @@ export class RandomGenerator {
         // 'Jump' the generator state by a unique count to ensure a different 
         // stream is used when the same seeds are shared across generators,
         // e.g. across multiple worker threads.
-        // 
-        // This approach is preferable to allowing each generator instance to 
-        // generate its own random seeds, because it guarantees different 
-        // streams will be used for each generator.
         //
-        // Applies to the xoshiro/xoroshiro generator family.
-        if (this.#instance.jump && jumpCount > 0) {
-            for (let i = 0; i < jumpCount; i++) {
+        // Applies to the xoshiro/xoroshiro generator family
+        if (this.#instance.jump && jumpCountOrStreamIncrement > 0) {
+            for (let i = 0; i < jumpCountOrStreamIncrement; i++) {
                 this.#instance.jump();
             }
+        }
+
+        // Set a unique stream increment to ensure a different 
+        // stream is used when the same seeds are shared across generators,
+        // e.g. across multiple worker threads.
+        //
+        // Applies to the PCG generator family.
+        // 
+        // Note that some PCG implementations provide jump-ahead and jump-back
+        // functionality as well, similar to the Xoshiro Jump function. In this
+        // library's PCG implementation, we only expose the increment as a way 
+        // to choose a stream, and haven't implemented PCG state jumps.
+        if (this.#instance.setStreamIncrement && jumpCountOrStreamIncrement > 0) {
+            this.#instance.setStreamIncrement(BigInt(jumpCountOrStreamIncrement));
         }
     }
 
