@@ -3,6 +3,8 @@ import { int32Number, int53Number, number, coord, coordSquared, JUMP_128 } from 
 let s0: u64 = 0;
 let s1: u64 = 0;
 
+export const SEED_COUNT: i32 = 2;
+
 export function setSeed(a: u64, b: u64): void {
     s0 = a;
     s1 = b;

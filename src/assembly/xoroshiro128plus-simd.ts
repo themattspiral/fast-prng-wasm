@@ -4,6 +4,8 @@ import { int32Numbers, int53Numbers, numbers, point, pointSquared } from './comm
 let s0: v128 = i64x2.splat(0);
 let s1: v128 = i64x2.splat(0);
 
+export const SEED_COUNT: i32 = 4;
+
 export function setSeed(a: u64, b: u64, c: u64, d: u64): void {
     s0 = i64x2(a, c);
     s1 = i64x2(b, d);

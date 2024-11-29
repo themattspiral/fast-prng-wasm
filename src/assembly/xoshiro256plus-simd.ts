@@ -6,6 +6,8 @@ let s1: v128 = i64x2.splat(0);
 let s2: v128 = i64x2.splat(0);
 let s3: v128 = i64x2.splat(0);
 
+export const SEED_COUNT: i32 = 8;
+
 export function setSeed(
     a: u64, b: u64, c: u64, d: u64,
     e: u64, f: u64, g: u64, h: u64

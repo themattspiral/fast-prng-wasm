@@ -114,7 +114,7 @@ Seeding is optional, such that when no seeds are provided, a `RandomGenerator` w
 > We suggest to use [SplitMix64](https://prng.di.unimi.it/splitmix64.c) to initialize the state of our generators starting from a 64-bit seed, as [research has shown](https://dl.acm.org/citation.cfm?doid=1276927.1276928) that initialization must be performed with a generator radically different in nature from the one initialized to avoid correlation on similar seeds.
 
 #### Manual Seeding
-Manual seeding is done by providing a collection of random `BigInt` values, which will be treated as unsigned 64-bit integers and used to initialize the generator state. Each generator type requires a different number of seeds (between 2 and 8) - see [API docs](#javascript-api) for more details.
+Manual seeding is done by providing a collection of random `BigInt` values, which will be treated as unsigned 64-bit integers and used to initialize the generator state. Each generator type requires a different number of seeds (between 1 and 8) - see [API docs](#javascript-api) for more details.
 ``` js
 const customSeeds = [7n, 9876543210818181n];    // Xoroshiro128+ takes 2 BigInt seeds
 const customSeededGen = new RandomGenerator(PRNGType.Xoroshiro128Plus, customSeeds);
@@ -180,7 +180,7 @@ For now, see individual generator [AssemblyScript source](https://github.com/the
 See the [WebAssembly Features Roadmap](https://webassembly.org/features/) for the latest compatibility information across various browsers and Node versions.
 
 Note that this library makes use of the following feature extensions:
-- [JS BigInt to Wasm i64 Integration](https://github.com/WebAssembly/JS-BigInt-integration) - Any function that returns `BigInt`s uses this feature
+- [JS BigInt to Wasm i64 Integration](https://github.com/WebAssembly/JS-BigInt-integration) - Used to seed all PRNGs and to generate `BigInt` return types
 - [Fixed-width SIMD](https://github.com/WebAssembly/simd/blob/master/proposals/simd/SIMD.md) - Any SIMD PRNG Algorithm Type uses this feature
 
 

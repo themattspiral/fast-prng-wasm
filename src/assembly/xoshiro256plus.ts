@@ -5,6 +5,8 @@ let s1: u64 = 0;
 let s2: u64 = 0;
 let s3: u64 = 0;
 
+export const SEED_COUNT: i32 = 4;
+
 export function setSeed(a: u64, b: u64, c: u64, d: u64): void {
     s0 = a;
     s1 = b;

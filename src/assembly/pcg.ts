@@ -1,4 +1,4 @@
-import { int32Number, int53Number, number, coord, coordSquared } from './common';
+import { int53Number, number, coord, coordSquared } from './common';
 
 const MULTIPLIER: u64 = 6364136223846793005;
 
@@ -7,6 +7,8 @@ const MULTIPLIER: u64 = 6364136223846793005;
 let increment: u64 = 1442695040888963407;
 
 let state: u64 = 0;
+
+export const SEED_COUNT: i32 = 1;
 
 export function setSeed(seed: u64): void {
     state = seed;

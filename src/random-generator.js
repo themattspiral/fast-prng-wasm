@@ -108,6 +108,11 @@ export class RandomGenerator {
         this.#outputArraySize = outputArraySize;
         this.#setupOutputArrays(outputArraySize);
         
+        const requiredSeedCount = this.#instance.SEED_COUNT.value;
+        if (this.#seeds.length < requiredSeedCount) {
+            throw new Error(`Generator type ${this.#prngType} requires ${requiredSeedCount} seeds, got ${this.#seeds.length}`);
+        }
+
         this.#instance.setSeed(...this.#seeds);
 
         // 'Jump' the generator state by a unique count to ensure a different 
