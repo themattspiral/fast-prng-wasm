@@ -1,9 +1,12 @@
 import { availableParallelism } from 'os';
 import { Worker } from 'worker_threads';
 import { BigNumber } from 'bignumber.js';
-
-// import { PRNGType, seed64Array } from '../../dist/index.mjs';       // quick test local fast-prng-wasm
 import { PRNGType, seed64Array } from 'fast-prng-wasm';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
+    
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const WORKER_PATH = join(__dirname, 'worker.js');
 
 import { WorkerBatchModeType, WorkerSeedModeType } from './enum.js';
 
@@ -93,7 +96,7 @@ for (let i = 0; i < WORKER_COUNT; i++) {
         parentSeeds: PARENT_SEEDS
     };
 
-    const worker = new Worker('./worker.js', { workerData });
+    const worker = new Worker(WORKER_PATH, { workerData });
     WORKERS[i] = {
         ...workerData,
         worker,

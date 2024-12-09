@@ -1,0 +1,33 @@
+{
+    "cleanOutputDir": false,
+    "compilerOptions": {
+      "outDir": "docs/",
+      "allowJs": true,
+      "alwaysStrict": true
+    },
+    "disableSources": true,
+    "readme": "none",
+    "exclude": [
+      "node_modules", 
+      "**/*.spec.ts", 
+      "docs/**"
+    ],
+    "entryPoints": [
+      "src/index.js"
+    ],
+    "plugin": ["typedoc-plugin-markdown"],
+    "entryFileName": "js-api",
+    "outputFileStrategy": "modules",
+    "useCodeBlocks": true,
+    "hidePageHeader": true,
+    "indexFormat": "table",
+    "parametersFormat": "table",
+    "interfacePropertiesFormat": "table",
+    "classPropertiesFormat": "table",
+    "enumMembersFormat": "table",
+    "propertyMembersFormat": "table",
+    "typeDeclarationFormat": "table",
+    "tableColumnSettings": {
+      "hideSources": true,
+    }
+}

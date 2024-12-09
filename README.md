@@ -1,5 +1,5 @@
 # fast-prng-wasm
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/themattspiral/fast-prng-wasm/blob/main/LICENSE.md) [![npm version](https://img.shields.io/npm/v/fast-prng-wasm.svg?style=flat)](https://www.npmjs.com/package/fast-prng-wasm)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md) [![npm version](https://img.shields.io/npm/v/fast-prng-wasm.svg?style=flat)](https://www.npmjs.com/package/fast-prng-wasm)
 
 A collection of fast, SIMD-enabled pseudo random number generators that run in [WebAssembly](https://developer.mozilla.org/en-US/docs/WebAssembly).
 
@@ -162,18 +162,16 @@ console.log(num2 === num3);           // true: using same seeds and jumpCount!!
 ```
 
 
-## JavaScript API
-Docs coming soon.
+## [JavaScript API](docs/js-api.md)
+See **[JavaScript API Docs](docs/js-api.md)** to view the entire interface.
 
-Code contains JSDoc comments which should be visible in IDEs.
-
-Also see [`RandomGenerator` source](https://github.com/themattspiral/fast-prng-wasm/blob/main/src/random-generator.js).
+The library also contains JSDoc comments which should be visible in IDEs as you write your code.
 
 
 ## AssemblyScript API
 Docs coming soon.
 
-For now, see individual generator [AssemblyScript source](https://github.com/themattspiral/fast-prng-wasm/tree/main/src/assembly) to see the interface.
+For now, see individual generator [AssemblyScript source](src/assembly) to see the interface.
 
 
 ## Compatibility
@@ -185,8 +183,8 @@ Note that this library makes use of the following feature extensions:
 
 
 ## Demos
-See the [`demo/` folder](https://github.com/themattspiral/fast-prng-wasm/tree/main/demo) for all available demos. Each one is treated as a separate project.
-- [**`pmc` - Pi Monte Carlo:**](https://github.com/themattspiral/fast-prng-wasm/tree/main/demo/pmc) A Monte Carlo estimation of pi (π) using a large quantity of random numbers
+See the [`demo/` folder](demo/) for all available demos. Each one is treated as a separate project.
+- [**`pmc` - Pi Monte Carlo:**](demo/pmc) A Monte Carlo estimation of pi (π) using a large quantity of random numbers
   - Node CLI demo app
   - Uses multiple generator instances (one per worker thread)
   - Shares a single seed set across generators
@@ -200,4 +198,4 @@ For now, see scripts in `package.json`.
 
 
 ## Roadmap
-Planned features are listed in [TODO.md](https://github.com/themattspiral/fast-prng-wasm/blob/main/TODO.md)
+Planned features are listed in [TODO.md](TODO.md)

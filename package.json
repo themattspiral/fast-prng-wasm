@@ -37,7 +37,9 @@
     "@rollup/plugin-wasm": "^6.2.2",
     "assemblyscript": "~0.27.31",
     "rollup": "^4.27.3",
-    "rollup-plugin-copy": "^3.5.0"
+    "rollup-plugin-copy": "^3.5.0",
+    "typedoc": "^0.27.4",
+    "typedoc-plugin-markdown": "^4.3.2"
   },
   "repository": {
     "type": "git",
@@ -45,9 +47,11 @@
   },
   "scripts": {
     "---- // build npm package ------------": "",
-    "build": "npm run clean && npm run wasm:all && npm run build:lib",
+    "build": "npm run clean && npm run wasm:all && npm run docs:js && npm run build:lib",
     "build:lib": "rollup -c",
     "clean": "node util/clean.mjs",
+    "---- // Docs -------------------------": "",
+    "docs:js": "typedoc --options typedoc.json",
     "---- // WASM Release -----------------": "",
     "wasm:all": "npm run wasm:pcg && npm run wasm:xoroshiro128plus && npm run wasm:xoroshiro128plus-simd && npm run wasm:xoshiro256plus && npm run wasm:xoshiro256plus-simd",
     "wasm:pcg": "asc src/assembly/pcg.ts --target pcg --config asconfig.release.json",
