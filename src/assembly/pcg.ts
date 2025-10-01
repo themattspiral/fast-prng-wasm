@@ -1,3 +1,9 @@
+/**
+ * This is the PCG PRNG. Let's see it in action, eh?
+ *
+ * @packageDocumentation
+ */
+
 import { int53Number, number, coord, coordSquared } from './common';
 
 const MULTIPLIER: u64 = 6364136223846793005;
@@ -32,6 +38,7 @@ export function setStreamIncrement(inc: u64): void {
  * Main PCG state advancement / generator function.
  * @returns This generator's next unsigned 32-bit integer.
  */
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextInt32(): u32 {
     const oldState: u64 = state;
@@ -52,31 +59,37 @@ export function nextInt32(): u32 {
  * Chain two u32s together to get a u64.
  * @returns This generator's next unsigned 64-bit integer.
  */
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextInt64(): u64 {
     return (<u64>nextInt32() << 32) | <u64>nextInt32();
 }
 
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextInt53Number(): f64 {
     return int53Number(nextInt64());
 }
 
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextInt32Number(): f64 {
     return <f64>nextInt32();
 }
 
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextNumber(): f64 {
     return number(nextInt64());
 }
 
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextCoord(): f64 {
     return coord(nextInt64());
 }
 
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextCoordSquared(): f64 {
     return coordSquared(nextInt64());

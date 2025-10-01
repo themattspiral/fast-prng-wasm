@@ -46,6 +46,7 @@ export function jump(): void {
     s3 = jump_s3;
 }
 
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextInt64(): u64 {
     const result: u64 = s0 + s3;
@@ -69,26 +70,31 @@ export function nextInt64(): u64 {
 
 // No runtime function call penalty is incurred here because 
 // we inline and optimize the build at compile time
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextInt53Number(): f64 {
     return int53Number(nextInt64());
 }
 
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextInt32Number(): f64 {
     return int32Number(nextInt64());
 }
 
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextNumber(): f64 {
     return number(nextInt64());
 }
 
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextCoord(): f64 {
     return coord(nextInt64());
 }
 
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextCoordSquared(): f64 {
     return coordSquared(nextInt64());

@@ -168,10 +168,10 @@ See **[JavaScript API Docs](docs/js-api.md)** to view the entire interface.
 The library also contains JSDoc comments which should be visible in IDEs as you write your code.
 
 
-## AssemblyScript API
-Docs coming soon.
+## [AssemblyScript API](docs/as-api.md)
+See **[AssemblyScript API Docs](docs/as-api.md)** to view the entire interface.
 
-For now, see individual generator [AssemblyScript source](src/assembly) to see the interface.
+The library also contains JSDoc comments which should be visible in IDEs as you write your code.
 
 
 ## Compatibility

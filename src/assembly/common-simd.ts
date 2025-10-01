@@ -6,6 +6,7 @@ export const TWOx2: v128 = f64x2.splat(2.0);
 
 // return 2 random 53-bit integers between 0 and 2^53 - 1,
 // as f64s so that JS converts them to Numbers
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function int53Numbers(next: v128): v128 {
     // Shift right by 11 (>> 11) to extract upper 53 bits
@@ -22,6 +23,7 @@ export function int53Numbers(next: v128): v128 {
 
 // return 2 random 32-bit integers between 0 and 2^32 - 1,
 // as f64s so that JS converts them to Numbers
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function int32Numbers(next: v128): v128 {
     // Shift right by 32 (>> 32) to extract upper 32 bits
@@ -36,6 +38,7 @@ export function int32Numbers(next: v128): v128 {
 }
 
 // return 2 random f64 numbers in range [0, 1)
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function numbers(next: v128): v128 {
     const randShifted: v128 = int53Numbers(next);
@@ -45,6 +48,7 @@ export function numbers(next: v128): v128 {
 }
 
 // return 2 random f64 numbers in range (-1, 1)
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function point(next: v128): v128 {
     let n: v128 = numbers(next);
@@ -57,6 +61,7 @@ export function point(next: v128): v128 {
 }
 
 // return the squares of 2 random f64 numbers in range (-1, 1)
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function pointSquared(next: v128): v128 {
     const p: v128 = point(next);

@@ -1,9 +1,9 @@
 {
-    "$schema": "https://typedoc-plugin-markdown.org/schema.json",  
+    "$schema": "https://typedoc-plugin-markdown.org/schema.json",
     "cleanOutputDir": false,
     "compilerOptions": {
-        "outDir": "docs/",
-        "allowJs": true,
+        "outDir": "../../docs/",
+        "allowJs": false,
         "alwaysStrict": true
     },
     "disableSources": true,
@@ -11,14 +11,14 @@
     "mergeReadme": true,
     "exclude": [
         "node_modules", 
-        "**/*.spec.ts", 
-        "docs/**"
+        "**/*.spec.*", 
+        "../../docs/**"
     ],
     "entryPoints": [
-        "src/index.js"
+        "index.ts"
     ],
     "plugin": ["typedoc-plugin-markdown"],
-    "entryFileName": "js-api",
+    "entryFileName": "as-api",
     "outputFileStrategy": "modules",
     "useCodeBlocks": true,
     "hidePageHeader": true,
@@ -33,4 +33,4 @@
     "tableColumnSettings": {
         "hideSources": true,
     }
-}
+  }

@@ -37,6 +37,7 @@ export function jump(): void {
     s1 = jump_s1;
 }
 
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextInt64x2(): v128 {
     const result: v128 = v128.add<u64>(s0, s1);
@@ -57,26 +58,31 @@ export function nextInt64x2(): v128 {
 
 // No runtime function call penalty is incurred here because 
 // we inline and optimize the build at compile time
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextInt53x2(): v128 {
     return int53Numbers(nextInt64x2());
 }
 
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextInt32x2(): v128 {
     return int32Numbers(nextInt64x2());
 }
 
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextNumbers(): v128 {
     return numbers(nextInt64x2());
 }
 
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextPoint(): v128 {
     return point(nextInt64x2());
 }
 
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextPointSquared(): v128 {
     return pointSquared(nextInt64x2());
@@ -84,31 +90,37 @@ export function nextPointSquared(): v128 {
 
 // Single-number functions are provided for interface compatibility, but
 // do not actually take advantage of parallelization achieved with SIMD
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextInt64(): u64 {
     return v128.extract_lane<u64>(nextInt64x2(), 0);
 }
 
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextInt53Number(): f64 {
     return int53Number(nextInt64());
 }
 
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextInt32Number(): f64 {
     return int32Number(nextInt64());
 }
 
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextNumber(): f64 {
     return number(v128.extract_lane<u64>(nextInt64x2(), 0));
 }
 
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextCoord(): f64 {
     return coord(v128.extract_lane<u64>(nextInt64x2(), 0));
 }
 
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextCoordSquared(): f64 {
     return coordSquared(v128.extract_lane<u64>(nextInt64x2(), 0));
