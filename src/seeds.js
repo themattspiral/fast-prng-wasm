@@ -8,11 +8,11 @@ function seed64() {
 
 
 /**
- * Splitmix64 is the default pseudo-random number generator algorithm in Java.
- * It's a good generator for 64 bit seeds. This version is is included for 
- * seeding the other generators.
+ * Splitmix64 is the default pseudo random number generator algorithm in Java.
+ * It's a good generator for 64 bit seeds, and is is included for seeding
+ * the other generators within this package.
  * 
- * Note: This PRNG runs in JS and does not confirm to the same interface 
+ * Note: This PRNG runs only in JS and does not conform to the same interface 
  * as the WASM PRNGs.
  */
 export class SplitMix64 {
@@ -41,10 +41,14 @@ export class SplitMix64 {
 
 /**
  * Generates an array of random 64-bit integers that are suitable for seeding
- * various other generators.
+ * the other generators in this library.
+ * 
  * @param {number} [count] Optional number of seeds to generate. Defaults to 8.
+ * 
  * @param {number | bigint} [seed] Optional seed for the SplitMix64 generator. 
- * Auto-seeds itself if no seed is provided.
+ * Auto-seeds itself if not provided using a combination of the current time 
+ * Math.random().
+ * 
  * @returns {Array<bigint>} Array of unique 64-bit seeds.
  */
 export function seed64Array(count = 8, seed = null) {

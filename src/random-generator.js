@@ -158,7 +158,7 @@ export class RandomGenerator {
     }
 
     /**
-     * Get the generator's next unsigned 64-bit integer
+     * Gets this generator's next unsigned 64-bit integer.
      * 
      * @returns {bigint} An unsigned `bigint` providing 64-bits of randomness,
      * between 0 and 2^64 - 1
@@ -171,7 +171,7 @@ export class RandomGenerator {
     }
 
     /**
-     * Get the generator's next unsigned 53-bit integer
+     * Gets this generator's next unsigned 53-bit integer
      * 
      * @returns {number} An unsigned integer `number` providing 53-bits of 
      * randomness (the most we can fit into a JavaScript `number`), between
@@ -184,7 +184,7 @@ export class RandomGenerator {
     }
 
     /**
-     * Get the generator's next unsigned 32-bit integer
+     * Gets this generator's next unsigned 32-bit integer
      * 
      * @returns {number} An unsigned integer `number` providing 32-bits of 
      * randomness, between 0 and 2^32 - 1
@@ -195,7 +195,7 @@ export class RandomGenerator {
     }
 
     /**
-     * Get the generator's next floating point number in range [0, 1)
+     * Gets this generator's next floating point number in range [0, 1)
      * 
      * @returns {number} A floating point `number` between 0 and 1
      */
@@ -204,9 +204,9 @@ export class RandomGenerator {
     }
 
     /**
-     * Get the generator's next floating point number in range (-1, 1).
-     * Can be considered a "coordinate" in a unit circle. Useful for Monte
-     * Carlo simulation.
+     * Gets this generator's next floating point number in range (-1, 1).
+     * Can be considered part of a "coordinate" in a unit circle with radius 1.
+     * Useful for Monte Carlo simulation.
      * 
      * @returns {number} A floating point `number` between -1 and 1
      */
@@ -215,7 +215,7 @@ export class RandomGenerator {
     }
 
     /**
-     * Get the square of the generator's next floating point number in range
+     * Gets the square of this generator's next floating point number in range
      * (-1, 1). Useful for Monte Carlo simulation.
      * 
      * @returns {number} A floating point `number` between -1 and 1, multiplied
@@ -226,7 +226,7 @@ export class RandomGenerator {
     }
 
     /**
-     * Get the generator's next set of 64-bit integers between
+     * Gets this generator's next set of 64-bit integers between
      * 0 and 2^64 - 1. Array size is set when generator is created, 
      * or by changing {@link outputArraySize}.
      * 
@@ -240,7 +240,7 @@ export class RandomGenerator {
     }
     
     /**
-     * Get the generator's next set of 53-bit integers between
+     * Gets this generator's next set of 53-bit integers between
      * 0 and 2^53 - 1 (i.e. `Number.MAX_SAFE_INTEGER`). Array size is set
      * when generator is created, or by changing {@link outputArraySize}.
      * 
@@ -254,7 +254,7 @@ export class RandomGenerator {
     }
     
     /**
-     * Get the generator's next set of 32-bit integers between
+     * Gets this generator's next set of 32-bit integers between
      * 0 and 2^32 - 1. Array size is set when generator is created, 
      * or by changing {@link outputArraySize}.
      * 
@@ -268,7 +268,7 @@ export class RandomGenerator {
     }
 
     /**
-     * Get the generator's next set of floating point numbers in range [0, 1).
+     * Gets this generator's next set of floating point numbers in range [0, 1).
      * Array size is set when generator is created, or by changing 
      * {@link outputArraySize}.
      * @returns {Float64Array} An array of `f64` values in WASM viewed as
@@ -280,7 +280,7 @@ export class RandomGenerator {
     }
     
     /**
-     * Get the generator's next set of Float numbers in range (-1, 1).
+     * Gets this generator's next set of Float numbers in range (-1, 1).
      * Array size is set when generator is created, or by changing 
      * {@link outputArraySize}. Useful for Monte Carlo simulation.
      * @returns {Float64Array} An array of `f64` values in WASM viewed as
@@ -292,7 +292,7 @@ export class RandomGenerator {
     }
 
     /**
-     * Get the generator's next set of squared Float numbers in range (-1, 1).
+     * Gets this generator's next set of squared Float numbers in range (-1, 1).
      * Array size is set when generator is created, or by changing 
      * {@link outputArraySize}. Useful for Monte Carlo simulation.
      * @returns {Float64Array} An array of `f64` values in WASM viewed as
@@ -304,13 +304,15 @@ export class RandomGenerator {
     }
 
     /**
-     * Perform a batch test in WASM of random (x, y) points between -1 and 1
-     * and check if they fall within the corresponding unit circle of radius 1.
+     * Performs a batch test in WASM of random (x, y) points between -1 and 1
+     * and check if they fall within the corresponding unit circle with radius 1.
      * Useful for Monte Carlo simulation.
+     * 
      * @param {number} pointCount Number of random (x, y) points to generate
-     * and test
+     * and test.
+     * 
      * @returns {number} Number of tested points which fall inside of the
-     * unit circle.
+     * unit circle with radius 1.
      */
     batchTestUnitCirclePoints(pointCount) {
         return this.#instance.batchTestUnitCirclePoints(pointCount);

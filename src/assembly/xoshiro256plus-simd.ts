@@ -1,9 +1,11 @@
 /**
  * @packageDocumentation
- * An AssemblyScript implementation of the Xoshiro256+ PRNG, a 64-bit generator
- * with 256 bits of state (2^256 period) and a jump function for unique sequence selection.
+ * An AssemblyScript implementation of the Xoshiro256+ pseudo random number generator,
+ * a 64-bit generator with 256 bits of state (2^256 period) and a jump function for
+ * unique sequence selection.
  * 
- * This version supports WebAssembly SIMD to provide 2 random outputs for the price of 1.
+ * This version supports WebAssembly SIMD to provide 2 random outputs for the price of 1
+ * when using array output functions.
  */
 
 /*
@@ -21,14 +23,16 @@
 import { int32Number, int53Number, number, coord, coordSquared, JUMP_256 } from './common';
 import { int32Numbers, int53Numbers, numbers, point, pointSquared } from './common-simd';
 
+// Internal state
 let s0: v128 = i64x2.splat(0);
 let s1: v128 = i64x2.splat(0);
 let s2: v128 = i64x2.splat(0);
 let s3: v128 = i64x2.splat(0);
 
-/** Number of seed parameters required for this generator's `setSeed()` function. */
+/** Number of seed parameters required for this generator's {@link setSeed} function. */
 export const SEED_COUNT: i32 = 8;
 
+/** Initializes this generator's internal state with the provided random seeds. */
 export function setSeed(
     a: u64, b: u64, c: u64, d: u64,
     e: u64, f: u64, g: u64, h: u64
@@ -71,13 +75,19 @@ export function jump(): void {
     s3 = jump_s3;
 }
 
-// return 2 random u64 numbers
+/**
+ * Gets this generator's next 2 unsigned 64-bit integers.
+ * 
+ * @returns 2 unsigned 64-bit integers.
+ */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextInt64x2(): v128 {
+    // output
     const result: v128 = v128.add<u64>(s0, s3);
 
     // Shift
+    // t = s1 << 17
     const t: v128 = v128.shl<u64>(s1, 17);
 
     // XOR
@@ -88,15 +98,17 @@ export function nextInt64x2(): v128 {
 
     s2 = v128.xor(s2, t);
 
-    // Rotate: rotl(45) -> (sl 45 | sr (64-45))
+    // Rotate: rotl(45) == (sl 45 | sr (64-45))
     s3 = v128.or(v128.shl<u64>(s3, 45), v128.shr<u64>(s3, 19));
 
     return result;
 }
 
 /**
- * No runtime function call penalty is incurred here because 
- * we inline and optimize the build at compile time.
+ * Gets this generator's next 2 unsigned 53-bit integers.
+ * 
+ * @returns 2 unsigned 53-bit integers, returned as f64s
+ * so that the JS runtime converts them to `Number`s.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
@@ -104,92 +116,183 @@ export function nextInt53x2(): v128 {
     return int53Numbers(nextInt64x2());
 }
 
+/**
+ * Gets this generator's next 2 unsigned 32-bit integers.
+ * 
+ * @returns 2 unsigned 32-bit integers, returned as f64s
+ * so that the JS runtime converts them to `Number`s.
+ */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextInt32x2(): v128 {
     return int32Numbers(nextInt64x2());
 }
 
+/**
+ * Gets this generator's next 2 floating point numbers in range [0, 1).
+ * 
+ * @returns 2 floating point numbers in range [0, 1).
+ */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextNumbers(): v128 {
     return numbers(nextInt64x2());
 }
 
+/**
+ * Gets this generator's next 2 floating point numbers in range (-1, 1).
+ * 
+ * Can be considered a "coordinate" in a unit circle with radius 1.
+ * Useful for Monte Carlo simulation.
+ * 
+ * @returns 2 floating point numbers in range (-1, 1).
+ */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextPoint(): v128 {
     return point(nextInt64x2());
 }
 
+/**
+ * Gets the square of this generator's next 2 floating point numbers in range (-1, 1).
+ * 
+ * Useful for Monte Carlo simulation.
+ * 
+ * @returns 2 floating point numbers in range (-1, 1), each multiplied by itself.
+ */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextPointSquared(): v128 {
     return pointSquared(nextInt64x2());
 }
 
+
 // Single-number functions are provided for interface compatibility, but
 // do not actually take advantage of parallelization achieved with SIMD
+
+
+/**
+ * Gets this generator's next unsigned 64-bit integer.
+ * 
+ * Discards the additional random number generated with SIMD.
+ * 
+ * @returns An unsigned 64-bit integer.
+ */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextInt64(): u64 {
     return v128.extract_lane<u64>(nextInt64x2(), 0);
 }
 
+/**
+ * Gets this generator's next unsigned 53-bit integer.
+ * 
+ * Discards the additional random number generated with SIMD.
+ * 
+ * @returns An unsigned 53-bit integer.
+ */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextInt53Number(): f64 {
     return int53Number(nextInt64());
 }
 
+/**
+ * Gets this generator's next unsigned 32-bit integer.
+ * 
+ * Discards the additional random number generated with SIMD.
+ * 
+ * @returns An unsigned 32-bit integer.
+ */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextInt32Number(): f64 {
     return int32Number(nextInt64());
 }
 
+/**
+ * Gets this generator's next floating point number in range [0, 1).
+ * 
+ * Discards the additional random number generated with SIMD.
+ * 
+ * @returns A floating point number in range [0, 1).
+ */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextNumber(): f64 {
     return number(v128.extract_lane<u64>(nextInt64x2(), 0));
 }
 
+/**
+ * Gets this generator's next floating point number in range (-1, 1).
+ * 
+ * Discards the additional random number generated with SIMD.
+ * 
+ * Can be considered part of a "coordinate" in a unit circle with radius 1.
+ * Useful for Monte Carlo simulation.
+ * 
+ * @returns A floating point number in range (-1, 1).
+ */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextCoord(): f64 {
     return coord(v128.extract_lane<u64>(nextInt64x2(), 0));
 }
 
+/**
+ * Gets the square of this generator's next floating point number in range (-1, 1).
+ * 
+ * Discards the additional random number generated with SIMD.
+ * 
+ * Useful for Monte Carlo simulation.
+ * 
+ * @returns A floating point number in range (-1, 1), multiplied by itself.
+ */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextCoordSquared(): f64 {
     return coordSquared(v128.extract_lane<u64>(nextInt64x2(), 0));
 }
 
+
 // Expose array management functions from this module
 export { allocUint64Array, allocFloat64Array, freeArray } from './common';
 
-/*
+
+/* 
+ * Perf:
  * If we extract the following mostly-repeated functions to shared logic, 
  * define a type for the function, and pass the generator function as a 
- * parameter, it runs somewhat slower because of runtime function call overhead
- * (At least I think, and so it can't be avoided using @inline).
+ * parameter, it runs somewhat slower. I believe this is because of runtime
+ * function call overhead, and so it can't be avoided using @inline.
  * 
- * So in the interest of speed over cleanliness, we repeat this logic in each
+ * In the interest of speed over DRY cleanliness, we repeat this logic in each
  * generator type.
  * 
- * The same speed caveat applies when wrapping the generators in a class:
- *  Everything slows down. So we opt instead for static functions and speed.
+ * The same speed caveat applies when wrapping the generator logic in a class:
+ * Everything slows down somewhat. So we opt instead for global functions and speed.
+ * 
+ * TODO: Add performance tradeoff examples to demos.
  */
 
-/** Monte Carlo test: Count how many random points fall inside a unit circle */
-export function batchTestUnitCirclePoints(pointCount: i32): i32 {
+
+/**
+ * Monte Carlo test: Generates random (x,y) coordinates in range (-1, 1), and
+ * counts how many of them fall inside the unit circle with radius 1.
+ * 
+ * Can be used to estimate pi (π).
+ * 
+ * @param count The number of random (x,y) coordinate points in (-1, 1) to generate and check.
+ * 
+ * @returns The number of random points which fell *inside* of the unit circle with radius 1.
+ */
+export function batchTestUnitCirclePoints(count: i32): i32 {
     let pointsInCircle: i32 = 0;
     let pSquared: v128;
     let xSquared: f64;
     let ySquared: f64;
 
-    for (let i: i32 = 0; i < pointCount; i++) {
+    for (let i: i32 = 0; i < count; i++) {
         pSquared = nextPointSquared();
         xSquared = v128.extract_lane<f64>(pSquared, 0);
         ySquared = v128.extract_lane<f64>(pSquared, 1);
@@ -202,6 +305,14 @@ export function batchTestUnitCirclePoints(pointCount: i32): i32 {
     return pointsInCircle;
 }
 
+/**
+ * Fills the provided array with this generator's next set of unsigned 64-bit integers.
+ * 
+ * Utilizes SIMD.
+ * 
+ * @param arr The array to fully fill. If called from a JS runtime, this value should
+ * be an array pointer returned by {@link allocUint64Array}.
+ */
 export function fillUint64Array_Int64(arr: Uint64Array): void {
     let rand: v128;
 
@@ -212,6 +323,14 @@ export function fillUint64Array_Int64(arr: Uint64Array): void {
     }
 }
 
+/**
+ * Fills the provided array with this generator's next set of unsigned 53-bit integers.
+ * 
+ * Utilizes SIMD.
+ * 
+ * @param arr The array to fully fill. If called from a JS runtime, this value should
+ * be an array pointer returned by {@link allocFloat64Array}.
+ */
 export function fillFloat64Array_Int53Numbers(arr: Float64Array): void {
     let rand: v128;
 
@@ -222,6 +341,14 @@ export function fillFloat64Array_Int53Numbers(arr: Float64Array): void {
     }
 }
 
+/**
+ * Fills the provided array with this generator's next set of unsigned 32-bit integers.
+ * 
+ * Utilizes SIMD.
+ * 
+ * @param arr The array to fully fill. If called from a JS runtime, this value should
+ * be an array pointer returned by {@link allocFloat64Array}.
+ */
 export function fillFloat64Array_Int32Numbers(arr: Float64Array): void {
     let rand: v128;
 
@@ -232,6 +359,15 @@ export function fillFloat64Array_Int32Numbers(arr: Float64Array): void {
     }
 }
 
+/**
+ * Fills the provided array with this generator's next set of floating point numbers
+ * in range [0, 1).
+ * 
+ * Utilizes SIMD.
+ * 
+ * @param arr The array to fully fill. If called from a JS runtime, this value should
+ * be an array pointer returned by {@link allocFloat64Array}.
+ */
 export function fillFloat64Array_Numbers(arr: Float64Array): void {
     let rand: v128;
 
@@ -242,6 +378,17 @@ export function fillFloat64Array_Numbers(arr: Float64Array): void {
     }
 }
 
+/**
+ * Fills the provided array with this generator's next set of floating point numbers
+ * in range (-1, 1).
+ * 
+ * Utilizes SIMD.
+ * 
+ * Useful for Monte Carlo simulation.
+ * 
+ * @param arr The array to fully fill. If called from a JS runtime, this value should
+ * be an array pointer returned by {@link allocFloat64Array}.
+ */
 export function fillFloat64Array_Coords(arr: Float64Array): void {
     let rand: v128;
 
@@ -252,6 +399,17 @@ export function fillFloat64Array_Coords(arr: Float64Array): void {
     }
 }
 
+/**
+ * Fills the provided array with the squares of this generator's next set of floating 
+ * point numbers in range (-1, 1).
+ * 
+ * Utilizes SIMD.
+ * 
+ * Useful for Monte Carlo simulation.
+ * 
+ * @param arr The array to fully fill. If called from a JS runtime, this value should
+ * be an array pointer returned by {@link allocFloat64Array}.
+ */
 export function fillFloat64Array_CoordsSquared(arr: Float64Array): void {
     let rand: v128;
 

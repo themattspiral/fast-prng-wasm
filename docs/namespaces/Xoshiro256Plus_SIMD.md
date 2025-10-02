@@ -2,10 +2,12 @@
 
 # Xoshiro256Plus\_SIMD
 
-An AssemblyScript implementation of the Xoshiro256+ PRNG, a 64-bit generator
-with 256 bits of state (2^256 period) and a jump function for unique sequence selection.
+An AssemblyScript implementation of the Xoshiro256+ pseudo random number generator,
+a 64-bit generator with 256 bits of state (2^256 period) and a jump function for
+unique sequence selection.
 
-This version supports WebAssembly SIMD to provide 2 random outputs for the price of 1.
+This version supports WebAssembly SIMD to provide 2 random outputs for the price of 1
+when using array output functions.
 
 ## Variables
 
@@ -15,25 +17,32 @@ This version supports WebAssembly SIMD to provide 2 random outputs for the price
 const SEED_COUNT: i32 = 8;
 ```
 
+Number of seed parameters required for this generator's [setSeed](Xoshiro256Plus_SIMD.md#setseed) function.
+
 ## Functions
 
 ### batchTestUnitCirclePoints()
 
 ```ts
-function batchTestUnitCirclePoints(pointCount): i32
+function batchTestUnitCirclePoints(count): i32
 ```
 
-Monte Carlo test: Count how many random points fall inside a unit circle
+Monte Carlo test: Generates random (x,y) coordinates in range (-1, 1), and
+counts how many of them fall inside the unit circle with radius 1.
+
+Can be used to estimate pi (π).
 
 #### Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `pointCount` | `number` |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `count` | `number` | The number of random (x,y) coordinate points in (-1, 1) to generate and check. |
 
 #### Returns
 
 `i32`
+
+The number of random points which fell *inside* of the unit circle with radius 1.
 
 ***
 
@@ -43,11 +52,18 @@ Monte Carlo test: Count how many random points fall inside a unit circle
 function fillFloat64Array_Coords(arr): void
 ```
 
+Fills the provided array with this generator's next set of floating point numbers
+in range (-1, 1).
+
+Utilizes SIMD.
+
+Useful for Monte Carlo simulation.
+
 #### Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `arr` | `Float64Array` |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocFloat64Array](PCG.md#allocfloat64array). |
 
 #### Returns
 
@@ -61,11 +77,18 @@ function fillFloat64Array_Coords(arr): void
 function fillFloat64Array_CoordsSquared(arr): void
 ```
 
+Fills the provided array with the squares of this generator's next set of floating 
+point numbers in range (-1, 1).
+
+Utilizes SIMD.
+
+Useful for Monte Carlo simulation.
+
 #### Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `arr` | `Float64Array` |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocFloat64Array](PCG.md#allocfloat64array). |
 
 #### Returns
 
@@ -79,11 +102,15 @@ function fillFloat64Array_CoordsSquared(arr): void
 function fillFloat64Array_Int32Numbers(arr): void
 ```
 
+Fills the provided array with this generator's next set of unsigned 32-bit integers.
+
+Utilizes SIMD.
+
 #### Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `arr` | `Float64Array` |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocFloat64Array](PCG.md#allocfloat64array). |
 
 #### Returns
 
@@ -97,11 +124,15 @@ function fillFloat64Array_Int32Numbers(arr): void
 function fillFloat64Array_Int53Numbers(arr): void
 ```
 
+Fills the provided array with this generator's next set of unsigned 53-bit integers.
+
+Utilizes SIMD.
+
 #### Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `arr` | `Float64Array` |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocFloat64Array](PCG.md#allocfloat64array). |
 
 #### Returns
 
@@ -115,11 +146,16 @@ function fillFloat64Array_Int53Numbers(arr): void
 function fillFloat64Array_Numbers(arr): void
 ```
 
+Fills the provided array with this generator's next set of floating point numbers
+in range [0, 1).
+
+Utilizes SIMD.
+
 #### Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `arr` | `Float64Array` |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocFloat64Array](PCG.md#allocfloat64array). |
 
 #### Returns
 
@@ -133,11 +169,15 @@ function fillFloat64Array_Numbers(arr): void
 function fillUint64Array_Int64(arr): void
 ```
 
+Fills the provided array with this generator's next set of unsigned 64-bit integers.
+
+Utilizes SIMD.
+
 #### Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `arr` | `Uint64Array` |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `arr` | `Uint64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocUint64Array](PCG.md#allocuint64array). |
 
 #### Returns
 
@@ -166,9 +206,18 @@ non-overlapping subsequences (with the same seed) for parallel computations.
 function nextCoord(): f64
 ```
 
+Gets this generator's next floating point number in range (-1, 1).
+
+Discards the additional random number generated with SIMD.
+
+Can be considered part of a "coordinate" in a unit circle with radius 1.
+Useful for Monte Carlo simulation.
+
 #### Returns
 
 `f64`
+
+A floating point number in range (-1, 1).
 
 ***
 
@@ -178,9 +227,17 @@ function nextCoord(): f64
 function nextCoordSquared(): f64
 ```
 
+Gets the square of this generator's next floating point number in range (-1, 1).
+
+Discards the additional random number generated with SIMD.
+
+Useful for Monte Carlo simulation.
+
 #### Returns
 
 `f64`
+
+A floating point number in range (-1, 1), multiplied by itself.
 
 ***
 
@@ -190,9 +247,15 @@ function nextCoordSquared(): f64
 function nextInt32Number(): f64
 ```
 
+Gets this generator's next unsigned 32-bit integer.
+
+Discards the additional random number generated with SIMD.
+
 #### Returns
 
 `f64`
+
+An unsigned 32-bit integer.
 
 ***
 
@@ -202,9 +265,14 @@ function nextInt32Number(): f64
 function nextInt32x2(): v128
 ```
 
+Gets this generator's next 2 unsigned 32-bit integers.
+
 #### Returns
 
 `v128`
+
+2 unsigned 32-bit integers, returned as f64s
+so that the JS runtime converts them to `Number`s.
 
 ***
 
@@ -214,9 +282,15 @@ function nextInt32x2(): v128
 function nextInt53Number(): f64
 ```
 
+Gets this generator's next unsigned 53-bit integer.
+
+Discards the additional random number generated with SIMD.
+
 #### Returns
 
 `f64`
+
+An unsigned 53-bit integer.
 
 ***
 
@@ -226,12 +300,14 @@ function nextInt53Number(): f64
 function nextInt53x2(): v128
 ```
 
-No runtime function call penalty is incurred here because 
-we inline and optimize the build at compile time.
+Gets this generator's next 2 unsigned 53-bit integers.
 
 #### Returns
 
 `v128`
+
+2 unsigned 53-bit integers, returned as f64s
+so that the JS runtime converts them to `Number`s.
 
 ***
 
@@ -241,9 +317,15 @@ we inline and optimize the build at compile time.
 function nextInt64(): u64
 ```
 
+Gets this generator's next unsigned 64-bit integer.
+
+Discards the additional random number generated with SIMD.
+
 #### Returns
 
 `u64`
+
+An unsigned 64-bit integer.
 
 ***
 
@@ -253,9 +335,13 @@ function nextInt64(): u64
 function nextInt64x2(): v128
 ```
 
+Gets this generator's next 2 unsigned 64-bit integers.
+
 #### Returns
 
 `v128`
+
+2 unsigned 64-bit integers.
 
 ***
 
@@ -265,9 +351,15 @@ function nextInt64x2(): v128
 function nextNumber(): f64
 ```
 
+Gets this generator's next floating point number in range [0, 1).
+
+Discards the additional random number generated with SIMD.
+
 #### Returns
 
 `f64`
+
+A floating point number in range [0, 1).
 
 ***
 
@@ -277,9 +369,13 @@ function nextNumber(): f64
 function nextNumbers(): v128
 ```
 
+Gets this generator's next 2 floating point numbers in range [0, 1).
+
 #### Returns
 
 `v128`
+
+2 floating point numbers in range [0, 1).
 
 ***
 
@@ -289,9 +385,16 @@ function nextNumbers(): v128
 function nextPoint(): v128
 ```
 
+Gets this generator's next 2 floating point numbers in range (-1, 1).
+
+Can be considered a "coordinate" in a unit circle with radius 1.
+Useful for Monte Carlo simulation.
+
 #### Returns
 
 `v128`
+
+2 floating point numbers in range (-1, 1).
 
 ***
 
@@ -301,9 +404,15 @@ function nextPoint(): v128
 function nextPointSquared(): v128
 ```
 
+Gets the square of this generator's next 2 floating point numbers in range (-1, 1).
+
+Useful for Monte Carlo simulation.
+
 #### Returns
 
 `v128`
+
+2 floating point numbers in range (-1, 1), each multiplied by itself.
 
 ***
 
@@ -320,6 +429,8 @@ function setSeed(
    g, 
    h): void
 ```
+
+Initializes this generator's internal state with the provided random seeds.
 
 #### Parameters
 

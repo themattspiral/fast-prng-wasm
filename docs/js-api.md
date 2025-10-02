@@ -132,22 +132,22 @@ set seeds(newSeeds): void
 batchTestUnitCirclePoints(pointCount): number
 ```
 
-Perform a batch test in WASM of random (x, y) points between -1 and 1
-and check if they fall within the corresponding unit circle of radius 1.
+Performs a batch test in WASM of random (x, y) points between -1 and 1
+and check if they fall within the corresponding unit circle with radius 1.
 Useful for Monte Carlo simulation.
 
 ###### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `pointCount` | `number` | Number of random (x, y) points to generate and test |
+| `pointCount` | `number` | Number of random (x, y) points to generate and test. |
 
 ###### Returns
 
 `number`
 
 Number of tested points which fall inside of the
-unit circle.
+unit circle with radius 1.
 
 ##### nextArray\_BigInt()
 
@@ -155,7 +155,7 @@ unit circle.
 nextArray_BigInt(): BigUint64Array<ArrayBufferLike>
 ```
 
-Get the generator's next set of 64-bit integers between
+Gets this generator's next set of 64-bit integers between
 0 and 2^64 - 1. Array size is set when generator is created, 
 or by changing [outputArraySize](js-api.md#outputarraysize).
 
@@ -173,7 +173,7 @@ JavaScript. This output buffer is reused with each call.
 nextArray_Coord(): Float64Array<ArrayBufferLike>
 ```
 
-Get the generator's next set of Float numbers in range (-1, 1).
+Gets this generator's next set of Float numbers in range (-1, 1).
 Array size is set when generator is created, or by changing 
 [outputArraySize](js-api.md#outputarraysize). Useful for Monte Carlo simulation.
 
@@ -190,7 +190,7 @@ An array of `f64` values in WASM viewed as
 nextArray_CoordSquared(): Float64Array<ArrayBufferLike>
 ```
 
-Get the generator's next set of squared Float numbers in range (-1, 1).
+Gets this generator's next set of squared Float numbers in range (-1, 1).
 Array size is set when generator is created, or by changing 
 [outputArraySize](js-api.md#outputarraysize). Useful for Monte Carlo simulation.
 
@@ -207,7 +207,7 @@ An array of `f64` values in WASM viewed as
 nextArray_Integer(): Float64Array<ArrayBufferLike>
 ```
 
-Get the generator's next set of 53-bit integers between
+Gets this generator's next set of 53-bit integers between
 0 and 2^53 - 1 (i.e. `Number.MAX_SAFE_INTEGER`). Array size is set
 when generator is created, or by changing [outputArraySize](js-api.md#outputarraysize).
 
@@ -225,7 +225,7 @@ JavaScript. This output buffer is reused with each call.
 nextArray_Integer32(): Float64Array<ArrayBufferLike>
 ```
 
-Get the generator's next set of 32-bit integers between
+Gets this generator's next set of 32-bit integers between
 0 and 2^32 - 1. Array size is set when generator is created, 
 or by changing [outputArraySize](js-api.md#outputarraysize).
 
@@ -243,7 +243,7 @@ JavaScript. This output buffer is reused with each call.
 nextArray_Number(): Float64Array<ArrayBufferLike>
 ```
 
-Get the generator's next set of floating point numbers in range [0, 1).
+Gets this generator's next set of floating point numbers in range [0, 1).
 Array size is set when generator is created, or by changing 
 [outputArraySize](js-api.md#outputarraysize).
 
@@ -260,7 +260,7 @@ An array of `f64` values in WASM viewed as
 nextBigInt(): bigint
 ```
 
-Get the generator's next unsigned 64-bit integer
+Gets this generator's next unsigned 64-bit integer.
 
 ###### Returns
 
@@ -275,9 +275,9 @@ between 0 and 2^64 - 1
 nextCoord(): number
 ```
 
-Get the generator's next floating point number in range (-1, 1).
-Can be considered a "coordinate" in a unit circle. Useful for Monte
-Carlo simulation.
+Gets this generator's next floating point number in range (-1, 1).
+Can be considered part of a "coordinate" in a unit circle with radius 1.
+Useful for Monte Carlo simulation.
 
 ###### Returns
 
@@ -291,7 +291,7 @@ A floating point `number` between -1 and 1
 nextCoordSquared(): number
 ```
 
-Get the square of the generator's next floating point number in range
+Gets the square of this generator's next floating point number in range
 (-1, 1). Useful for Monte Carlo simulation.
 
 ###### Returns
@@ -307,7 +307,7 @@ by itself
 nextInteger(): number
 ```
 
-Get the generator's next unsigned 53-bit integer
+Gets this generator's next unsigned 53-bit integer
 
 ###### Returns
 
@@ -323,7 +323,7 @@ randomness (the most we can fit into a JavaScript `number`), between
 nextInteger32(): number
 ```
 
-Get the generator's next unsigned 32-bit integer
+Gets this generator's next unsigned 32-bit integer
 
 ###### Returns
 
@@ -338,7 +338,7 @@ randomness, between 0 and 2^32 - 1
 nextNumber(): number
 ```
 
-Get the generator's next floating point number in range [0, 1)
+Gets this generator's next floating point number in range [0, 1)
 
 ###### Returns
 
@@ -350,11 +350,11 @@ A floating point `number` between 0 and 1
 
 ### SplitMix64
 
-Splitmix64 is the default pseudo-random number generator algorithm in Java.
-It's a good generator for 64 bit seeds. This version is is included for 
-seeding the other generators.
+Splitmix64 is the default pseudo random number generator algorithm in Java.
+It's a good generator for 64 bit seeds, and is is included for seeding
+the other generators within this package.
 
-Note: This PRNG runs in JS and does not confirm to the same interface 
+Note: This PRNG runs only in JS and does not conform to the same interface 
 as the WASM PRNGs.
 
 #### Constructors
@@ -396,14 +396,14 @@ function seed64Array(count?, seed?): bigint[]
 ```
 
 Generates an array of random 64-bit integers that are suitable for seeding
-various other generators.
+the other generators in this library.
 
 #### Parameters
 
 | Parameter | Type | Default value | Description |
 | ------ | ------ | ------ | ------ |
 | `count`? | `number` | `8` | Optional number of seeds to generate. Defaults to 8. |
-| `seed`? | `number` \| `bigint` | `null` | Optional seed for the SplitMix64 generator. Auto-seeds itself if no seed is provided. |
+| `seed`? | `number` \| `bigint` | `null` | Optional seed for the SplitMix64 generator. Auto-seeds itself if not provided using a combination of the current time Math.random(). |
 
 #### Returns
 

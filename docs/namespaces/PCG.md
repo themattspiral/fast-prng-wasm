@@ -2,8 +2,8 @@
 
 # PCG
 
-An AssemblyScript implementation of the PCG PRNG, a 32-bit generator with
-64 bits of state and unique stream selection.
+An AssemblyScript implementation of the PCG pseudo random number generator,
+a 32-bit generator with 64 bits of state and unique stream selection.
 
 ## Variables
 
@@ -13,7 +13,7 @@ An AssemblyScript implementation of the PCG PRNG, a 32-bit generator with
 const SEED_COUNT: i32 = 1;
 ```
 
-Number of seed parameters required for this generator's `setSeed()` function.
+Number of seed parameters required for this generator's [setSeed](PCG.md#setseed) function.
 
 ## Functions
 
@@ -23,15 +23,20 @@ Number of seed parameters required for this generator's `setSeed()` function.
 function allocFloat64Array(count): usize
 ```
 
+Allocates shared WebAssembly memory for a `Float64Array` of the given size, and pins it to
+avoid garbage collection. Must be explicitly freed with [freeArray](PCG.md#freearray) if cleanup is needed.
+
 #### Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `count` | `number` |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `count` | `number` | The size of the array to allocate (number of f64s it can hold). |
 
 #### Returns
 
 `usize`
+
+A pointer to the newly allocated shared-memory array, which can be used from JS runtimes.
 
 ***
 
@@ -41,15 +46,20 @@ function allocFloat64Array(count): usize
 function allocUint64Array(count): usize
 ```
 
+Allocates shared WebAssembly memory for a `Uint64Array` of the given size, and pins it to
+avoid garbage collection. Must be explicitly freed with [freeArray](PCG.md#freearray) if cleanup is needed.
+
 #### Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `count` | `number` |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `count` | `number` | The size of the array to allocate (number of u64s it can hold). |
 
 #### Returns
 
 `usize`
+
+A pointer to the newly allocated shared-memory array, which can be used from JS runtimes.
 
 ***
 
@@ -59,17 +69,22 @@ function allocUint64Array(count): usize
 function batchTestUnitCirclePoints(count): i32
 ```
 
-Monte Carlo test: Count how many random points fall inside a unit circle
+Monte Carlo test: Generates random (x,y) coordinates in range (-1, 1), and
+counts how many of them fall inside the unit circle with radius 1.
+
+Can be used to estimate pi (π).
 
 #### Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `count` | `number` |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `count` | `number` | The number of random (x,y) coordinate points in (-1, 1) to generate and check. |
 
 #### Returns
 
 `i32`
+
+The number of random points which fell *inside* of the unit circle with radius 1.
 
 ***
 
@@ -79,11 +94,16 @@ Monte Carlo test: Count how many random points fall inside a unit circle
 function fillFloat64Array_Coords(arr): void
 ```
 
+Fills the provided array with this generator's next set of floating point numbers
+in range (-1, 1).
+
+Useful for Monte Carlo simulation.
+
 #### Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `arr` | `Float64Array` |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocFloat64Array](PCG.md#allocfloat64array). |
 
 #### Returns
 
@@ -97,11 +117,16 @@ function fillFloat64Array_Coords(arr): void
 function fillFloat64Array_CoordsSquared(arr): void
 ```
 
+Fills the provided array with the squares of this generator's next set of floating 
+point numbers in range (-1, 1).
+
+Useful for Monte Carlo simulation.
+
 #### Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `arr` | `Float64Array` |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocFloat64Array](PCG.md#allocfloat64array). |
 
 #### Returns
 
@@ -115,11 +140,13 @@ function fillFloat64Array_CoordsSquared(arr): void
 function fillFloat64Array_Int32Numbers(arr): void
 ```
 
+Fills the provided array with this generator's next set of unsigned 32-bit integers.
+
 #### Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `arr` | `Float64Array` |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocFloat64Array](PCG.md#allocfloat64array). |
 
 #### Returns
 
@@ -133,11 +160,13 @@ function fillFloat64Array_Int32Numbers(arr): void
 function fillFloat64Array_Int53Numbers(arr): void
 ```
 
+Fills the provided array with this generator's next set of unsigned 53-bit integers.
+
 #### Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `arr` | `Float64Array` |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocFloat64Array](PCG.md#allocfloat64array). |
 
 #### Returns
 
@@ -151,11 +180,14 @@ function fillFloat64Array_Int53Numbers(arr): void
 function fillFloat64Array_Numbers(arr): void
 ```
 
+Fills the provided array with this generator's next set of floating point numbers
+in range [0, 1).
+
 #### Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `arr` | `Float64Array` |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocFloat64Array](PCG.md#allocfloat64array). |
 
 #### Returns
 
@@ -169,11 +201,13 @@ function fillFloat64Array_Numbers(arr): void
 function fillUint64Array_Int64(arr): void
 ```
 
+Fills the provided array with this generator's next set of unsigned 64-bit integers.
+
 #### Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `arr` | `Uint64Array` |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `arr` | `Uint64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocUint64Array](PCG.md#allocuint64array). |
 
 #### Returns
 
@@ -187,11 +221,14 @@ function fillUint64Array_Int64(arr): void
 function freeArray(arrPtr): void
 ```
 
+Frees shared WebAssembly memory that was previously allocated by [allocUint64Array](PCG.md#allocuint64array) 
+or [allocFloat64Array](PCG.md#allocfloat64array).
+
 #### Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `arrPtr` | `number` |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `arrPtr` | `number` | A pointer to the previously allocated shared-memory array to cleanup. |
 
 #### Returns
 
@@ -205,9 +242,16 @@ function freeArray(arrPtr): void
 function nextCoord(): f64
 ```
 
+Gets this generator's next floating point number in range (-1, 1).
+
+Can be considered part of a "coordinate" in a unit circle with radius 1.
+Useful for Monte Carlo simulation.
+
 #### Returns
 
 `f64`
+
+A floating point number in range (-1, 1).
 
 ***
 
@@ -217,9 +261,15 @@ function nextCoord(): f64
 function nextCoordSquared(): f64
 ```
 
+Gets the square of this generator's next floating point number in range (-1, 1).
+
+Useful for Monte Carlo simulation.
+
 #### Returns
 
 `f64`
+
+A floating point number in range (-1, 1), multiplied by itself.
 
 ***
 
@@ -229,7 +279,7 @@ function nextCoordSquared(): f64
 function nextInt32(): u32
 ```
 
-Main PCG state advancement / generator function.
+Gets this generator's next unsigned 32-bit integer.
 
 #### Returns
 
@@ -245,9 +295,14 @@ This generator's next unsigned 32-bit integer.
 function nextInt32Number(): f64
 ```
 
+Gets this generator's next unsigned 32-bit integer.
+
 #### Returns
 
 `f64`
+
+An unsigned 32-bit integer, returned as an f64 so that
+the JS runtime converts it to a `Number`.
 
 ***
 
@@ -257,9 +312,14 @@ function nextInt32Number(): f64
 function nextInt53Number(): f64
 ```
 
+Gets this generator's next unsigned 53-bit integer.
+
 #### Returns
 
 `f64`
+
+This generator's next unsigned 53-bit integer, returned
+as an f64 so that the JS runtime converts it to a `Number`.
 
 ***
 
@@ -269,7 +329,7 @@ function nextInt53Number(): f64
 function nextInt64(): u64
 ```
 
-Chain two u32s together to get a u64.
+Gets this generator's next unsigned 64-bit integer.
 
 #### Returns
 
@@ -285,9 +345,13 @@ This generator's next unsigned 64-bit integer.
 function nextNumber(): f64
 ```
 
+Gets this generator's next floating point number in range [0, 1).
+
 #### Returns
 
 `f64`
+
+A floating point number in range [0, 1).
 
 ***
 
@@ -296,6 +360,8 @@ function nextNumber(): f64
 ```ts
 function setSeed(seed): void
 ```
+
+Initializes this generator's internal state with the provided random seed.
 
 #### Parameters
 
@@ -315,13 +381,16 @@ function setSeed(seed): void
 function setStreamIncrement(inc): void
 ```
 
-Choose the unique stream to be provided by this generator.
+Optionally chooses the unique stream to be provided by this generator.
+
+Two generators given the same seed value(s) will still provide a unique stream
+of random numbers as long as they use different stream increments.
 
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `inc` | `number` | Any integer, provided it is unique amongst stream increments used for other generator instances, if you want them to remain unique. |
+| `inc` | `number` | Any integer. It should be unique amongst stream increments used for other parallel generator instances that have been seeded uniformly. |
 
 #### Returns
 
