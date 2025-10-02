@@ -1,10 +1,26 @@
+/**
+ * @packageDocumentation
+ * An AssemblyScript implementation of the Xoroshiro128+ pseudo random number generator,
+ * a 64-bit generator with 128 bits of state (2^128 period) and a jump function for
+ * unique sequence selection.
+ */
+
+/*
+ * Based on the xoroshiro128+ C reference implementation
+ * Public Domain, 2016-2018 by David Blackman and Sebastiano Vigna (vigna@acm.org)
+ * https://prng.di.unimi.it/xoroshiro128plus.c
+ */
+
 import { int32Number, int53Number, number, coord, coordSquared, JUMP_128 } from './common';
 
+// Internal state
 let s0: u64 = 0;
 let s1: u64 = 0;
 
+/** Number of seed parameters required for this generator's {@link setSeed} function. */
 export const SEED_COUNT: i32 = 2;
 
+/** Initializes this generator's internal state with the provided random seeds. */
 export function setSeed(a: u64, b: u64): void {
     s0 = a;
     s1 = b;
@@ -36,61 +52,119 @@ export function jump(): void {
     s1 = jump_s1;
 }
 
+/**
+ * Gets this generator's next unsigned 64-bit integer.
+ * 
+ * @returns An unsigned 64-bit integer.
+ */
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextInt64(): u64 {
+    // output
     const result: u64 = s0 + s1;
+    
+    // xoroshiro128+
     const t: u64 = s1 ^ s0;
-
     s0 = ((s0 << 24) | (s0 >> 40)) ^ t ^ (t << 16);
     s1 = ((t << 37) | (t >> 27));
 
     return result;
 };
 
-// No runtime function call penalty is incurred here because 
-// we inline and optimize the build at compile time
+/**
+ * Gets this generator's next unsigned 53-bit integer.
+ * 
+ * @returns An unsigned 53-bit integer, returned as an f64
+ * so that the JS runtime converts it to a `Number`.
+ */
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextInt53Number(): f64 {
     return int53Number(nextInt64());
 }
 
+/**
+ * Gets this generator's next unsigned 32-bit integer.
+ * 
+ * @returns An unsigned 32-bit integer, returned as an f64
+ * so that the JS runtime converts it to a `Number`.
+ */
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextInt32Number(): f64 {
     return int32Number(nextInt64());
 }
 
+/**
+ * Gets this generator's next floating point number in range [0, 1).
+ * 
+ * @returns A floating point number in range [0, 1).
+ */
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextNumber(): f64 {
     return number(nextInt64());
 }
 
+/**
+ * Gets this generator's next floating point number in range (-1, 1).
+ * 
+ * Can be considered part of a "coordinate" in a unit circle with radius 1.
+ * Useful for Monte Carlo simulation.
+ * 
+ * @returns A floating point number in range (-1, 1).
+ */
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextCoord(): f64 {
     return coord(nextInt64());
 }
 
+/**
+ * Gets the square of this generator's next floating point number in range (-1, 1).
+ * 
+ * Useful for Monte Carlo simulation.
+ * 
+ * @returns A floating point number in range (-1, 1), multiplied by itself.
+ */
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function nextCoordSquared(): f64 {
     return coordSquared(nextInt64());
 }
 
+
 // Expose array management functions from this module
 export { allocUint64Array, allocFloat64Array, freeArray } from './common';
 
-/*
+
+/* 
+ * Perf:
  * If we extract the following mostly-repeated functions to shared logic, 
  * define a type for the function, and pass the generator function as a 
- * parameter, it runs somewhat slower because of runtime function call overhead
- * (At least I think, and so it can't be avoided using @inline).
+ * parameter, it runs somewhat slower. I believe this is because of runtime
+ * function call overhead, and so it can't be avoided using @inline.
  * 
- * So in the interest of speed over cleanliness, we repeat this logic in each
+ * In the interest of speed over DRY cleanliness, we repeat this logic in each
  * generator type.
  * 
- * The same speed caveat applies when wrapping the generators in a class:
- *  Everything slows down. So we opt instead for static functions and speed.
+ * The same speed caveat applies when wrapping the generator logic in a class:
+ * Everything slows down somewhat. So we opt instead for global functions and speed.
+ * 
+ * TODO: Add performance tradeoff examples to demos.
  */
 
-/** Monte Carlo test: Count how many random points fall inside a unit circle */
+
+/**
+ * Monte Carlo test: Generates random (x,y) coordinates in range (-1, 1), and
+ * counts how many of them fall inside the unit circle with radius 1.
+ * 
+ * Can be used to estimate pi (π).
+ * 
+ * @param count The number of random (x,y) coordinate points in (-1, 1) to generate and check.
+ * 
+ * @returns The number of random points which fell *inside* of the unit circle with radius 1.
+ */
 export function batchTestUnitCirclePoints(count: i32): i32 {
     let inCircle: i32 = 0;
     let xSquared: f64;
@@ -108,35 +182,79 @@ export function batchTestUnitCirclePoints(count: i32): i32 {
     return inCircle;
 }
 
+/**
+ * Fills the provided array with this generator's next set of unsigned 64-bit integers.
+ * 
+ * @param arr The array to fully fill. If called from a JS runtime, this value should
+ * be an array pointer returned by {@link allocUint64Array}.
+ */
 export function fillUint64Array_Int64(arr: Uint64Array): void {
     for (let i: i32 = 0; i < arr.length; i++) {
         unchecked(arr[i] = nextInt64());
     }
 }
 
+/**
+ * Fills the provided array with this generator's next set of unsigned 53-bit integers.
+ * 
+ * @param arr The array to fully fill. If called from a JS runtime, this value should
+ * be an array pointer returned by {@link allocFloat64Array}.
+ */
 export function fillFloat64Array_Int53Numbers(arr: Float64Array): void {
     for (let i: i32 = 0; i < arr.length; i++) {
         unchecked(arr[i] = nextInt53Number());
     }
 }
+
+/**
+ * Fills the provided array with this generator's next set of unsigned 32-bit integers.
+ * 
+ * @param arr The array to fully fill. If called from a JS runtime, this value should
+ * be an array pointer returned by {@link allocFloat64Array}.
+ */
 export function fillFloat64Array_Int32Numbers(arr: Float64Array): void {
     for (let i: i32 = 0; i < arr.length; i++) {
         unchecked(arr[i] = nextInt32Number());
     }
 }
 
+/**
+ * Fills the provided array with this generator's next set of floating point numbers
+ * in range [0, 1).
+ * 
+ * @param arr The array to fully fill. If called from a JS runtime, this value should
+ * be an array pointer returned by {@link allocFloat64Array}.
+ */
 export function fillFloat64Array_Numbers(arr: Float64Array): void {
     for (let i: i32 = 0; i < arr.length; i++) {
         unchecked(arr[i] = nextNumber());
     }
 }
 
+/**
+ * Fills the provided array with this generator's next set of floating point numbers
+ * in range (-1, 1).
+ * 
+ * Useful for Monte Carlo simulation.
+ * 
+ * @param arr The array to fully fill. If called from a JS runtime, this value should
+ * be an array pointer returned by {@link allocFloat64Array}.
+ */
 export function fillFloat64Array_Coords(arr: Float64Array): void {
     for (let i: i32 = 0; i < arr.length; i++) {
         unchecked(arr[i] = nextCoord());
     }
 }
 
+/**
+ * Fills the provided array with the squares of this generator's next set of floating 
+ * point numbers in range (-1, 1).
+ * 
+ * Useful for Monte Carlo simulation.
+ * 
+ * @param arr The array to fully fill. If called from a JS runtime, this value should
+ * be an array pointer returned by {@link allocFloat64Array}.
+ */
 export function fillFloat64Array_CoordsSquared(arr: Float64Array): void {
     for (let i: i32 = 0; i < arr.length; i++) {
         unchecked(arr[i] = nextCoordSquared());

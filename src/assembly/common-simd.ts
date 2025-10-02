@@ -4,8 +4,11 @@ export const BIT_53x2: v128 = f64x2.splat(BIT_53);
 export const ONEx2: v128 = f64x2.splat(1.0);
 export const TWOx2: v128 = f64x2.splat(2.0);
 
-// return 2 random 53-bit integers between 0 and 2^53 - 1,
-// as f64s so that JS converts them to Numbers
+/**
+ * Bit-shifts the given u64s to limit them to 53 bits,
+ * and casts as f64s so that JS runtime converts them to `Number`s.
+ */
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function int53Numbers(next: v128): v128 {
     // Shift right by 11 (>> 11) to extract upper 53 bits
@@ -20,8 +23,11 @@ export function int53Numbers(next: v128): v128 {
     );
 }
 
-// return 2 random 32-bit integers between 0 and 2^32 - 1,
-// as f64s so that JS converts them to Numbers
+/**
+ * Bit-shifts the given u64s to limit them to 32 bits,
+ * and casts as f64s so that JS runtime converts them to `Number`s.
+ */
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function int32Numbers(next: v128): v128 {
     // Shift right by 32 (>> 32) to extract upper 32 bits
@@ -35,7 +41,10 @@ export function int32Numbers(next: v128): v128 {
     );
 }
 
-// return 2 random f64 numbers in range [0, 1)
+/*
+ * Derives 2 f64 numbers in range [0, 1) from the 2 given u64s.
+ */
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function numbers(next: v128): v128 {
     const randShifted: v128 = int53Numbers(next);
@@ -44,7 +53,10 @@ export function numbers(next: v128): v128 {
     return v128.div<f64>(randShifted, BIT_53x2);
 }
 
-// return 2 random f64 numbers in range (-1, 1)
+/*
+ * Derives 2 f64 numbers in range (-1, 1) from the 2 given u64s.
+ */
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function point(next: v128): v128 {
     let n: v128 = numbers(next);
@@ -56,7 +68,10 @@ export function point(next: v128): v128 {
     return n;
 }
 
-// return the squares of 2 random f64 numbers in range (-1, 1)
+/*
+ * Derives the squares of 2 f64 numbers in range (-1, 1) from the 2 given u64s.
+ */
+// @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function pointSquared(next: v128): v128 {
     const p: v128 = point(next);

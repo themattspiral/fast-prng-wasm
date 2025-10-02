@@ -1,6 +1,4 @@
 import { isMainThread, parentPort, workerData } from 'worker_threads';
-
-// import { RandomGenerator } from '../../dist/index.mjs';       // quick test local fast-prng-wasm
 import { RandomGenerator } from 'fast-prng-wasm';
 
 import { WorkerBatchModeType, WorkerSeedModeType } from './enum.js';

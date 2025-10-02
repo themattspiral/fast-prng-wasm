@@ -1,3 +1,8 @@
+/**
+ * AssemblyScript API - Can be used within other AssemblyScript projects.
+ * @packageDocumentation
+ */
+
 export * as PCG from './pcg';
 export * as Xoroshiro128Plus from './xoroshiro128plus';
 export * as Xoroshiro128Plus_SIMD from './xoroshiro128plus-simd';

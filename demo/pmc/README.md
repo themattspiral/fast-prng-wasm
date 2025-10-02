@@ -6,22 +6,22 @@ A [Monte Carlo estimation of pi (π)](https://www.geeksforgeeks.org/estimating-v
 - This project is a good example of using a single set of shared seeds across multiple generators, combined with using unique `jumpCount` values (on generator creation) to select a unique random stream for each generator.
 
 ## Install Demo Deps & Run
-This demo uses a local dependency for `fast-prng-wasm`, so you must build it first (or install a published version instead). 
+This demo uses a local dependency for `fast-prng-wasm`, so you must build it first (or modify the `package.json` in this directory to install a published version instead). 
 
-In the project root:
+From the `fast-prng-wasm` project root, install dependencies and build the library:
 ``` sh
 npm i
 npm run build
 ```
  
-Change directory to `demo/pmc`, install dependencies, and run:
+Change directory to `demo/pmc`, install demo dependencies, and then run the demo:
 ``` sh
 cd demo/pmc
 npm i
 node pmc.js
 ```
 
-This will estimate the value of π by generating 1 billion (x,y) points (2 billion random numbers) using all CPU cores and the default (likely fastest) PRNG that `fast-prng-wasm` provides, `Xoroshiro128Plus_SIMD`.
+This will estimate the value of π by generating 1 billion (x,y) points (2 billion random numbers) using all availavle CPU cores and the default PRNG that `fast-prng-wasm` provides, `Xoroshiro128Plus_SIMD`.
 
 ## Runtime Parameters
 Modify parameters within `pmc.js` to alter characteristics of the PRNGs used:
