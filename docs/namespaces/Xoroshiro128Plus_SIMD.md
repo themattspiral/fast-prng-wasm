@@ -2,6 +2,11 @@
 
 # Xoroshiro128Plus\_SIMD
 
+An AssemblyScript implementation of the Xoroshiro128+ PRNG, a 64-bit generator
+with 128 bits of state (2^128 period) and a jump function for unique sequence selection.
+
+This version supports WebAssembly SIMD to provide 2 random outputs for the price of 1.
+
 ## Variables
 
 ### SEED\_COUNT

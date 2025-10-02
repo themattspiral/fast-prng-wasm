@@ -7,16 +7,18 @@ As such, the interface is subject to change and shift somewhat, until reaching v
 ## Roadmap
 Feel free to [suggest features and report any issues](https://github.com/themattspiral/fast-prng-wasm/issues) you encounter.
 
-JSDocs -> API
-prng credit
-speed optimization notes (algo selection, unchecked, O3, @inline, stub, branch minimization with separate functions)]
-Readme - not crypto secure
+# Remaining MVP for 1.0.0 Release
+- Finish AS docs
+- Apply TypeDoc to seeds
+- explain rotl in PCG
+- speed optimization notes (algo selection, unchecked, O3, @inline, stub, branch minimization with separate functions)
+- web demos
+- assemblyscript inclusion demo
+- update tooling
 
 ### Features
 - Bounded integer output
-- WASM feature detection (SIMD)
-- web demo 
-- assemblyscript consumer demo
+- speed tradeoff design comparisons
 
 ### Tech Debt
 - type definitions

@@ -2,6 +2,9 @@
 
 # Xoroshiro128Plus
 
+An AssemblyScript implementation of the Xoroshiro128+ PRNG, a 64-bit generator
+with 128 bits of state (2^128 period) and a jump function for unique sequence selection.
+
 ## Variables
 
 ### SEED\_COUNT

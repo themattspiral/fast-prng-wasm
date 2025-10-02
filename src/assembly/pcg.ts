@@ -1,7 +1,16 @@
 /**
- * This is the PCG PRNG. Let's see it in action, eh?
- *
  * @packageDocumentation
+ * An AssemblyScript implementation of the PCG PRNG, a 32-bit generator with
+ * 64 bits of state and unique stream selection.
+ */
+
+/*
+ * Based on the PCG Minimal C Implementation
+ * (c) 2014 M.E. O'Neill / pcg-random.org
+ * https://www.pcg-random.org/download.html
+ * 
+ * Which is licensed under Apache License 2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  */
 
 import { int53Number, number, coord, coordSquared } from './common';
@@ -14,6 +23,7 @@ let increment: u64 = 1442695040888963407;
 
 let state: u64 = 0;
 
+/** Number of seed parameters required for this generator's `setSeed()` function. */
 export const SEED_COUNT: i32 = 1;
 
 export function setSeed(seed: u64): void {
@@ -49,7 +59,7 @@ export function nextInt32(): u32 {
     const xorshifted: u32 = <u32>(((oldState >> 18) ^ oldState) >> 27);
     const rot: u32 = <u32>(oldState >> 59);
 
-    return (xorshifted >> rot) | (xorshifted << (-rot & 31));
+    return (xorshifted >> rot) | (xorshifted << ((-rot) & 31));
 }
 
 // No runtime function call penalty is incurred by chaining these functions,

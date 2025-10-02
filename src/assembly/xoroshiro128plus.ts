@@ -1,8 +1,21 @@
+/**
+ * @packageDocumentation
+ * An AssemblyScript implementation of the Xoroshiro128+ PRNG, a 64-bit generator
+ * with 128 bits of state (2^128 period) and a jump function for unique sequence selection.
+ */
+
+/*
+ * Based on the xoroshiro128+ C reference implementation
+ * Public Domain, 2016-2018 by David Blackman and Sebastiano Vigna (vigna@acm.org)
+ * https://prng.di.unimi.it/xoroshiro128plus.c
+ */
+
 import { int32Number, int53Number, number, coord, coordSquared, JUMP_128 } from './common';
 
 let s0: u64 = 0;
 let s1: u64 = 0;
 
+/** Number of seed parameters required for this generator's `setSeed()` function. */
 export const SEED_COUNT: i32 = 2;
 
 export function setSeed(a: u64, b: u64): void {

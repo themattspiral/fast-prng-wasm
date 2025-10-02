@@ -2,7 +2,8 @@
 
 # PCG
 
-This is the PCG PRNG. Let's see it in action, eh?
+An AssemblyScript implementation of the PCG PRNG, a 32-bit generator with
+64 bits of state and unique stream selection.
 
 ## Variables
 
@@ -11,6 +12,8 @@ This is the PCG PRNG. Let's see it in action, eh?
 ```ts
 const SEED_COUNT: i32 = 1;
 ```
+
+Number of seed parameters required for this generator's `setSeed()` function.
 
 ## Functions
 
@@ -37,13 +40,6 @@ function allocFloat64Array(count): usize
 ```ts
 function allocUint64Array(count): usize
 ```
-
-These functions are compatible with AssemblyScript's "incremental" runtime,
-and explicitly __pin()s the newly allocated array so that the built-in GC 
-won't collect the array when WASM doesn't see it in-scope after returning.
-
-If using a runtime that doesn't garbage collect, eg. project-default "stub",
-then __pin isn't required, but will have no effect, so it's safe to call.
 
 #### Parameters
 

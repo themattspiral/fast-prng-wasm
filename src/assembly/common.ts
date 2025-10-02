@@ -41,14 +41,15 @@ export function coordSquared(next: u64): f64 {
     return c * c;
 }
 
-/**
+/*
  * These functions are compatible with AssemblyScript's "incremental" runtime,
- * and explicitly __pin()s the newly allocated array so that the built-in GC 
+ * and explicitly __pin() the newly allocated array so that the built-in GC 
  * won't collect the array when WASM doesn't see it in-scope after returning.
  * 
- * If using a runtime that doesn't garbage collect, eg. project-default "stub",
+ * If using a WASM runtime that doesn't garbage collect, eg. project-default "stub",
  * then __pin isn't required, but will have no effect, so it's safe to call.
  */
+
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function allocUint64Array(count: i32): usize {

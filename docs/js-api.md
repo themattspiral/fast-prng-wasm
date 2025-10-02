@@ -1,5 +1,8 @@
 # fast-prng-wasm
 
+JavaScript API - Can be used within any environment that supports WebAssembly,
+(e.g. most modern browsers and Node runtimes).
+
 ## Enumerations
 
 ### PRNGType

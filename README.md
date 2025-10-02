@@ -1,40 +1,57 @@
 # fast-prng-wasm
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md) [![npm version](https://img.shields.io/npm/v/fast-prng-wasm.svg?style=flat)](https://www.npmjs.com/package/fast-prng-wasm)
 
-A collection of fast, SIMD-enabled pseudo random number generators that run in [WebAssembly](https://developer.mozilla.org/en-US/docs/WebAssembly).
+A collection of fast, SIMD-enabled pseudo random number generators for [WebAssembly (WASM)](https://developer.mozilla.org/en-US/docs/WebAssembly).
 
-### Features:
-- Simple usage from JavaScript
-- Supports both Node and browsers
-- Transparent, synchronous WASM loading (embedded binaries - no `fs` or `fetch` required)
-- Seedable (or self/auto-seeded)
-- Unique stream selection (for shared-seed parallel generation)
-- Single value and bulk array output functions
-- Float (as `Number`), Integer (as `Number`), 32-bit Integer (as `Number`), and 64-bit `BigInt` output types
-- Designed for speed - [WASM SIMD](https://github.com/WebAssembly/simd/blob/master/proposals/simd/SIMD.md) versions allow higher throughput
-- PRNGs can also be imported to other [AssemblyScript](https://www.assemblyscript.org/) projects and used as part of a larger WASM compilation
+This project aims to bring high-quality PRNGs to WASM by implementing modern, statistically-sound algorthms in [AssemblyScript](https://www.assemblyscript.org/).
 
-### PRNG Algorithms:
+## Features:
+- Simple usage from JavaScript/TypeScript
+- Supports both Node and browsers (should work in any JS runtime that supports WebAssembly)
+- Transparent, synchronous WASM binary loading
+- Embedded WASM binaries - No `fs` or `fetch` required
+- Single value and bulk array output functions, with 4 output types:
+  - 64-bit Integer (as `BigInt`)
+  - 53-bit Integer (as `Number`) - e.g. the maximum number of random bits we can squeeze into a JS `Number`
+  - 32-bit Integer (as `Number`)
+  - Float (as `Number`)
+- Seedable PRNGs (or self/auto-seeded)
+- Unique stream selection / jump function (for shared-seed parallel generation)
+- Designed for speed - SIMD versions allow higher throughput
+- Can be used within other AssemblyScript projects as part of a larger WASM binary compilation
+
+## Supported PRNG Algorithms:
+These 5 algorithms are supported for their speed, execellent statistical 'randomness', and their ability to be parallelized using SIMD.
+
 - **PCG XSH RR:** 32-bit generator with 64 bits of state
 - **Xoroshiro128+:** 64-bit generator with 128 bits of state (2<sup>128</sup> period)
-- **Xoroshiro128+ (SIMD):** A SIMD-enabled version of above; provides 2 random outputs for the price of 1
+- **Xoroshiro128+ (SIMD):** A SIMD-enabled version of above (provides 2 random outputs for the price of 1 when using array output)
 - **Xoshiro256+:** 64-bit generator with 256 bits of state (2<sup>256</sup> period)
-- **Xoshiro256+ (SIMD):** SIMD-enabled version of above; provides 2 random outputs for the price of 1
+- **Xoshiro256+ (SIMD):** SIMD-enabled version of above (provides 2 random outputs for the price of 1 when using array output)
 
-#### Further PRNG Reading:
+Please note that while these PRNG algorithms have excellent statistical properties and efficiency, they are *not cryptographically secure*. They are suitable for simulations, games, etc, but are not resilient against attacks that could reveal the sequence's history.
+
+A detailed discussion of these algorithms, their tradeoffs, and original reference implementations can be found below:
 - [PCG: A Family of Better Random Number Generators](https://www.pcg-random.org)
 - [`xoshiro` / `xoroshiro` generators and the PRNG shootout](https://prng.di.unimi.it/)
 
 
-## Usage
+## API Documentation
+- **[JavaScript API Docs](docs/js-api.md)**
+- **[AssemblyScript API Docs](docs/as-api.md)**
 
-### ES Module `import` (bundler / modern browser / modern node)
+
+## Usage Guide
+
+### Import
+
+#### ES Module `import` (bundler / modern browser / modern node)
  `import { seed64Array, PRNGType, RandomGenerator } from 'fast-prng-wasm';`
 
-### Node `require` (legacy node)
+#### Node `require` (legacy node)
 `const { seed64Array, PRNGType, RandomGenerator } = require('fast-prng-wasm');`
 
-### UMD (browser)
+#### UMD (browser script tag)
 `<script src="https://unpkg.com/fast-prng-wasm"></script>`
 
 💡 UMD exposes the same interface in `global.fastPRNGWasm`:
@@ -58,12 +75,11 @@ console.log(pcgGen.nextInteger32());    // unsigned 32-bit integer Number
 console.log(pcgGen.nextNumber());       // 53-bit float Number in [0, 1)
 ```
 
-### Array Output
-
+### Array Output & SIMD
 The fastest way to get random numbers *in bulk* is to use the `nextArray_*` methods of `RandomGenerator`. Each call to one of these functions fills an internal buffer with the next 1000 (by default) random numbers, and then **returns a view** of the buffer to JavaScript as an appropriate [`TypedArray`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray), either `BigUint64Array` or `Float64Array`.
 
 #### 💡 SIMD
-Array functions must be used instead of single-value functions to get the additional throughput offered by SIMD algorithm types (these have higher throughput because they produce multiple numbers at the same time).
+Array functions **MUST** be used instead of single-value functions to realize the additional throughput offered by SIMD algorithm types (these have higher throughput because they produce multiple numbers at the same time).
 
 ``` js
 const gen = new RandomGenerator();
@@ -74,29 +90,34 @@ const randomArray4 = gen.nextArray_Number();      // 1000 float Numbers in [0, 1
 ```
 
 #### ⚠️Shared Buffer Warning⚠️
-Because you are consuming random numbers out of a view on a portion of shared WebAssembly memory, and this *memory is reused between calls* to the `nextArray_*` functions, **you must actually consume (e.g. test/calculate, or copy) these numbers between each call**.
+Because you are consuming the generated numbers from a view on a portion of shared WebAssembly memory, and this *memory is reused between calls* to the `nextArray_*` functions, **you must actually consume (e.g. read/copy) the output between each call**.
 
 ``` js
 const gen = new RandomGenerator();
 
-// ⚠️Warning⚠️: Consume these numbers before making another call to nextArray_*
-const randomArray1 = gen.nextArray_Number();   // 1000 float Numbers in [0, 1)
-console.log(randomArray1);
+// ⚠️Warning⚠️: Consume this output before making another call to nextArray_*
+const randomArray1 = gen.nextArray_Number();   // 1000 floats in [0, 1)
+console.log(randomArray1);                     // example consumption
 
 // the values originally in randomArray1 will be replaced now!
-const randomArray2 = gen.nextArray_Number();   // 1000 floats in [0, 1)
-console.log(randomArray2);
+const randomArray2 = gen.nextArray_Number();   // 1000 new floats in [0, 1)
+console.log(randomArray2);                     // different numbers
 
-console.log(randomArray1 === randomArray2);    // true (same buffer!)
+console.log(randomArray1 === randomArray2);    // true (same array memory)
 ```
 
 #### Set Output Array Size
+If you don't need 1000 numbers with each function call, you can specify your preferred size for the output array instead. 
+
+**NOTE:** Making the output array larger than the default of 1000 does not increase performance any further in test environments, even when generating very large quantities of random numbers.
+
 ``` js
-// providing null seeds on instantiation will auto-seed the generator
+// set size of output buffer to 200
+// (note, providing null for seeds will auto-seed the generator)
 const gen = new RandomGenerator(PRNGType.PCG, null, 0, 200);
 const randomArray = gen.nextArray_Number();    // 200 random floats in [0, 1)
 
-// resize output buffer reserved by WASM instance
+// resize output buffer to 42
 gen.outputArraySize = 42;                      // change output array size
 randomArray = gen.nextArray_Number();          // 42 random floats in [0, 1)
 console.log(randomArray);
@@ -105,7 +126,7 @@ console.log(randomArray);
 gen.outputArraySize = 5000;                    // Runtime Error ⚠️
 ```
 
-The AssemblyScript configuration in `asconfig.release.json` specifies a fixed WASM memory size of 1 page. This is intentionally kept small to limit resources allocated to WASM instances -- and because output arrays larger than the default of 1000 don't increase performance any further, even when generating very large quantities of random numbers.
+The AssemblyScript compiler configuration in `asconfig.release.json` specifies a fixed WASM memory size of 1 page. This is intentionally kept small to limit resources allocated to WASM instances -- and again, because output arrays larger than the default of 1000 don't increase performance any further, even when generating very large quantities of random numbers.
 
 If for some reason you need a larger array, you can increase the configured memory size and [rebuild the library](#working-with-this-repo).
 
@@ -120,10 +141,15 @@ const customSeeds = [7n, 9876543210818181n];    // Xoroshiro128+ takes 2 BigInt 
 const customSeededGen = new RandomGenerator(PRNGType.Xoroshiro128Plus, customSeeds);
 ```
 
-#### Generate a Unique Seed Collection with `seed64Array()`
-The `seed64Array()` function is also provided as a means of generating your own random seeds, which can then be shared between multiple generators, e.g. each running in a different thread (see the [`pmc` demo](#demos) for an example of this).
+### Parallel Generators & Sharing Seeds
+Some PRNG applications may require several (or very many) instances of a PRNG running in parallel - For example, multithreaded or distributed computing processes operating on the same problem. In these cases, it is recommended that the same set of seeds be used across ALL parallel generators *in combination with* a unique jump count or stream increment value. This essentially ensures that the randomness quality is maximized across the parallel generator instances.
 
-This function returns an `Array<BigInt>` containing 8 seeds generated with SplitMix64, which in turn was seeded with a combination of the current time and JavaScript's `Math.random()`. This collection of seeds is suitable to be provided as the `seeds` argument of any generator type.
+The process looks like this:
+
+#### Generate a Unique Seed Collection with `seed64Array()`
+The `seed64Array()` function is provided as a means of generating your own random seeds, which can then be shared between multiple generators, e.g. each running in a different thread (see the [`pmc` demo](demo/pmc) for an example of this).
+
+This function returns an `Array<BigInt>` containing 8 seeds generated with SplitMix64 (which in turn was seeded with a combination of the current time and JavaScript's `Math.random()`). This collection of seeds is suitable to be provided as the `seeds` argument of any generator type.
 
 Sharing seeds between generators assumes you will also provide a unique `jumpCountOrSteamIncrement` argument:
 - For the PCG PRNG, this will set the internal increment value within the generator, which selects a unique random stream to be generated given a specific starting state
@@ -158,28 +184,15 @@ const jumpCount3 = 1;
 const seededGen3 = new RandomGenerator(PRNGType.Xoshiro256Plus_SIMD, sharedSeeds, jumpCount3);
 const num3 = seededGen3.nextNumber();
 
-console.log(num2 === num3);           // true: using same seeds and jumpCount!!
+console.log(num2 === num3);           // true: using same seeds and same jumpCount!!
 ```
-
-
-## [JavaScript API](docs/js-api.md)
-See **[JavaScript API Docs](docs/js-api.md)** to view the entire interface.
-
-The library also contains JSDoc comments which should be visible in IDEs as you write your code.
-
-
-## [AssemblyScript API](docs/as-api.md)
-See **[AssemblyScript API Docs](docs/as-api.md)** to view the entire interface.
-
-The library also contains JSDoc comments which should be visible in IDEs as you write your code.
-
 
 ## Compatibility
 See the [WebAssembly Features Roadmap](https://webassembly.org/features/) for the latest compatibility information across various browsers and Node versions.
 
 Note that this library makes use of the following feature extensions:
-- [JS BigInt to Wasm i64 Integration](https://github.com/WebAssembly/JS-BigInt-integration) - Used to seed all PRNGs and to generate `BigInt` return types
-- [Fixed-width SIMD](https://github.com/WebAssembly/simd/blob/master/proposals/simd/SIMD.md) - Any SIMD PRNG Algorithm Type uses this feature
+- [JS BigInt to Wasm i64 Integration](https://github.com/WebAssembly/JS-BigInt-integration) - Used to seed all PRNGs with `BigInt`, and for `BigInt` return types (to accurately represent unsigned 64-bit integers in JS runtimes)
+- [Fixed-width SIMD](https://github.com/WebAssembly/simd/blob/master/proposals/simd/SIMD.md) - The SIMD-enabled PRNG Algorithms use this feature
 
 
 ## Demos

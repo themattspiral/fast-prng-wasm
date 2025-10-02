@@ -1,9 +1,30 @@
+/**
+ * @packageDocumentation
+ * An AssemblyScript implementation of the Xoroshiro128+ PRNG, a 64-bit generator
+ * with 128 bits of state (2^128 period) and a jump function for unique sequence selection.
+ * 
+ * This version supports WebAssembly SIMD to provide 2 random outputs for the price of 1.
+ */
+
+/*
+ * Based on the xoroshiro128+ C reference implementation
+ * Public Domain, 2016-2018 by David Blackman and Sebastiano Vigna (vigna@acm.org)
+ * https://prng.di.unimi.it/xoroshiro128plus.c
+ * 
+ * With thanks to Dennis Kawurek's WASM SIMD explainer
+ * https://tty4.dev/development/wasm-simd-operations/
+ * 
+ * And of course the AssemblyScript SIMD reference
+ * https://www.assemblyscript.org/stdlib/globals.html#simd-🦄
+ */
+
 import { int32Number, int53Number, number, coord, coordSquared, JUMP_128 } from './common';
 import { int32Numbers, int53Numbers, numbers, point, pointSquared } from './common-simd';
 
 let s0: v128 = i64x2.splat(0);
 let s1: v128 = i64x2.splat(0);
 
+/** Number of seed parameters required for this generator's `setSeed()` function. */
 export const SEED_COUNT: i32 = 4;
 
 export function setSeed(a: u64, b: u64, c: u64, d: u64): void {
