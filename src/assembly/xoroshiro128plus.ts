@@ -74,8 +74,8 @@ export function nextInt64(): u64 {
 /**
  * Gets this generator's next unsigned 53-bit integer.
  * 
- * @returns An unsigned 53-bit integer, returned as an f64
- * so that the JS runtime converts it to a `Number`.
+ * @returns An unsigned 53-bit integer, returned as an `f64`
+ * so that the JS runtime converts it to a `number`.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
@@ -86,8 +86,8 @@ export function nextInt53Number(): f64 {
 /**
  * Gets this generator's next unsigned 32-bit integer.
  * 
- * @returns An unsigned 32-bit integer, returned as an f64
- * so that the JS runtime converts it to a `Number`.
+ * @returns An unsigned 32-bit integer, returned as an `f64`
+ * so that the JS runtime converts it to a `number`.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline

@@ -271,8 +271,8 @@ Gets this generator's next 2 unsigned 32-bit integers.
 
 `v128`
 
-2 unsigned 32-bit integers, returned as f64s
-so that the JS runtime converts them to `Number`s.
+2 unsigned 32-bit integers, returned as `f64`s
+so that the JS runtime converts them to `number`s.
 
 ***
 
@@ -306,8 +306,8 @@ Gets this generator's next 2 unsigned 53-bit integers.
 
 `v128`
 
-2 unsigned 53-bit integers, returned as f64s
-so that the JS runtime converts them to `Number`s.
+2 unsigned 53-bit integers, returned as `f64`s
+so that the JS runtime converts them to `number`s.
 
 ***
 

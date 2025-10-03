@@ -107,8 +107,8 @@ export function nextInt64x2(): v128 {
 /**
  * Gets this generator's next 2 unsigned 53-bit integers.
  * 
- * @returns 2 unsigned 53-bit integers, returned as f64s
- * so that the JS runtime converts them to `Number`s.
+ * @returns 2 unsigned 53-bit integers, returned as `f64`s
+ * so that the JS runtime converts them to `number`s.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
@@ -119,8 +119,8 @@ export function nextInt53x2(): v128 {
 /**
  * Gets this generator's next 2 unsigned 32-bit integers.
  * 
- * @returns 2 unsigned 32-bit integers, returned as f64s
- * so that the JS runtime converts them to `Number`s.
+ * @returns 2 unsigned 32-bit integers, returned as `f64`s
+ * so that the JS runtime converts them to `number`s.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline

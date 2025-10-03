@@ -67,26 +67,22 @@ export class RandomGenerator {
      * @param {PRNGType} [prngType] The PRNG algorithm to use. Defaults to 
      * Xoroshiro128Plus_SIMD.
      * 
-     * @param {Array<bigint>} [seeds] Collection of 64-bit integers used to seed 
-     * the generator. 1-8 seeds are required depending on generator type. 
+     * @param {bigint[]} [seeds] Collection of 64-bit integers used to seed 
+     * the generator. 1-8 seeds are required depending on generator type (see
+     * {@link seedCount} or API docs to determine the required seed count).
      * Auto-seeds itself if no seeds are provided.
      * 
-     * @param {number | bigint} [jumpCountOrStreamIncrement] Optional - Either:
-     * 1. Number of state  jumps to make after seeding, which allows Xoshiro 
-     * generators to choose a unique random stream; Or...
-     * 2. For PCG generators, this value is set as the unique steam 
-     * increment used by the generator, to accomplish the same purpose as the 
-     * Xoshiro state jumps (chooses a unique random stream).
+     * @param {number | bigint} [jumpCountOrStreamIncrement] Optional unique
+     * identifier to be used when sharing the same seeds across multiple
+     * parallel generators (e.g. worker threads or distributed computation),
+     * allowing each to choose a unique random stream.
      * 
-     * In both cases, this is intended to be used when sharing the same seeds 
-     * across multiple generators in parallel (e.g. worker threads or
-     * distributed computation environments). 
-     * 
-     * This number should be unique across generators when `seeds` are shared.
+     * For Xoshiro generators, this value indicates the number of state jumps
+     * to make after seeding. For PCG generators, this value is used as the
+     * internal stream increment for state advances and must be odd.
      * 
      * @param {number} [outputArraySize] Size of the output array used when 
-     * fetching arrays from the generator. This size is pre-allocated in WASM
-     * memory for performance. Defaults to 1000.
+     * filling shared memory using the `nextArray` methods. Defaults to 1000.
      */
     constructor(prngType = PRNGType.Xoroshiro128Plus_SIMD, seeds = null, jumpCountOrStreamIncrement = 0, outputArraySize = 1000) {
         this.#prngType = prngType;
@@ -125,28 +121,61 @@ export class RandomGenerator {
         // Note that some PCG implementations provide jump-ahead and jump-back
         // functionality as well, similar to the Xoshiro Jump function. In this
         // library's PCG implementation, we only expose the increment as a way 
-        // to choose a stream, and haven't implemented PCG state jumps.
+        // to choose a stream, and have not implemented PCG state jumps.
         if (this.#instance.setStreamIncrement && jumpCountOrStreamIncrement > 0) {
             this.#instance.setStreamIncrement(BigInt(jumpCountOrStreamIncrement));
         }
     }
 
+    /**
+     * Gets the PRNG algorithm being used by this generator instance.
+     * 
+     * @returns The {@link PRNGType} being used by this generator instance.
+     */
     get prngType() {
         return this.#prngType;
     }
 
+    /**
+     * Gets the number of `bigint`s required to seed this generator instance.
+     * 
+     * @returns The integer `number` of `bigint`s required to seed this generator instance.
+     */
+    get seedCount() {
+        return this.#instance.SEED_COUNT.value;
+    }
+
+    /**
+     * Gets the seed collection used to initialize this generator instance.
+     * 
+     * @returns The `bigint[]` seed collection used to initialize this generator instance.
+     */
     get seeds() {
         return this.#seeds;
     }
+    /**
+     * Re-initializes the internal state of this generator instance with the given seeds.
+     * 
+     * @param {bigint[]} newSeeds Collection of 64-bit integers used to seed the generator.
+     */
     set seeds(newSeeds) {
         this.#seeds = newSeeds;
         this.#instance.setSeed(...this.#seeds);
     }
 
-    /** The size of the array returned by the `nextArray` methods. */
+    /**
+     * Gets the size of the array returned by the `nextArray` methods.
+     *
+     * @returns The integer `number` of items returned by the `nextArray` methods. 
+     */
     get outputArraySize() {
         return this.#outputArraySize;
     }
+    /**
+     * Changes the size of the array returned by the `nextArray` methods.
+     *
+     * @param {number} newSize The integer `number` of items to be returned by the `nextArray` methods. 
+     */
     set outputArraySize(newSize) {
         if (this.#prngType !== PRNGType.MathRandom) {
             this.#instance.freeArray(this.#bigIntOutputArrayPtr);
@@ -160,42 +189,42 @@ export class RandomGenerator {
     /**
      * Gets this generator's next unsigned 64-bit integer.
      * 
-     * @returns {bigint} An unsigned `bigint` providing 64-bits of randomness,
-     * between 0 and 2^64 - 1
+     * @returns {bigint} An unsigned 64-bit integer as a `bigint`,
+     * providing 64-bits of randomness, between 0 and 2^64 - 1
      */
     nextBigInt() {
         // `u64` return type in WASM is treated as an `i64` and converted to a
-        // signed BigInt in JS, so we mask it before returning to ensure the 
-        // value is treated as unsigned
+        // signed bigint when returning to a JS runtime, so we mask it before
+        // returning to ensure the value is always treated as unsigned
         return this.#instance.nextInt64() & 0xFFFFFFFFFFFFFFFFn;
     }
 
     /**
-     * Gets this generator's next unsigned 53-bit integer
+     * Gets this generator's next unsigned 53-bit integer.
      * 
-     * @returns {number} An unsigned integer `number` providing 53-bits of 
-     * randomness (the most we can fit into a JavaScript `number`), between
-     * 0 and 2^53 - 1 (`Number.MAX_SAFE_INTEGER`)
+     * @returns {number} An unsigned 53-bit integer `number` providing 53-bits of 
+     * randomness (the most we can fit into a JavaScript `number` type), between
+     * 0 and 2^53 - 1 (aka `Number.MAX_SAFE_INTEGER`)
      */
     nextInteger() {
-        // bit-shifted and returned as an f64 from WASM, so we get an unsigned
+        // bit-shifted and returned as an `f64` from WASM, so we get an unsigned
         // integer that fits nicely into a `number` without any more transformation
         return this.#instance.nextInt53Number();
     }
 
     /**
-     * Gets this generator's next unsigned 32-bit integer
+     * Gets this generator's next unsigned 32-bit integer.
      * 
-     * @returns {number} An unsigned integer `number` providing 32-bits of 
+     * @returns {number} An unsigned 32-bit integer `number` providing 32-bits of 
      * randomness, between 0 and 2^32 - 1
      */
     nextInteger32() {
-        // bit-shifted and returned as an f64 from WASM
+        // bit-shifted and returned as an `f64` from WASM
         return this.#instance.nextInt32Number();
     }
 
     /**
-     * Gets this generator's next floating point number in range [0, 1)
+     * Gets this generator's next floating point number in range [0, 1).
      * 
      * @returns {number} A floating point `number` between 0 and 1
      */
@@ -205,6 +234,7 @@ export class RandomGenerator {
 
     /**
      * Gets this generator's next floating point number in range (-1, 1).
+     * 
      * Can be considered part of a "coordinate" in a unit circle with radius 1.
      * Useful for Monte Carlo simulation.
      * 
@@ -216,7 +246,9 @@ export class RandomGenerator {
 
     /**
      * Gets the square of this generator's next floating point number in range
-     * (-1, 1). Useful for Monte Carlo simulation.
+     * (-1, 1).
+     * 
+     * Useful for Monte Carlo simulation.
      * 
      * @returns {number} A floating point `number` between -1 and 1, multiplied
      * by itself
@@ -226,9 +258,9 @@ export class RandomGenerator {
     }
 
     /**
-     * Gets this generator's next set of 64-bit integers between
-     * 0 and 2^64 - 1. Array size is set when generator is created, 
-     * or by changing {@link outputArraySize}.
+     * Gets this generator's next set of 64-bit integers.
+     * 
+     * Array size is set when generator is created, or by changing {@link outputArraySize}.
      * 
      * @returns {BigUint64Array} An array of 64-bit integers, represented as 
      * `u64` values in WASM and viewed as unsigned `bigint` values in
@@ -240,9 +272,9 @@ export class RandomGenerator {
     }
     
     /**
-     * Gets this generator's next set of 53-bit integers between
-     * 0 and 2^53 - 1 (i.e. `Number.MAX_SAFE_INTEGER`). Array size is set
-     * when generator is created, or by changing {@link outputArraySize}.
+     * Gets this generator's next set of 53-bit integers.
+     * 
+     * Array size is set when generator is created, or by changing {@link outputArraySize}.
      * 
      * @returns {Float64Array} An array of 53-bit integers, represented as
      * `f64` values in WASM so they can be viewed as `number` values in
@@ -254,13 +286,14 @@ export class RandomGenerator {
     }
     
     /**
-     * Gets this generator's next set of 32-bit integers between
-     * 0 and 2^32 - 1. Array size is set when generator is created, 
-     * or by changing {@link outputArraySize}.
+     * Gets this generator's next set of 32-bit integers.
+     * 
+     * Array size is set when generator is created, or by changing {@link outputArraySize}.
      * 
      * @returns {Float64Array} An array of 32-bit integers, represented as
-     * `f64` values in WASM so they can be viewed as `number` values in
-     * JavaScript. This output buffer is reused with each call.
+     * `f64` values in WASM so they can be viewed as `number` values in JS runtimes.
+     * 
+     * This output buffer is reused with each call.
      */
     nextArray_Integer32() {
         this.#instance.fillFloat64Array_Int32Numbers(this.#floatOutputArrayPtr);
@@ -269,10 +302,13 @@ export class RandomGenerator {
 
     /**
      * Gets this generator's next set of floating point numbers in range [0, 1).
-     * Array size is set when generator is created, or by changing 
-     * {@link outputArraySize}.
-     * @returns {Float64Array} An array of `f64` values in WASM viewed as
-     * `number` values. This output buffer is reused with each call.
+     * 
+     * Array size is set when generator is created, or by changing {@link outputArraySize}.
+     * 
+     * @returns {Float64Array} An array of `f64` values from WASM viewed as
+     * `number` values in JS runtimes.
+     * 
+     * This output buffer is reused with each call.
      */
     nextArray_Number() {
         this.#instance.fillFloat64Array_Numbers(this.#floatOutputArrayPtr);
@@ -281,10 +317,15 @@ export class RandomGenerator {
     
     /**
      * Gets this generator's next set of Float numbers in range (-1, 1).
-     * Array size is set when generator is created, or by changing 
-     * {@link outputArraySize}. Useful for Monte Carlo simulation.
-     * @returns {Float64Array} An array of `f64` values in WASM viewed as
-     * `number` values. This output buffer is reused with each call.
+     * 
+     * Array size is set when generator is created, or by changing {@link outputArraySize}.
+     * 
+     * Useful for Monte Carlo simulation.
+     * 
+     * @returns {Float64Array} An array of `f64` values from WASM viewed as
+     * `number` values in JS runtimes.
+     * 
+     * This output buffer is reused with each call.
      */
     nextArray_Coord() {
         this.#instance.fillFloat64Array_Coords(this.#floatOutputArrayPtr);
@@ -293,10 +334,15 @@ export class RandomGenerator {
 
     /**
      * Gets this generator's next set of squared Float numbers in range (-1, 1).
-     * Array size is set when generator is created, or by changing 
-     * {@link outputArraySize}. Useful for Monte Carlo simulation.
-     * @returns {Float64Array} An array of `f64` values in WASM viewed as
-     * `number` values. This output buffer is reused with each call.
+     * 
+     * Array size is set when generator is created, or by changing {@link outputArraySize}.
+     * 
+     * Useful for Monte Carlo simulation.
+     * 
+     * @returns {Float64Array} An array of `f64` values from WASM viewed as
+     * `number` values in JS runtimes.
+     * 
+     * This output buffer is reused with each call.
      */
     nextArray_CoordSquared() {
         this.#instance.fillFloat64Array_CoordsSquared(this.#floatOutputArrayPtr);
@@ -306,12 +352,13 @@ export class RandomGenerator {
     /**
      * Performs a batch test in WASM of random (x, y) points between -1 and 1
      * and check if they fall within the corresponding unit circle with radius 1.
+     * 
      * Useful for Monte Carlo simulation.
      * 
-     * @param {number} pointCount Number of random (x, y) points to generate
-     * and test.
+     * @param {number} pointCount Number of random (x, y) points in (-1, 1) to generate
+     * and check.
      * 
-     * @returns {number} Number of tested points which fall inside of the
+     * @returns {number} Number of tested points which fell *inside* of the
      * unit circle with radius 1.
      */
     batchTestUnitCirclePoints(pointCount) {

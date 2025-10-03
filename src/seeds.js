@@ -49,7 +49,7 @@ export class SplitMix64 {
  * Auto-seeds itself if not provided using a combination of the current time 
  * Math.random().
  * 
- * @returns {Array<bigint>} Array of unique 64-bit seeds.
+ * @returns {bigint[]} Array of unique 64-bit seeds.
  */
 export function seed64Array(count = 8, seed = null) {
     const sm64 = new SplitMix64(seed);

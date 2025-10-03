@@ -30,7 +30,7 @@ avoid garbage collection. Must be explicitly freed with [freeArray](PCG.md#freea
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `count` | `number` | The size of the array to allocate (number of f64s it can hold). |
+| `count` | `number` | The size of the array to allocate (number of `f64`s it can hold). |
 
 #### Returns
 
@@ -53,7 +53,7 @@ avoid garbage collection. Must be explicitly freed with [freeArray](PCG.md#freea
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `count` | `number` | The size of the array to allocate (number of u64s it can hold). |
+| `count` | `number` | The size of the array to allocate (number of `u64`s it can hold). |
 
 #### Returns
 
@@ -301,8 +301,8 @@ Gets this generator's next unsigned 32-bit integer.
 
 `f64`
 
-An unsigned 32-bit integer, returned as an f64 so that
-the JS runtime converts it to a `Number`.
+An unsigned 32-bit integer, returned as an `f64` so that
+the JS runtime converts it to a `number`.
 
 ***
 
@@ -319,7 +319,7 @@ Gets this generator's next unsigned 53-bit integer.
 `f64`
 
 This generator's next unsigned 53-bit integer, returned
-as an f64 so that the JS runtime converts it to a `Number`.
+as an `f64` so that the JS runtime converts it to a `number`.
 
 ***
 

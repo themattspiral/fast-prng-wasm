@@ -18,6 +18,8 @@ if (!isMainThread) {
     let pointsInCircle = 0;
     let batchPointsGenerated = 0;
 
+    // GeneratorBatch mode confines all test logic to WASM. This is very fast,
+    // because we don't have to return large volumes of random numbers back to the JS runtime
     if (workerData.batchMode === WorkerBatchModeType.GeneratorBatch) {
         while (pointsGenerated < workerData.pointCount) {
             const bs = Math.min(batchSize, workerData.pointCount - pointsGenerated);
@@ -25,11 +27,16 @@ if (!isMainThread) {
             pointsGenerated += bs;
             parentPort.postMessage({ pointsGenerated, pointsInCircle, batchPointsGenerated: bs });
         }
-    } else if (workerData.batchMode === WorkerBatchModeType.ArrayFill) {
+    }
+
+    // ArrayFill mode consumes random numbers out of the shared memory buffer and tests them here in the JS runtime
+    else if (workerData.batchMode === WorkerBatchModeType.ArrayFill) {
         while (pointsGenerated < workerData.pointCount) {
             // each point we test consums 2 numbers from the output array, 
             // so point batch size can be at most half of the output array size.
             const batchPointCount = Math.min(generator.outputArraySize / 2, workerData.pointCount - pointsGenerated);
+
+            // get the next batch of random numbers
             const nums = generator.nextArray_CoordSquared();
 
             for (let i = 0; i < batchPointCount * 2; i += 2) {
@@ -46,7 +53,10 @@ if (!isMainThread) {
                 }
             }
         }
-    } else if (workerData.batchMode === WorkerBatchModeType.Single) {
+    }
+    
+    // Single mode generates each random coordinate one at a time
+    else if (workerData.batchMode === WorkerBatchModeType.Single) {
         for (let i = 0; i < workerData.pointCount; i++) {
             const xSquared = generator.nextCoordSquared();
             const ySquared = generator.nextCoordSquared();

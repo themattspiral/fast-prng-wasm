@@ -5,37 +5,38 @@ export const JUMP_256: StaticArray<u64> = [0x180ec6d33cfd0aba, 0xd5a61266f0c9392
 
 /**
  * Bit-shifts the given u64 to limit it to 53 bits,
- * and casts as an f64 so that JS runtime converts it to `Number`.
+ * and casts as an `f64` so that JS runtime converts it to `number`.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function int53Number(next: u64): f64 {
+    // note: >>> is a logical right shift, which fills high bits with 0s
     return <f64>(next >>> 11);
 }
 
 /**
  * Bit-shifts the given u64 to limit it to 32 bits,
- * and casts as an f64 so that JS runtime converts it to `Number`.
+ * and casts as an `f64` so that JS runtime converts it to `number`.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-// return a random 32-bit integer between 0 and 2^32 - 1
-// as an f64 so that JS converts it to Number
 export function int32Number(next: u64): f64 {
+    // note: >>> is a logical right shift, which fills high bits with 0s
     return <f64>(next >>> 32);
 }
 
 /*
- * Derives an f64 number in range [0, 1) from the given u64.
+ * Derives an `f64` number in range [0, 1) from the given u64.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function number(next: u64): f64 {
+    // note: >>> is a logical right shift , which fills high bits with 0s
     return <f64>(next >>> 11) / BIT_53;
 }
 
 /*
- * Derives an f64 number in range (-1, 1) from the given u64.
+ * Derives an `f64` number in range (-1, 1) from the given u64.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
@@ -44,7 +45,7 @@ export function coord(next: u64): f64 {
 }
 
 /*
- * Derives the square of an f64 number in range (-1, 1) from the given u64.
+ * Derives the square of an `f64` number in range (-1, 1) from the given u64.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
@@ -68,7 +69,7 @@ export function coordSquared(next: u64): f64 {
  * Allocates shared WebAssembly memory for a `Uint64Array` of the given size, and pins it to
  * avoid garbage collection. Must be explicitly freed with {@link freeArray} if cleanup is needed.
  * 
- * @param count The size of the array to allocate (number of u64s it can hold).
+ * @param count The size of the array to allocate (number of `u64`s it can hold).
  * 
  * @returns A pointer to the newly allocated shared-memory array, which can be used from JS runtimes.
  */
@@ -86,7 +87,7 @@ export function allocUint64Array(count: i32): usize {
  * Allocates shared WebAssembly memory for a `Float64Array` of the given size, and pins it to
  * avoid garbage collection. Must be explicitly freed with {@link freeArray} if cleanup is needed.
  * 
- * @param count The size of the array to allocate (number of f64s it can hold).
+ * @param count The size of the array to allocate (number of `f64`s it can hold).
  * 
  * @returns A pointer to the newly allocated shared-memory array, which can be used from JS runtimes.
  */

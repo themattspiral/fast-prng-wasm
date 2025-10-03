@@ -5,18 +5,18 @@ export const ONEx2: v128 = f64x2.splat(1.0);
 export const TWOx2: v128 = f64x2.splat(2.0);
 
 /**
- * Bit-shifts the given u64s to limit them to 53 bits,
- * and casts as f64s so that JS runtime converts them to `Number`s.
+ * Bit-shifts the given `u64`s to limit them to 53 bits,
+ * and casts as `f64`s so that JS runtime converts them to `number`s.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function int53Numbers(next: v128): v128 {
     // Shift right by 11 (>> 11) to extract upper 53 bits
     // of each output (highest quality randomness in upper,
-    // and JS `Number` only supports 53 bit precision)
+    // and JS `number` only supports 53 bit precision)
     const randShifted: v128 = v128.shr<u64>(next, 11);
 
-    // extract bit-shifted u64s and cast to f64s
+    // extract bit-shifted `u64`s and cast to `f64`s
     return f64x2(
         <f64>v128.extract_lane<u64>(randShifted, 0),
         <f64>v128.extract_lane<u64>(randShifted, 1)
@@ -24,8 +24,8 @@ export function int53Numbers(next: v128): v128 {
 }
 
 /**
- * Bit-shifts the given u64s to limit them to 32 bits,
- * and casts as f64s so that JS runtime converts them to `Number`s.
+ * Bit-shifts the given `u64`s to limit them to 32 bits,
+ * and casts as `f64`s so that JS runtime converts them to `number`s.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
@@ -34,7 +34,7 @@ export function int32Numbers(next: v128): v128 {
     // of each output (highest quality randomness in upper)
     const randShifted: v128 = v128.shr<u64>(next, 32);
 
-    // extract bit-shifted u64s and cast to f64s
+    // extract bit-shifted `u64`s and cast to `f64`s
     return f64x2(
         <f64>v128.extract_lane<u64>(randShifted, 0),
         <f64>v128.extract_lane<u64>(randShifted, 1)
@@ -42,7 +42,7 @@ export function int32Numbers(next: v128): v128 {
 }
 
 /*
- * Derives 2 f64 numbers in range [0, 1) from the 2 given u64s.
+ * Derives 2 `f64`s in range [0, 1) from the 2 given `u64`s.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
@@ -54,7 +54,7 @@ export function numbers(next: v128): v128 {
 }
 
 /*
- * Derives 2 f64 numbers in range (-1, 1) from the 2 given u64s.
+ * Derives 2 `f64`s in range (-1, 1) from the 2 given ``u64`s`.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
@@ -69,7 +69,7 @@ export function point(next: v128): v128 {
 }
 
 /*
- * Derives the squares of 2 f64 numbers in range (-1, 1) from the 2 given u64s.
+ * Derives the squares of 2 `f64`s in range (-1, 1) from the 2 given ``u64`s`.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline

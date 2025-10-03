@@ -235,7 +235,7 @@ Gets this generator's next unsigned 32-bit integer.
 `f64`
 
 This generator's next unsigned 32-bit integer, returned
-as an f64 so that the JS runtime converts it to a `Number`.
+as an `f64` so that the JS runtime converts it to a `number`.
 
 ***
 
@@ -252,7 +252,7 @@ Gets this generator's next unsigned 53-bit integer.
 `f64`
 
 This generator's next unsigned 53-bit integer, returned
-as an f64 so that the JS runtime converts it to a `Number`.
+as an `f64` so that the JS runtime converts it to a `number`.
 
 ***
 
