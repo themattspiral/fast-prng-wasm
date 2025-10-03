@@ -1,0 +1,102 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+  workflow_dispatch:
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🛠️ Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18' # earliest LTS version that supports WASM SIMD
+          cache: 'npm'
+
+      - name: 📦 Install dependencies (CI)
+        run: npm ci
+
+      - name: 📝 Check docs are up to date
+        run: |
+          npm run docs
+          git diff --exit-code --name-only
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: 🏗️ Build project
+        run: npm run build
+
+      # TODO
+      # - name: 🧪 Run tests and collect coverage
+      #   run: npm test
+
+  publish:
+    needs: build_and_test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      id-token: write  # Trusted Publisher OIDC authentication
+      contents: write
+    steps:
+      - name: ⬇️ Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 🛠️ Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: 📦 Install dependencies
+        run: npm ci
+      
+      - name: 🏗️ Build project
+        run: npm run build
+      
+      - name: 📦 Create package (npm pack)
+        run: npm pack
+      
+      - name: 🚀 Publish to npm
+        run: npm publish --access public
+
+      - name: 📦 Find and prepare package info
+        id: package_info
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const { name, version } = require('./package.json');
+            core.setOutput('version', version);
+            
+            // construct tarball name (npm pack converts / to - and removes @, so this handles scoped packages too)
+            const tarballName = `${name}-${version}.tgz`.replace(/@/g, '').replace(/\//g, '-');
+            const tarballPath = path.join(process.cwd(), tarballName);
+            if (fs.existsSync(tarballPath)) {
+              core.setOutput('tarball_path', tarballPath);
+            } else {
+              core.setFailed(`Tarball not found: ${tarballPath}`);
+            }
+
+      - name: ⬆️ Create GitHub Release and Tag
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.package_info.outputs.version }}
+          name: Release v${{ steps.package_info.outputs.version }}
+          body: |
+            ### Release Notes
+            - Automatic release of version ${{ steps.package_info.outputs.version }}
+            - See commit history for more details.
+          files: |
+            ${{ steps.package_info.outputs.tarball_path }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
