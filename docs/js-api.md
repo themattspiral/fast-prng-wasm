@@ -37,7 +37,7 @@ new RandomGenerator(
    outputArraySize?): RandomGenerator
 ```
 
-Creates a new WASM pseudo random number generator.
+Creates a WASM pseudo random number generator.
 
 ###### Parameters
 
