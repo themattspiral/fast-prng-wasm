@@ -21,7 +21,7 @@
     "xoshiro256+",
     "simd",
     "wasm-simd",
-    "fast"
+    "monte-carlo"
   ],
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",

@@ -21,7 +21,8 @@ export default [
                     'bin/xoroshiro128plus-simd.wasm',
                     'bin/xoshiro256plus.wasm',
                     'bin/xoshiro256plus-simd.wasm',
-                ]
+                ],
+                targetEnv: 'auto-inline'
             }),
             copy({
                 targets: [

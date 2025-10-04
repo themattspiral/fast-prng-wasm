@@ -12,12 +12,11 @@ Feel free to [suggest features and report any issues](https://github.com/thematt
 - speed optimization notes (algo selection, unchecked, O3, @inline, stub, branch minimization with separate functions)
 - web demos
 - assemblyscript inclusion demo
-- update tooling
+- update libs
 
 ### Future Features / Demos
 - Bounded integer output
 - speed tradeoff design comparison tests
 
 ### Tech Debt
-- CI/CD (github actions)
 - test coverage

@@ -1,9 +1,9 @@
 # fast-prng-wasm
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md) [![npm version](https://img.shields.io/npm/v/fast-prng-wasm.svg?style=flat)](https://www.npmjs.com/package/fast-prng-wasm)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md) [![npm package version](https://img.shields.io/npm/v/fast-prng-wasm.svg?style=flat)](https://www.npmjs.com/package/fast-prng-wasm) [![CI/CD Pipeline](https://github.com/themattspiral/fast-prng-wasm/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/themattspiral/fast-prng-wasm/actions/workflows/ci-cd.yml)
 
 A collection of fast, SIMD-enabled pseudo random number generators for [WebAssembly (WASM)](https://developer.mozilla.org/en-US/docs/WebAssembly).
 
-This project aims to bring high-quality PRNGs to WASM by implementing modern, statistically-sound algorthms in [AssemblyScript](https://www.assemblyscript.org/).
+This project aims to bring high-quality PRNGs to WASM by implementing modern, statistically-sound algorthms in [AssemblyScript](https://www.assemblyscript.org/), including PCG (XSH RR), Xoroshiro128+, and Xoshiro256+.
 
 ## Features:
 - Simple usage from JavaScript/TypeScript
@@ -25,11 +25,11 @@ These algorithms are supported for their high speed, execellent statistical rand
 
 - **PCG (XSH RR):** 32-bit generator with 64 bits of state
 - **Xoroshiro128+:** 64-bit generator with 128 bits of state (2<sup>128</sup> period)
-- **Xoroshiro128+ (SIMD):** A SIMD-enabled version of above (provides 2 random outputs for the price of 1 when using array output)
+- **Xoroshiro128+ (SIMD):** SIMD-enabled version provides 2 outputs for the price of 1 (using array output)
 - **Xoshiro256+:** 64-bit generator with 256 bits of state (2<sup>256</sup> period)
-- **Xoshiro256+ (SIMD):** SIMD-enabled version of above (provides 2 random outputs for the price of 1 when using array output)
+- **Xoshiro256+ (SIMD):** SIMD-enabled version provides 2 outputs for the price of 1 (using array output)
 
-Please note that while these PRNG algorithms have excellent statistical properties and efficiency, they are *not cryptographically secure*. They are suitable for simulations, games, etc, but are not resilient against attacks that could reveal the sequence's history.
+Please Note: While these PRNG algorithms have excellent statistical properties and efficiency, they are *not cryptographically secure*. They are suitable for simulations, games, etc, but are not resilient against attacks that could reveal the sequence's history.
 
 A detailed discussion of these algorithms, their tradeoffs, and original reference implementations can be found here:
 - [PCG: A Family of Better Random Number Generators](https://www.pcg-random.org)
@@ -43,7 +43,7 @@ A detailed discussion of these algorithms, their tradeoffs, and original referen
 
 ## Usage Guide
 
-### Import
+### Importing
 
 #### ES Module `import` (bundler / modern browser / modern node)
  `import { seed64Array, PRNGType, RandomGenerator } from 'fast-prng-wasm';`
@@ -58,7 +58,7 @@ A detailed discussion of these algorithms, their tradeoffs, and original referen
 
 `const { seed64Array, PRNGType, RandomGenerator } = fastPRNGWasm;`
 
-### Basics
+### The Basics
 ``` js
 // default PRNG type is Xoroshiro128Plus_SIMD, and self-seeds
 const gen = new RandomGenerator();
@@ -74,6 +74,8 @@ console.log(pcgGen.nextInteger());      // unsigned 53-bit integer number
 console.log(pcgGen.nextInteger32());    // unsigned 32-bit integer number
 console.log(pcgGen.nextNumber());       // 53-bit float number in [0, 1)
 ```
+
+The internal WASM binary will be instantiated when the new `RandomGenerator` instance is created.
 
 ### Array Output (Bulk Array Fill)
 The fastest way to get random numbers *in bulk* is to use the `nextArray_*` methods of `RandomGenerator`. Each call to one of these functions fills a WASM shared memory buffer with the next 1000 (by default) random numbers, and then **returns a view** of the buffer to the JS runtime as an appropriate [`TypedArray`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray): either `BigUint64Array` or `Float64Array`.
