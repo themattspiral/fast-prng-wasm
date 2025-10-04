@@ -35,7 +35,7 @@ jobs:
       - name: 🏗️ Build project
         run: npm run build
 
-      # TODO
+      # TODO - add unit tests, split test job out and ensure build is only run once
       # - name: 🧪 Run tests and collect coverage
       #   run: npm test
 
