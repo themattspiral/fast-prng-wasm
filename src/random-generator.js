@@ -62,7 +62,7 @@ export class RandomGenerator {
     }
 
     /**
-     * Creates a new WASM pseudo random number generator.
+     * Creates a WASM pseudo random number generator.
      * 
      * @param {PRNGType} [prngType] The PRNG algorithm to use. Defaults to 
      * Xoroshiro128Plus_SIMD.
