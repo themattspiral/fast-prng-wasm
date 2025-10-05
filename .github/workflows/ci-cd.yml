@@ -35,7 +35,18 @@ jobs:
       - name: 🏗️ Build project
         run: npm run build
 
-      # TODO - add unit tests, split test job out and ensure build is only run once
+      - name: ⬆️ Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: |
+            dist/
+            package.json
+            README.md
+            LICENSE.md
+          retention-days: 7
+
+      # TODO - add unit tests
       # - name: 🧪 Run tests and collect coverage
       #   run: npm test
 
@@ -44,9 +55,10 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
-      contents: write       # commit package.json, create tag & create in GH
+      contents: write       # commit package.json, create tag & create release in GH
       issues: write         # let semantic-release close & link resolved issues in the release
       pull-requests: write  # let semantic-release update PRs that are part of the release
+      id-token: write       # Trusted Publisher OIDC authentication for npm
     steps:
       - name: ⬇️ Checkout code
         uses: actions/checkout@v4
@@ -57,55 +69,28 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
           cache: 'npm'
       
-      - name: 📦 Install dependencies
+      - name: 📦 Install dependencies (CI)
         run: npm ci
       
-      - name: 🏗️ Build project
-        run: npm run build
+      - name: ⬇️ Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+          path: .
       
       - name: 🚀 Run semantic-release
         id: semantic
         uses: cycjimmy/semantic-release-action@v4
         with:
           extra_plugins: |
-            @semantic-release/npm
-            @semantic-release/github
-          
-          # save the artifact without publishing here
-          publish: |
-            - path: '@semantic-release/npm'
-              npmPublish: false
-            - path: '@semantic-release/github'
-              assets: '*.tgz'
+            @semantic-release/npm@^12.0.0
+            @semantic-release/github@^10.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: ⬆️ Upload package tarball as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: package-tarball
-          path: '*.tgz'
-
-  publish_to_npm:
-    needs: version_and_release
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-    permissions:
-      id-token: write # Trusted Publisher OIDC authentication setup in npm
-    steps:
-      - name: ⬇️ Download package tarball artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: package-tarball
-          path: .
-
-      - name: 🛠️ Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
       
       - name: 📦 Publish to npm
-        run: npm publish ./*.tgz --access public
+        if: steps.semantic.outputs.new_release_published == 'true'
+        run: npm publish --provenance --access public
