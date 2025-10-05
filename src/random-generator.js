@@ -62,7 +62,7 @@ export class RandomGenerator {
     }
 
     /**
-     * Creates a new WASM pseudo random number generator.
+     * Creates a WASM pseudo random number generator.
      * 
      * @param {PRNGType} [prngType] The PRNG algorithm to use. Defaults to 
      * Xoroshiro128Plus_SIMD.
@@ -72,7 +72,7 @@ export class RandomGenerator {
      * {@link seedCount} or API docs to determine the required seed count).
      * Auto-seeds itself if no seeds are provided.
      * 
-     * @param {number | bigint} [jumpCountOrStreamIncrement] Optional unique
+     * @param {number | bigint | null} [jumpCountOrStreamIncrement] Optional unique
      * identifier to be used when sharing the same seeds across multiple
      * parallel generators (e.g. worker threads or distributed computation),
      * allowing each to choose a unique random stream.
@@ -81,10 +81,12 @@ export class RandomGenerator {
      * to make after seeding. For PCG generators, this value is used as the
      * internal stream increment for state advances and must be odd.
      * 
+     * Negative, 0, null, or undefined will select the default stream.
+     * 
      * @param {number} [outputArraySize] Size of the output array used when 
      * filling shared memory using the `nextArray` methods. Defaults to 1000.
      */
-    constructor(prngType = PRNGType.Xoroshiro128Plus_SIMD, seeds = null, jumpCountOrStreamIncrement = 0, outputArraySize = 1000) {
+    constructor(prngType = PRNGType.Xoroshiro128Plus_SIMD, seeds = null, jumpCountOrStreamIncrement = null, outputArraySize = 1000) {
         this.#prngType = prngType;
         this.#seeds = seeds || seed64Array();
 
@@ -106,7 +108,7 @@ export class RandomGenerator {
         // e.g. across multiple worker threads.
         //
         // Applies to the xoshiro/xoroshiro generator family
-        if (this.#instance.jump && jumpCountOrStreamIncrement > 0) {
+        if (this.#instance.jump && jumpCountOrStreamIncrement !== null && jumpCountOrStreamIncrement > 0) {
             for (let i = 0; i < jumpCountOrStreamIncrement; i++) {
                 this.#instance.jump();
             }
@@ -122,7 +124,7 @@ export class RandomGenerator {
         // functionality as well, similar to the Xoshiro Jump function. In this
         // library's PCG implementation, we only expose the increment as a way 
         // to choose a stream, and have not implemented PCG state jumps.
-        if (this.#instance.setStreamIncrement && jumpCountOrStreamIncrement > 0) {
+        if (this.#instance.setStreamIncrement && jumpCountOrStreamIncrement !== null && jumpCountOrStreamIncrement > 0) {
             this.#instance.setStreamIncrement(BigInt(jumpCountOrStreamIncrement));
         }
     }

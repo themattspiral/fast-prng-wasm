@@ -1,0 +1,96 @@
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+  workflow_dispatch:
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🛠️ Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18' # earliest LTS version that supports WASM SIMD
+          cache: 'npm'
+
+      - name: 📦 Install dependencies (CI)
+        run: npm ci
+
+      - name: 📝 Check docs are up to date
+        run: |
+          npm run docs
+          git diff --exit-code --name-only
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: 🏗️ Build project
+        run: npm run build
+
+      - name: ⬆️ Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: |
+            dist/
+            package.json
+            README.md
+            LICENSE.md
+          retention-days: 7
+
+      # TODO - testing & coverage
+      # - name: 🧪 Run tests and collect coverage
+      #   run: npm test
+
+  version_and_release:
+    needs: build_and_test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write       # commit package.json, create tag & create release in GH
+      issues: write         # let semantic-release close & link resolved issues in the release
+      pull-requests: write  # let semantic-release update PRs that are part of the release
+      id-token: write       # Trusted Publisher OIDC authentication for npm
+    steps:
+      - name: ⬇️ Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 
+
+      - name: 🛠️ Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
+      
+      - name: 📦 Install dependencies (CI)
+        run: npm ci
+      
+      - name: ⬇️ Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+          path: .
+      
+      - name: 🚀 Run semantic-release
+        id: semantic
+        uses: cycjimmy/semantic-release-action@v4
+        with:
+          extra_plugins: |
+            @semantic-release/npm@^12.0.0
+            @semantic-release/github@^10.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: 📦 Publish to npm
+        if: steps.semantic.outputs.new_release_published == 'true'
+        run: npm publish *.tgz --provenance --access public
