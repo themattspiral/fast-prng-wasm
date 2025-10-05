@@ -1,4 +1,6 @@
 module.exports = {
+  branches: ['main', 'gh-actions'],
+  dryRun: true,
   plugins: [
     '@semantic-release/commit-analyzer',
     [
