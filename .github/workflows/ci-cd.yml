@@ -68,7 +68,9 @@ jobs:
       - name: 🛠️ Set up Node.js for publishing
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22' # newer version required for Trusted Publisher OIDC auth
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
           always-auth: true
       
       - name: 📦 Install dependencies (CI)
