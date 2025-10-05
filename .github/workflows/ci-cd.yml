@@ -46,14 +46,14 @@ jobs:
             LICENSE.md
           retention-days: 7
 
-      # TODO - add unit tests
+      # TODO - testing & coverage
       # - name: 🧪 Run tests and collect coverage
       #   run: npm test
 
   version_and_release:
     needs: build_and_test
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/gh-actions'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
       contents: write       # commit package.json, create tag & create release in GH
       issues: write         # let semantic-release close & link resolved issues in the release
@@ -93,4 +93,4 @@ jobs:
       
       - name: 📦 Publish to npm
         if: steps.semantic.outputs.new_release_published == 'true'
-        run: npm publish *.tgz --dry-run --provenance --access public
+        run: npm publish *.tgz --provenance --access public
