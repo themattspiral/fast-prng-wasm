@@ -1,6 +1,6 @@
 {
   "name": "fast-prng-wasm",
-  "version": "0.6.1",
+  "version": "0.0.0-semantically-released",
   "description": "High-performance, SIMD-enabled WebAssembly PRNGs with a seamless JavaScript interface. Includes PCG, xoroshiro128+, and xoshiro256+",
   "author": "Matt Ritter <matthew.d.ritter@gmail.com>",
   "license": "MIT",
