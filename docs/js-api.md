@@ -45,7 +45,7 @@ Creates a WASM pseudo random number generator.
 | ------ | ------ | ------ | ------ |
 | `prngType`? | `any` | `PRNGType.Xoroshiro128Plus_SIMD` | The PRNG algorithm to use. Defaults to Xoroshiro128Plus_SIMD. |
 | `seeds`? | `bigint`[] | `null` | Collection of 64-bit integers used to seed the generator. 1-8 seeds are required depending on generator type (see [seedCount](js-api.md#seedcount) or API docs to determine the required seed count). Auto-seeds itself if no seeds are provided. |
-| `jumpCountOrStreamIncrement`? | `number` \| `bigint` | `null` | Optional unique identifier to be used when sharing the same seeds across multiple parallel generators (e.g. worker threads or distributed computation), allowing each to choose a unique random stream. For Xoshiro generators, this value indicates the number of state jumps to make after seeding. For PCG generators, this value is used as the internal stream increment for state advances and must be odd. Negative, 0, null, or undefined will select the default stream. |
+| `jumpCountOrStreamIncrement`? | `number` \| `bigint` | `null` | Optional unique identifier to be used when sharing the same seeds across multiple parallel generators (e.g. worker threads or distributed computation), allowing each to choose a unique random stream. For Xoshiro generators, this value indicates the number of state jumps to make after seeding. For PCG generators, this value is used as the internal stream increment for state advances. Negative, 0, null, or undefined will select the default stream. |
 | `outputArraySize`? | `number` | `1000` | Size of the output array used when filling shared memory using the `nextArray` methods. Defaults to 1000. |
 
 ###### Returns

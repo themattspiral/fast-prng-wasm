@@ -79,7 +79,7 @@ export class RandomGenerator {
      * 
      * For Xoshiro generators, this value indicates the number of state jumps
      * to make after seeding. For PCG generators, this value is used as the
-     * internal stream increment for state advances and must be odd.
+     * internal stream increment for state advances.
      * 
      * Negative, 0, null, or undefined will select the default stream.
      * 
