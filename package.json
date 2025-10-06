@@ -1,7 +1,7 @@
 {
   "name": "fast-prng-wasm",
   "version": "0.6.1",
-  "description": "A collection of fast, SIMD-enabled pseudo random number generators for WebAssembly/WASM. Simple to use from JS/TS in Node or browser, or from AssemblyScript. Includes PCG, xoroshiro128+, and xoshiro256+.",
+  "description": "High-performance, SIMD-enabled WebAssembly PRNGs with a seamless JavaScript interface. Includes PCG, xoroshiro128+, and xoshiro256+",
   "author": "Matt Ritter <matthew.d.ritter@gmail.com>",
   "license": "MIT",
   "keywords": [
@@ -24,6 +24,7 @@
     "monte-carlo"
   ],
   "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "module": "./dist/index.mjs",
   "unpkg": "./dist/index.umd.js",
   "exports": {
@@ -39,13 +40,17 @@
     "dist"
   ],
   "devDependencies": {
+    "@rollup/plugin-typescript": "^12.1.4",
     "@rollup/plugin-wasm": "^6.2.2",
     "assemblyscript": "~0.27.31",
     "conventional-changelog-conventionalcommits": "^9.1.0",
-    "rollup": "^4.27.3",
+    "rollup": "^4.52.4",
     "rollup-plugin-copy": "^3.5.0",
-    "typedoc": "^0.27.4",
-    "typedoc-plugin-markdown": "^4.3.2"
+    "rollup-plugin-dts": "^6.2.3",
+    "tslib": "^2.8.1",
+    "typedoc": "^0.28.13",
+    "typedoc-plugin-markdown": "^4.9.0",
+    "typescript": "^5.9.3"
   },
   "repository": {
     "type": "git",

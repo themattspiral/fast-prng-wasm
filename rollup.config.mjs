@@ -1,5 +1,7 @@
 import { wasm } from '@rollup/plugin-wasm';
 import copy from 'rollup-plugin-copy';
+import typescript from '@rollup/plugin-typescript';
+import dts from 'rollup-plugin-dts';
 
 export default [
     {
@@ -7,11 +9,7 @@ export default [
         output: [
             { file: 'dist/index.js', format: 'cjs' },
             { file: 'dist/index.mjs', format: 'es' },
-            {
-                format: 'umd',
-                file: 'dist/index.umd.js',
-                name: 'fastPRNGWasm'
-            }
+            { file: 'dist/index.umd.js', format: 'umd', name: 'fastPRNGWasm' }
         ],
         plugins: [
             wasm({
@@ -26,9 +24,23 @@ export default [
             }),
             copy({
                 targets: [
+                    // make AssemblyScript sources available from the package
                     { src: 'src/assembly/*', dest: 'dist/assembly' },
                 ]
+            }),
+            typescript({
+                tsconfig: './tsconfig.json'
             })
         ]
+    },
+
+    // emit a single bundled type definition
+    {
+        input: 'src/index.js',
+        output: {
+          file: 'dist/index.d.ts',
+          format: 'es',
+        },
+        plugins: [dts()]
     }
 ];

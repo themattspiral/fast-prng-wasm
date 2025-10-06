@@ -1,4 +1,4 @@
-[fast-prng-wasm](../as-api.md) / Xoroshiro128Plus\_SIMD
+[fast-prng-wasm](../../as-api.md) / Xoroshiro128Plus\_SIMD
 
 # Xoroshiro128Plus\_SIMD
 
@@ -17,14 +17,14 @@ when using array output functions.
 const SEED_COUNT: i32 = 4;
 ```
 
-Number of seed parameters required for this generator's [setSeed](Xoroshiro128Plus_SIMD.md#setseed) function.
+Number of seed parameters required for this generator's [setSeed](#setseed) function.
 
 ## Functions
 
 ### batchTestUnitCirclePoints()
 
 ```ts
-function batchTestUnitCirclePoints(count): i32
+function batchTestUnitCirclePoints(count): number;
 ```
 
 Monte Carlo test: Generates random (x,y) coordinates in range (-1, 1), and
@@ -40,7 +40,7 @@ Can be used to estimate pi (π).
 
 #### Returns
 
-`i32`
+`number`
 
 The number of random points which fell *inside* of the unit circle with radius 1.
 
@@ -49,7 +49,7 @@ The number of random points which fell *inside* of the unit circle with radius 1
 ### fillFloat64Array\_Coords()
 
 ```ts
-function fillFloat64Array_Coords(arr): void
+function fillFloat64Array_Coords(arr): void;
 ```
 
 Fills the provided array with this generator's next set of floating point numbers
@@ -74,7 +74,7 @@ Useful for Monte Carlo simulation.
 ### fillFloat64Array\_CoordsSquared()
 
 ```ts
-function fillFloat64Array_CoordsSquared(arr): void
+function fillFloat64Array_CoordsSquared(arr): void;
 ```
 
 Fills the provided array with the squares of this generator's next set of floating 
@@ -99,7 +99,7 @@ Useful for Monte Carlo simulation.
 ### fillFloat64Array\_Int32Numbers()
 
 ```ts
-function fillFloat64Array_Int32Numbers(arr): void
+function fillFloat64Array_Int32Numbers(arr): void;
 ```
 
 Fills the provided array with this generator's next set of unsigned 32-bit integers.
@@ -121,7 +121,7 @@ Utilizes SIMD.
 ### fillFloat64Array\_Int53Numbers()
 
 ```ts
-function fillFloat64Array_Int53Numbers(arr): void
+function fillFloat64Array_Int53Numbers(arr): void;
 ```
 
 Fills the provided array with this generator's next set of unsigned 53-bit integers.
@@ -143,7 +143,7 @@ Utilizes SIMD.
 ### fillFloat64Array\_Numbers()
 
 ```ts
-function fillFloat64Array_Numbers(arr): void
+function fillFloat64Array_Numbers(arr): void;
 ```
 
 Fills the provided array with this generator's next set of floating point numbers
@@ -166,7 +166,7 @@ Utilizes SIMD.
 ### fillUint64Array\_Int64()
 
 ```ts
-function fillUint64Array_Int64(arr): void
+function fillUint64Array_Int64(arr): void;
 ```
 
 Fills the provided array with this generator's next set of unsigned 64-bit integers.
@@ -188,7 +188,7 @@ Utilizes SIMD.
 ### jump()
 
 ```ts
-function jump(): void
+function jump(): void;
 ```
 
 Advances the state by 2^64 steps every call. Can be used to generate 2^64 
@@ -203,7 +203,7 @@ non-overlapping subsequences (with the same seed) for parallel computations.
 ### nextCoord()
 
 ```ts
-function nextCoord(): f64
+function nextCoord(): number;
 ```
 
 Gets this generator's next floating point number in range (-1, 1).
@@ -215,7 +215,7 @@ Useful for Monte Carlo simulation.
 
 #### Returns
 
-`f64`
+`number`
 
 A floating point number in range (-1, 1).
 
@@ -224,7 +224,7 @@ A floating point number in range (-1, 1).
 ### nextCoordSquared()
 
 ```ts
-function nextCoordSquared(): f64
+function nextCoordSquared(): number;
 ```
 
 Gets the square of this generator's next floating point number in range (-1, 1).
@@ -235,7 +235,7 @@ Useful for Monte Carlo simulation.
 
 #### Returns
 
-`f64`
+`number`
 
 A floating point number in range (-1, 1), multiplied by itself.
 
@@ -244,7 +244,7 @@ A floating point number in range (-1, 1), multiplied by itself.
 ### nextInt32Number()
 
 ```ts
-function nextInt32Number(): f64
+function nextInt32Number(): number;
 ```
 
 Gets this generator's next unsigned 32-bit integer.
@@ -253,7 +253,7 @@ Discards the additional random number generated with SIMD.
 
 #### Returns
 
-`f64`
+`number`
 
 An unsigned 32-bit integer.
 
@@ -262,14 +262,14 @@ An unsigned 32-bit integer.
 ### nextInt32x2()
 
 ```ts
-function nextInt32x2(): v128
+function nextInt32x2(): object;
 ```
 
 Gets this generator's next 2 unsigned 32-bit integers.
 
 #### Returns
 
-`v128`
+`object`
 
 2 unsigned 32-bit integers, returned as `f64`s
 so that the JS runtime converts them to `number`s.
@@ -279,7 +279,7 @@ so that the JS runtime converts them to `number`s.
 ### nextInt53Number()
 
 ```ts
-function nextInt53Number(): f64
+function nextInt53Number(): number;
 ```
 
 Gets this generator's next unsigned 53-bit integer.
@@ -288,7 +288,7 @@ Discards the additional random number generated with SIMD.
 
 #### Returns
 
-`f64`
+`number`
 
 An unsigned 53-bit integer.
 
@@ -297,14 +297,14 @@ An unsigned 53-bit integer.
 ### nextInt53x2()
 
 ```ts
-function nextInt53x2(): v128
+function nextInt53x2(): object;
 ```
 
 Gets this generator's next 2 unsigned 53-bit integers.
 
 #### Returns
 
-`v128`
+`object`
 
 2 unsigned 53-bit integers, returned as `f64`s
 so that the JS runtime converts them to `number`s.
@@ -314,7 +314,7 @@ so that the JS runtime converts them to `number`s.
 ### nextInt64()
 
 ```ts
-function nextInt64(): u64
+function nextInt64(): number;
 ```
 
 Gets this generator's next unsigned 64-bit integer.
@@ -323,7 +323,7 @@ Discards the additional random number generated with SIMD.
 
 #### Returns
 
-`u64`
+`number`
 
 An unsigned 64-bit integer.
 
@@ -332,14 +332,14 @@ An unsigned 64-bit integer.
 ### nextInt64x2()
 
 ```ts
-function nextInt64x2(): v128
+function nextInt64x2(): object;
 ```
 
 Gets this generator's next 2 unsigned 64-bit integers.
 
 #### Returns
 
-`v128`
+`object`
 
 2 unsigned 64-bit integers.
 
@@ -348,7 +348,7 @@ Gets this generator's next 2 unsigned 64-bit integers.
 ### nextNumber()
 
 ```ts
-function nextNumber(): f64
+function nextNumber(): number;
 ```
 
 Gets this generator's next floating point number in range [0, 1).
@@ -357,7 +357,7 @@ Discards the additional random number generated with SIMD.
 
 #### Returns
 
-`f64`
+`number`
 
 A floating point number in range [0, 1).
 
@@ -366,14 +366,14 @@ A floating point number in range [0, 1).
 ### nextNumbers()
 
 ```ts
-function nextNumbers(): v128
+function nextNumbers(): object;
 ```
 
 Gets this generator's next 2 floating point numbers in range [0, 1).
 
 #### Returns
 
-`v128`
+`object`
 
 2 floating point numbers in range [0, 1).
 
@@ -382,7 +382,7 @@ Gets this generator's next 2 floating point numbers in range [0, 1).
 ### nextPoint()
 
 ```ts
-function nextPoint(): v128
+function nextPoint(): object;
 ```
 
 Gets this generator's next 2 floating point numbers in range (-1, 1).
@@ -392,7 +392,7 @@ Useful for Monte Carlo simulation.
 
 #### Returns
 
-`v128`
+`object`
 
 2 floating point numbers in range (-1, 1).
 
@@ -401,7 +401,7 @@ Useful for Monte Carlo simulation.
 ### nextPointSquared()
 
 ```ts
-function nextPointSquared(): v128
+function nextPointSquared(): object;
 ```
 
 Gets the square of this generator's next 2 floating point numbers in range (-1, 1).
@@ -410,7 +410,7 @@ Useful for Monte Carlo simulation.
 
 #### Returns
 
-`v128`
+`object`
 
 2 floating point numbers in range (-1, 1), each multiplied by itself.
 
@@ -423,7 +423,7 @@ function setSeed(
    a, 
    b, 
    c, 
-   d): void
+   d): void;
 ```
 
 Initializes this generator's internal state with the provided random seeds.
@@ -447,9 +447,13 @@ Initializes this generator's internal state with the provided random seeds.
 
 Re-exports [allocFloat64Array](PCG.md#allocfloat64array)
 
+***
+
 ### allocUint64Array
 
 Re-exports [allocUint64Array](PCG.md#allocuint64array)
+
+***
 
 ### freeArray
 

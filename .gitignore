@@ -1,8 +1,12 @@
 # dependencies
 /node_modules
 
-# generated
+# compiled wasm
 /debug
 /bin
+
+# rollup output
 /dist
+
+# npm package output
 fast-prng-wasm-*.tgz

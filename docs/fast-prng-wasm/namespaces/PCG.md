@@ -1,4 +1,4 @@
-[fast-prng-wasm](../as-api.md) / PCG
+[fast-prng-wasm](../../as-api.md) / PCG
 
 # PCG
 
@@ -13,18 +13,18 @@ a 32-bit generator with 64 bits of state and unique stream selection.
 const SEED_COUNT: i32 = 1;
 ```
 
-Number of seed parameters required for this generator's [setSeed](PCG.md#setseed) function.
+Number of seed parameters required for this generator's [setSeed](#setseed) function.
 
 ## Functions
 
 ### allocFloat64Array()
 
 ```ts
-function allocFloat64Array(count): usize
+function allocFloat64Array(count): number;
 ```
 
 Allocates shared WebAssembly memory for a `Float64Array` of the given size, and pins it to
-avoid garbage collection. Must be explicitly freed with [freeArray](PCG.md#freearray) if cleanup is needed.
+avoid garbage collection. Must be explicitly freed with [freeArray](#freearray) if cleanup is needed.
 
 #### Parameters
 
@@ -34,7 +34,7 @@ avoid garbage collection. Must be explicitly freed with [freeArray](PCG.md#freea
 
 #### Returns
 
-`usize`
+`number`
 
 A pointer to the newly allocated shared-memory array, which can be used from JS runtimes.
 
@@ -43,11 +43,11 @@ A pointer to the newly allocated shared-memory array, which can be used from JS 
 ### allocUint64Array()
 
 ```ts
-function allocUint64Array(count): usize
+function allocUint64Array(count): number;
 ```
 
 Allocates shared WebAssembly memory for a `Uint64Array` of the given size, and pins it to
-avoid garbage collection. Must be explicitly freed with [freeArray](PCG.md#freearray) if cleanup is needed.
+avoid garbage collection. Must be explicitly freed with [freeArray](#freearray) if cleanup is needed.
 
 #### Parameters
 
@@ -57,7 +57,7 @@ avoid garbage collection. Must be explicitly freed with [freeArray](PCG.md#freea
 
 #### Returns
 
-`usize`
+`number`
 
 A pointer to the newly allocated shared-memory array, which can be used from JS runtimes.
 
@@ -66,7 +66,7 @@ A pointer to the newly allocated shared-memory array, which can be used from JS 
 ### batchTestUnitCirclePoints()
 
 ```ts
-function batchTestUnitCirclePoints(count): i32
+function batchTestUnitCirclePoints(count): number;
 ```
 
 Monte Carlo test: Generates random (x,y) coordinates in range (-1, 1), and
@@ -82,7 +82,7 @@ Can be used to estimate pi (π).
 
 #### Returns
 
-`i32`
+`number`
 
 The number of random points which fell *inside* of the unit circle with radius 1.
 
@@ -91,7 +91,7 @@ The number of random points which fell *inside* of the unit circle with radius 1
 ### fillFloat64Array\_Coords()
 
 ```ts
-function fillFloat64Array_Coords(arr): void
+function fillFloat64Array_Coords(arr): void;
 ```
 
 Fills the provided array with this generator's next set of floating point numbers
@@ -103,7 +103,7 @@ Useful for Monte Carlo simulation.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocFloat64Array](PCG.md#allocfloat64array). |
+| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocFloat64Array](#allocfloat64array). |
 
 #### Returns
 
@@ -114,7 +114,7 @@ Useful for Monte Carlo simulation.
 ### fillFloat64Array\_CoordsSquared()
 
 ```ts
-function fillFloat64Array_CoordsSquared(arr): void
+function fillFloat64Array_CoordsSquared(arr): void;
 ```
 
 Fills the provided array with the squares of this generator's next set of floating 
@@ -126,7 +126,7 @@ Useful for Monte Carlo simulation.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocFloat64Array](PCG.md#allocfloat64array). |
+| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocFloat64Array](#allocfloat64array). |
 
 #### Returns
 
@@ -137,7 +137,7 @@ Useful for Monte Carlo simulation.
 ### fillFloat64Array\_Int32Numbers()
 
 ```ts
-function fillFloat64Array_Int32Numbers(arr): void
+function fillFloat64Array_Int32Numbers(arr): void;
 ```
 
 Fills the provided array with this generator's next set of unsigned 32-bit integers.
@@ -146,7 +146,7 @@ Fills the provided array with this generator's next set of unsigned 32-bit integ
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocFloat64Array](PCG.md#allocfloat64array). |
+| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocFloat64Array](#allocfloat64array). |
 
 #### Returns
 
@@ -157,7 +157,7 @@ Fills the provided array with this generator's next set of unsigned 32-bit integ
 ### fillFloat64Array\_Int53Numbers()
 
 ```ts
-function fillFloat64Array_Int53Numbers(arr): void
+function fillFloat64Array_Int53Numbers(arr): void;
 ```
 
 Fills the provided array with this generator's next set of unsigned 53-bit integers.
@@ -166,7 +166,7 @@ Fills the provided array with this generator's next set of unsigned 53-bit integ
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocFloat64Array](PCG.md#allocfloat64array). |
+| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocFloat64Array](#allocfloat64array). |
 
 #### Returns
 
@@ -177,7 +177,7 @@ Fills the provided array with this generator's next set of unsigned 53-bit integ
 ### fillFloat64Array\_Numbers()
 
 ```ts
-function fillFloat64Array_Numbers(arr): void
+function fillFloat64Array_Numbers(arr): void;
 ```
 
 Fills the provided array with this generator's next set of floating point numbers
@@ -187,7 +187,7 @@ in range [0, 1).
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocFloat64Array](PCG.md#allocfloat64array). |
+| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocFloat64Array](#allocfloat64array). |
 
 #### Returns
 
@@ -198,7 +198,7 @@ in range [0, 1).
 ### fillUint64Array\_Int64()
 
 ```ts
-function fillUint64Array_Int64(arr): void
+function fillUint64Array_Int64(arr): void;
 ```
 
 Fills the provided array with this generator's next set of unsigned 64-bit integers.
@@ -207,7 +207,7 @@ Fills the provided array with this generator's next set of unsigned 64-bit integ
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `arr` | `Uint64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocUint64Array](PCG.md#allocuint64array). |
+| `arr` | `Uint64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocUint64Array](#allocuint64array). |
 
 #### Returns
 
@@ -218,11 +218,11 @@ Fills the provided array with this generator's next set of unsigned 64-bit integ
 ### freeArray()
 
 ```ts
-function freeArray(arrPtr): void
+function freeArray(arrPtr): void;
 ```
 
-Frees shared WebAssembly memory that was previously allocated by [allocUint64Array](PCG.md#allocuint64array) 
-or [allocFloat64Array](PCG.md#allocfloat64array).
+Frees shared WebAssembly memory that was previously allocated by [allocUint64Array](#allocuint64array) 
+or [allocFloat64Array](#allocfloat64array).
 
 #### Parameters
 
@@ -239,7 +239,7 @@ or [allocFloat64Array](PCG.md#allocfloat64array).
 ### nextCoord()
 
 ```ts
-function nextCoord(): f64
+function nextCoord(): number;
 ```
 
 Gets this generator's next floating point number in range (-1, 1).
@@ -249,7 +249,7 @@ Useful for Monte Carlo simulation.
 
 #### Returns
 
-`f64`
+`number`
 
 A floating point number in range (-1, 1).
 
@@ -258,7 +258,7 @@ A floating point number in range (-1, 1).
 ### nextCoordSquared()
 
 ```ts
-function nextCoordSquared(): f64
+function nextCoordSquared(): number;
 ```
 
 Gets the square of this generator's next floating point number in range (-1, 1).
@@ -267,7 +267,7 @@ Useful for Monte Carlo simulation.
 
 #### Returns
 
-`f64`
+`number`
 
 A floating point number in range (-1, 1), multiplied by itself.
 
@@ -276,14 +276,14 @@ A floating point number in range (-1, 1), multiplied by itself.
 ### nextInt32()
 
 ```ts
-function nextInt32(): u32
+function nextInt32(): number;
 ```
 
 Gets this generator's next unsigned 32-bit integer.
 
 #### Returns
 
-`u32`
+`number`
 
 This generator's next unsigned 32-bit integer.
 
@@ -292,14 +292,14 @@ This generator's next unsigned 32-bit integer.
 ### nextInt32Number()
 
 ```ts
-function nextInt32Number(): f64
+function nextInt32Number(): number;
 ```
 
 Gets this generator's next unsigned 32-bit integer.
 
 #### Returns
 
-`f64`
+`number`
 
 An unsigned 32-bit integer, returned as an `f64` so that
 the JS runtime converts it to a `number`.
@@ -309,14 +309,14 @@ the JS runtime converts it to a `number`.
 ### nextInt53Number()
 
 ```ts
-function nextInt53Number(): f64
+function nextInt53Number(): number;
 ```
 
 Gets this generator's next unsigned 53-bit integer.
 
 #### Returns
 
-`f64`
+`number`
 
 This generator's next unsigned 53-bit integer, returned
 as an `f64` so that the JS runtime converts it to a `number`.
@@ -326,14 +326,14 @@ as an `f64` so that the JS runtime converts it to a `number`.
 ### nextInt64()
 
 ```ts
-function nextInt64(): u64
+function nextInt64(): number;
 ```
 
 Gets this generator's next unsigned 64-bit integer.
 
 #### Returns
 
-`u64`
+`number`
 
 This generator's next unsigned 64-bit integer.
 
@@ -342,14 +342,14 @@ This generator's next unsigned 64-bit integer.
 ### nextNumber()
 
 ```ts
-function nextNumber(): f64
+function nextNumber(): number;
 ```
 
 Gets this generator's next floating point number in range [0, 1).
 
 #### Returns
 
-`f64`
+`number`
 
 A floating point number in range [0, 1).
 
@@ -358,7 +358,7 @@ A floating point number in range [0, 1).
 ### setSeed()
 
 ```ts
-function setSeed(seed): void
+function setSeed(seed): void;
 ```
 
 Initializes this generator's internal state with the provided random seed.
@@ -378,7 +378,7 @@ Initializes this generator's internal state with the provided random seed.
 ### setStreamIncrement()
 
 ```ts
-function setStreamIncrement(inc): void
+function setStreamIncrement(inc): void;
 ```
 
 Optionally chooses the unique stream to be provided by this generator.

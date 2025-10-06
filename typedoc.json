@@ -11,7 +11,7 @@
     "mergeReadme": true,
     "exclude": [
         "node_modules", 
-        "**/*.spec.ts", 
+        "**/*.spec.*", 
         "docs/**"
     ],
     "entryPoints": [
