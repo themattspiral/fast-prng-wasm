@@ -1,54 +1,67 @@
 import { availableParallelism } from 'os';
 import { Worker } from 'worker_threads';
-import { BigNumber } from 'bignumber.js';
-import { PRNGType, seed64Array } from 'fast-prng-wasm';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-    
+import { BigNumber } from 'bignumber.js';
+
+import { PRNGType, seed64Array } from 'fast-prng-wasm';
+import { WorkerBatchMode, WorkerSeedMode } from './enum.js';
+
+
+/* ******************************************************************************* *
+* Modify these parameters to change characteristics of the Monte Carlo simulation *
+* ******************************************************************************* */
+
+const TOTAL_POINT_COUNT = 1000000000;                   // 1 Billion points
+const PRNG = PRNGType.Xoshiro256Plus_SIMD;
+const WORKER_BATCH_MODE = WorkerBatchMode.GeneratorBatch;
+const WORKER_COUNT = availableParallelism();            // use all CPU cores
+const WORKER_SEED_MODE = WorkerSeedMode.ParentSeeded    // share seeds across workers (with unique stream/jump)
+const PARENT_SEEDS = seed64Array();
+const GENERATOR_ARRAY_OUTPUT_SIZE = 1000;               // only used in ArrayFill mode
+const CONSOLE_UPDATE_INTERVAL_MS = 200;
+BigNumber.config({ DECIMAL_PLACES: 50 });               // precision used for pi calculations
+
+/* ******************************************************************************* */
+
+
+
+/* ******************************************************************************* *
+ * *********************************  Internal  ********************************** *
+ * ******************************************************************************* */
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const WORKER_PATH = join(__dirname, 'worker.js');
-
-import { WorkerBatchModeType, WorkerSeedModeType } from './enum.js';
-
-BigNumber.config({ DECIMAL_PLACES: 50 });
 const FOUR_BN = new BigNumber(4);
-const CONSOLE_UPDATE_INTERVAL_MS = 200;
 
-/**
- * Modify these parameters to change PRNG characteristics
- */
-const WORKER_COUNT = availableParallelism();
-const WORKER_BATCH_MODE = WorkerBatchModeType.GeneratorBatch;
-const GENERATOR_ARRAY_OUTPUT_SIZE = 1000;                   // only used when in ArrayFill mode
-const WORKER_SEED_MODE = WorkerSeedModeType.ParentSeeded    // share same seeds across workers (and jump)
-const PRNG = PRNGType.Xoroshiro128Plus_SIMD;
-const TOTAL_POINT_COUNT = 1000000000;                       // 1 Billion points
-
-// provide the same set of seeds across worker PRNGs (used with generator jump function)
-const PARENT_SEEDS = seed64Array();
-
+const WORKERS = new Array(WORKER_COUNT);
 const pointsPerWorker = Math.floor(TOTAL_POINT_COUNT / WORKER_COUNT);
 const pointsLastWorker = pointsPerWorker + (TOTAL_POINT_COUNT % WORKER_COUNT);
-const WORKERS = new Array(WORKER_COUNT);
 
 let consoleUpdateIntervalId = null;
 let totalPointsInCircle = 0;
 let totalPointsGenerated = 0;
 
+// a valid method of computing, but limited by JS 53-bit number
 const piSimple = () => 4 * totalPointsInCircle / totalPointsGenerated;
 
+// flexible precision
 const piPrecise = () => {
     const inside = new BigNumber(totalPointsInCircle);
     const total = new BigNumber(totalPointsGenerated);
     return inside.times(FOUR_BN).dividedBy(total).toString();
 };
 
+// update console as the simulation runs
 const logStatus = () => {
-    let status = `pmc - Pi Monte Carlo\n\n`
-        + `PRNG Algorithm: ${PRNG}\n`
-        + `Point Count: ${TOTAL_POINT_COUNT}\n`
-        + `Batch Mode: ${WORKER_BATCH_MODE}\n\n`;
 
+    let status =`
+pmc - Pi Monte Carlo
+
+PRNG Algorithm: ${PRNG}
+Point Count: ${TOTAL_POINT_COUNT}
+Batch Mode: ${WORKER_BATCH_MODE}
+`;
     WORKERS.forEach((wrk, idx) => {
         status += `Worker ${idx}: ${wrk.pointsGenerated} / ${wrk.pointCount} | ${wrk.seedMode} ${wrk.jumpCount > 0 ? `(jumps: ${wrk.jumpCount})` : ''}\n`;
     });
@@ -62,6 +75,7 @@ const logStatus = () => {
     console.timeLog('elapsed');
 };
 
+// cleanup, final logging, and exit
 const finish = () => {
     clearInterval(consoleUpdateIntervalId);
     console.log('');
@@ -71,8 +85,9 @@ const finish = () => {
 };
 
 
-/******* MAIN *******/
-/********************/
+/* ******************************************************************************* *
+ * *********************************    Main    ********************************** *
+ * ******************************************************************************* */
 
 // when parent gets CTRL+C, terminate workers and exit 
 process.on('SIGINT', () => {
@@ -83,21 +98,20 @@ process.on('SIGINT', () => {
 console.time('elapsed');
 
 // create workers
-for (let i = 0; i < WORKER_COUNT; i++) {
-    const points = i === WORKER_COUNT - 1 ? pointsLastWorker : pointsPerWorker;
+for (let workerNumber = 0; workerNumber < WORKER_COUNT; workerNumber++) {
+    const points = workerNumber === WORKER_COUNT - 1 ? pointsLastWorker : pointsPerWorker;
     const workerData = {
-        i,
+        workerNumber,
         pointCount: points,
         prngType: PRNG,
         batchMode: WORKER_BATCH_MODE,
         seedMode: WORKER_SEED_MODE,
         arrayFillSize: GENERATOR_ARRAY_OUTPUT_SIZE,
-        jumpCount: i + 1,  // unique worker number (i) ensures a unique jump count
         parentSeeds: PARENT_SEEDS
     };
 
     const worker = new Worker(WORKER_PATH, { workerData });
-    WORKERS[i] = {
+    WORKERS[workerNumber] = {
         ...workerData,
         worker,
         pointsGenerated: 0,
@@ -105,9 +119,9 @@ for (let i = 0; i < WORKER_COUNT; i++) {
     };
 
     worker.on("message", msg => {
-        const deltaInCircle = msg.pointsInCircle - WORKERS[i].pointsInCircle;
-        WORKERS[i].pointsGenerated = msg.pointsGenerated;
-        WORKERS[i].pointsInCircle = msg.pointsInCircle;
+        const deltaInCircle = msg.pointsInCircle - WORKERS[workerNumber].pointsInCircle;
+        WORKERS[workerNumber].pointsGenerated = msg.pointsGenerated;
+        WORKERS[workerNumber].pointsInCircle = msg.pointsInCircle;
         totalPointsGenerated += msg.batchPointsGenerated;
         totalPointsInCircle += deltaInCircle;
     });

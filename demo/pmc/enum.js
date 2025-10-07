@@ -1,15 +1,12 @@
-const WorkerBatchModeType = {
+const WorkerBatchMode = {
     Single: 'Single',
     ArrayFill: 'ArrayFill',
     GeneratorBatch: 'GeneratorBatch',
 };
 
-const WorkerSeedModeType = {
+const WorkerSeedMode = {
     ParentSeeded: 'ParentSeeded',
     WorkerSeeded: 'WorkerSeeded'
 }
 
-export {
-    WorkerBatchModeType,
-    WorkerSeedModeType
-};
+export { WorkerBatchMode, WorkerSeedMode };

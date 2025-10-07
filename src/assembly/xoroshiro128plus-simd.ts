@@ -27,11 +27,11 @@ import { int32Numbers, int53Numbers, numbers, point, pointSquared } from './comm
 let s0: v128 = i64x2.splat(0);
 let s1: v128 = i64x2.splat(0);
 
-/** Number of seed parameters required for this generator's {@link setSeed} function. */
+/** Number of seeds required for this generator's {@link setSeeds} function. */
 export const SEED_COUNT: i32 = 4;
 
 /** Initializes this generator's internal state with the provided random seeds. */
-export function setSeed(a: u64, b: u64, c: u64, d: u64): void {
+export function setSeeds(a: u64, b: u64, c: u64, d: u64): void {
     s0 = i64x2(a, c);
     s1 = i64x2(b, d);
     nextInt64x2();
