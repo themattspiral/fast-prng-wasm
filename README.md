@@ -225,7 +225,7 @@ console.log(num2 === num3);           // true: using same seeds and same jumpCou
 
 ## Performance
 
-The goal is to provide random number generation in WASM that's faster and higher-quality than `Math.random`, and faster than any equivalent JavaScript implementation of these PRNGs. Algorithms are implemented in [AssemblyScript](https://www.assemblyscript.org/), a C-like derivative of TypeScript which is compiled to WASM.
+The goal is to provide random number generation in WASM that's faster and higher-quality than `Math.random`, and faster than any equivalent JavaScript implementation of these PRNGs. Algorithms are implemented in [AssemblyScript](https://www.assemblyscript.org/), a variant of TypeScript that compiles to WASM.
 
 **Key performance advantages:**
 - WASM is faster than JS by design
@@ -281,11 +281,11 @@ Check caniuse.com for other browser support:
 ## Contributing
 
 This is an open source project, and contributions are welcome!
-  - Open an Issue to report a bug or request a feature
+  - **Bugs:** Open an Issue to report a bug or request a feature
+  - **Features:** For now, please first open an Issue to discuss any desired / planned contributions
   - Full contribution guidelines coming soon
-  - For now, please also open an Issue to discuss planned contributions first
   - See scripts in `package.json` for available build commands
-
+  
 ---
 
 ## License
