@@ -14,7 +14,7 @@ unique sequence selection.
 const SEED_COUNT: i32 = 2;
 ```
 
-Number of seed parameters required for this generator's [setSeed](#setseed) function.
+Number of seeds required for this generator's [setSeeds](#setseeds) function.
 
 ## Functions
 
@@ -288,10 +288,10 @@ A floating point number in range [0, 1).
 
 ***
 
-### setSeed()
+### setSeeds()
 
 ```ts
-function setSeed(a, b): void;
+function setSeeds(a, b): void;
 ```
 
 Initializes this generator's internal state with the provided random seeds.

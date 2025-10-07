@@ -13,7 +13,7 @@ a 32-bit generator with 64 bits of state and unique stream selection.
 const SEED_COUNT: i32 = 1;
 ```
 
-Number of seed parameters required for this generator's [setSeed](#setseed) function.
+Number of seeds required for this generator's [setSeeds](#setseeds) function.
 
 ## Functions
 
@@ -355,10 +355,10 @@ A floating point number in range [0, 1).
 
 ***
 
-### setSeed()
+### setSeeds()
 
 ```ts
-function setSeed(seed): void;
+function setSeeds(seed): void;
 ```
 
 Initializes this generator's internal state with the provided random seed.

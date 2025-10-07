@@ -17,11 +17,11 @@ import { int32Number, int53Number, number, coord, coordSquared, JUMP_128 } from 
 let s0: u64 = 0;
 let s1: u64 = 0;
 
-/** Number of seed parameters required for this generator's {@link setSeed} function. */
+/** Number of seeds required for this generator's {@link setSeeds} function. */
 export const SEED_COUNT: i32 = 2;
 
 /** Initializes this generator's internal state with the provided random seeds. */
-export function setSeed(a: u64, b: u64): void {
+export function setSeeds(a: u64, b: u64): void {
     s0 = a;
     s1 = b;
     nextInt64();

@@ -13,11 +13,11 @@ PRNG Algorithm Type
 
 | Enumeration Member | Value | Description |
 | ------ | ------ | ------ |
-| <a id="pcg"></a> `PCG` | `string` | PCG XSH RR |
-| <a id="xoroshiro128plus"></a> `Xoroshiro128Plus` | `string` | Xoroshiro128+ |
-| <a id="xoroshiro128plus_simd"></a> `Xoroshiro128Plus_SIMD` | `string` | Xoroshiro128+ (SIMD-enabled) |
-| <a id="xoshiro256plus"></a> `Xoshiro256Plus` | `string` | Xoshiro256+ |
-| <a id="xoshiro256plus_simd"></a> `Xoshiro256Plus_SIMD` | `string` | Xoshiro256+ (SIMD-enabled) |
+| <a id="pcg"></a> `PCG` | `"PCG"` | PCG XSH RR |
+| <a id="xoroshiro128plus"></a> `Xoroshiro128Plus` | `"Xoroshiro128Plus"` | Xoroshiro128+ |
+| <a id="xoroshiro128plus_simd"></a> `Xoroshiro128Plus_SIMD` | `"Xoroshiro128Plus_SIMD"` | Xoroshiro128+ (SIMD-enabled) |
+| <a id="xoshiro256plus"></a> `Xoshiro256Plus` | `"Xoshiro256Plus"` | Xoshiro256+ |
+| <a id="xoshiro256plus_simd"></a> `Xoshiro256Plus_SIMD` | `"Xoshiro256Plus_SIMD"` | Xoshiro256+ (SIMD-enabled) |
 
 ## Classes
 
@@ -31,10 +31,10 @@ A seedable pseudo random number generator that runs in WebAssembly.
 
 ```ts
 new RandomGenerator(
-   prngType?, 
-   seeds?, 
-   jumpCountOrStreamIncrement?, 
-   outputArraySize?): RandomGenerator;
+   prngType, 
+   seeds, 
+   jumpCountOrStreamIncrement, 
+   outputArraySize): RandomGenerator;
 ```
 
 Creates a WASM pseudo random number generator.
@@ -43,10 +43,10 @@ Creates a WASM pseudo random number generator.
 
 | Parameter | Type | Default value | Description |
 | ------ | ------ | ------ | ------ |
-| `prngType?` | `any` | `PRNGType.Xoroshiro128Plus_SIMD` | The PRNG algorithm to use. Defaults to Xoroshiro128Plus_SIMD. |
-| `seeds?` | `bigint`[] | `null` | Collection of 64-bit integers used to seed the generator. 1-8 seeds are required depending on generator type (see [seedCount](#seedcount) or API docs to determine the required seed count). Auto-seeds itself if no seeds are provided. |
-| `jumpCountOrStreamIncrement?` | `null` \| `number` \| `bigint` | `null` | Optional unique identifier to be used when sharing the same seeds across multiple parallel generators (e.g. worker threads or distributed computation), allowing each to choose a unique random stream. For Xoshiro generators, this value indicates the number of state jumps to make after seeding. For PCG generators, this value is used as the internal stream increment for state advances. Negative, 0, null, or undefined will select the default stream. |
-| `outputArraySize?` | `number` | `1000` | Size of the output array used when filling shared memory using the `nextArray` methods. Defaults to 1000. |
+| `prngType` | [`PRNGType`](#prngtype) | `PRNGType.Xoroshiro128Plus_SIMD` | The PRNG algorithm to use. Defaults to Xoroshiro128Plus_SIMD. |
+| `seeds` | `null` \| `bigint`[] | `null` | Collection of 64-bit integers used to seed the generator. 1-8 seeds are required depending on generator type (see [seedCount](#seedcount) or API docs to determine the required seed count). Auto-seeds itself if no seeds are provided. |
+| `jumpCountOrStreamIncrement` | `null` \| `number` \| `bigint` | `null` | Optional unique identifier to be used when sharing the same seeds across multiple parallel generators (e.g. worker threads or distributed computation), allowing each to choose a unique random stream. For Xoshiro generators, this value indicates the number of state jumps to make after seeding. For PCG generators, this value is used as the internal stream increment for state advances. Negative, 0, null, or undefined will select the default stream. |
+| `outputArraySize` | `number` | `1000` | Size of the output array used when filling shared memory using the `nextArray` methods. Defaults to 1000. |
 
 ###### Returns
 
@@ -62,13 +62,11 @@ Creates a WASM pseudo random number generator.
 get outputArraySize(): number;
 ```
 
-Gets the size of the array returned by the `nextArray` methods.
+Gets the size of the array populated by the `nextArray` methods.
 
 ###### Returns
 
 `number`
-
-The integer `number` of items returned by the `nextArray` methods.
 
 ###### Set Signature
 
@@ -76,13 +74,13 @@ The integer `number` of items returned by the `nextArray` methods.
 set outputArraySize(newSize): void;
 ```
 
-Changes the size of the array returned by the `nextArray` methods.
+Changes the size of the array populated by the `nextArray` methods.
 
 ###### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `newSize` | `number` | The integer `number` of items to be returned by the `nextArray` methods. |
+| `newSize` | `number` | The count of items to be populated by the `nextArray` methods. |
 
 ###### Returns
 
@@ -93,32 +91,28 @@ Changes the size of the array returned by the `nextArray` methods.
 ###### Get Signature
 
 ```ts
-get prngType(): null;
+get prngType(): PRNGType;
 ```
 
 Gets the PRNG algorithm being used by this generator instance.
 
 ###### Returns
 
-`null`
-
-The [PRNGType](#prngtype) being used by this generator instance.
+[`PRNGType`](#prngtype)
 
 ##### seedCount
 
 ###### Get Signature
 
 ```ts
-get seedCount(): any;
+get seedCount(): number;
 ```
 
 Gets the number of `bigint`s required to seed this generator instance.
 
 ###### Returns
 
-`any`
-
-The integer `number` of `bigint`s required to seed this generator instance.
+`number`
 
 ##### seeds
 
@@ -133,8 +127,6 @@ Gets the seed collection used to initialize this generator instance.
 ###### Returns
 
 `bigint`[]
-
-The `bigint[]` seed collection used to initialize this generator instance.
 
 ###### Set Signature
 
@@ -163,7 +155,7 @@ batchTestUnitCirclePoints(pointCount): number;
 ```
 
 Performs a batch test in WASM of random (x, y) points between -1 and 1
-and check if they fall within the corresponding unit circle with radius 1.
+and checks if they fall within the corresponding unit circle with radius 1.
 
 Useful for Monte Carlo simulation.
 
@@ -171,129 +163,120 @@ Useful for Monte Carlo simulation.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `pointCount` | `number` | Number of random (x, y) points in (-1, 1) to generate and check. |
+| `pointCount` | `number` | Number of random (x, y) points in (-1, 1) to generate and test. |
 
 ###### Returns
 
 `number`
 
-Number of tested points which fell *inside* of the
+Number of random points in (-1, 1) which fell *inside* of the
 unit circle with radius 1.
 
 ##### nextArray\_BigInt()
 
 ```ts
-nextArray_BigInt(): BigUint64Array<ArrayBufferLike>;
+nextArray_BigInt(): BigUint64Array;
 ```
 
-Gets this generator's next set of 64-bit integers.
+Fills shared memory array with this generator's next set of unsigned 64-bit integers.
 
-Array size is set when generator is created, or by changing [outputArraySize](#outputarraysize).
+Array size is set when generator is created or by changing [outputArraySize](#outputarraysize).
 
 ###### Returns
 
-`BigUint64Array`\<`ArrayBufferLike`\>
+`BigUint64Array`
 
-An array of 64-bit integers, represented as 
-`u64` values in WASM and viewed as unsigned `bigint` values in
-JavaScript. This output buffer is reused with each call.
+View of the WASM shared memory array for this generator, now refilled.
+This output buffer is reused with each call.
 
 ##### nextArray\_Coord()
 
 ```ts
-nextArray_Coord(): Float64Array<ArrayBufferLike>;
+nextArray_Coord(): Float64Array;
 ```
 
-Gets this generator's next set of Float numbers in range (-1, 1).
+Fills shared memory array with this generator's next set of floats in range (-1, 1).
 
-Array size is set when generator is created, or by changing [outputArraySize](#outputarraysize).
+Array size is set when generator is created or by changing [outputArraySize](#outputarraysize).
 
 Useful for Monte Carlo simulation.
 
 ###### Returns
 
-`Float64Array`\<`ArrayBufferLike`\>
+`Float64Array`
 
-An array of `f64` values from WASM viewed as
-`number` values in JS runtimes.
-
+View of the WASM shared memory array for this generator, now refilled.
 This output buffer is reused with each call.
 
 ##### nextArray\_CoordSquared()
 
 ```ts
-nextArray_CoordSquared(): Float64Array<ArrayBufferLike>;
+nextArray_CoordSquared(): Float64Array;
 ```
 
-Gets this generator's next set of squared Float numbers in range (-1, 1).
+Fills shared memory array with this generator's next set of floats in range (-1, 1)
+that have been squared.
 
-Array size is set when generator is created, or by changing [outputArraySize](#outputarraysize).
+Array size is set when generator is created or by changing [outputArraySize](#outputarraysize).
 
 Useful for Monte Carlo simulation.
 
 ###### Returns
 
-`Float64Array`\<`ArrayBufferLike`\>
+`Float64Array`
 
-An array of `f64` values from WASM viewed as
-`number` values in JS runtimes.
-
+View of the WASM shared memory array for this generator, now refilled.
 This output buffer is reused with each call.
 
 ##### nextArray\_Integer()
 
 ```ts
-nextArray_Integer(): Float64Array<ArrayBufferLike>;
+nextArray_Integer(): Float64Array;
 ```
 
-Gets this generator's next set of 53-bit integers.
+Fills shared memory array with this generator's next set of 53-bit integers.
 
-Array size is set when generator is created, or by changing [outputArraySize](#outputarraysize).
+Array size is set when generator is created or by changing [outputArraySize](#outputarraysize).
 
 ###### Returns
 
-`Float64Array`\<`ArrayBufferLike`\>
+`Float64Array`
 
-An array of 53-bit integers, represented as
-`f64` values in WASM so they can be viewed as `number` values in
-JavaScript. This output buffer is reused with each call.
+View of the WASM shared memory array for this generator, now refilled.
+This output buffer is reused with each call.
 
 ##### nextArray\_Integer32()
 
 ```ts
-nextArray_Integer32(): Float64Array<ArrayBufferLike>;
+nextArray_Integer32(): Float64Array;
 ```
 
-Gets this generator's next set of 32-bit integers.
+Fills shared memory array with this generator's next set of 32-bit integers.
 
-Array size is set when generator is created, or by changing [outputArraySize](#outputarraysize).
+Array size is set when generator is created or by changing [outputArraySize](#outputarraysize).
 
 ###### Returns
 
-`Float64Array`\<`ArrayBufferLike`\>
+`Float64Array`
 
-An array of 32-bit integers, represented as
-`f64` values in WASM so they can be viewed as `number` values in JS runtimes.
-
+View of the WASM shared memory array for this generator, now refilled.
 This output buffer is reused with each call.
 
 ##### nextArray\_Number()
 
 ```ts
-nextArray_Number(): Float64Array<ArrayBufferLike>;
+nextArray_Number(): Float64Array;
 ```
 
-Gets this generator's next set of floating point numbers in range [0, 1).
+Fills shared memory array with this generator's next set of floats in range [0, 1).
 
-Array size is set when generator is created, or by changing [outputArraySize](#outputarraysize).
+Array size is set when generator is created or by changing [outputArraySize](#outputarraysize).
 
 ###### Returns
 
-`Float64Array`\<`ArrayBufferLike`\>
+`Float64Array`
 
-An array of `f64` values from WASM viewed as
-`number` values in JS runtimes.
-
+View of the WASM shared memory array for this generator, now refilled.
 This output buffer is reused with each call.
 
 ##### nextBigInt()
@@ -308,7 +291,7 @@ Gets this generator's next unsigned 64-bit integer.
 
 `bigint`
 
-An unsigned 64-bit integer as a `bigint`,
+An unsigned 64-bit integer,
 providing 64-bits of randomness, between 0 and 2^64 - 1
 
 ##### nextCoord()
@@ -326,7 +309,8 @@ Useful for Monte Carlo simulation.
 
 `number`
 
-A floating point `number` between -1 and 1
+A 53-bit float (providing the maximum randomness
+that can fit into a JavaScript `number` type) between -1 and 1
 
 ##### nextCoordSquared()
 
@@ -334,8 +318,7 @@ A floating point `number` between -1 and 1
 nextCoordSquared(): number;
 ```
 
-Gets the square of this generator's next floating point number in range
-(-1, 1).
+Gets the square of this generator's next floating point number in range (-1, 1).
 
 Useful for Monte Carlo simulation.
 
@@ -343,8 +326,9 @@ Useful for Monte Carlo simulation.
 
 `number`
 
-A floating point `number` between -1 and 1, multiplied
-by itself
+A 53-bit float (providing the maximum randomness
+that can fit into a JavaScript `number` type) between -1 and 1,
+multiplied by itself
 
 ##### nextInteger()
 
@@ -358,8 +342,8 @@ Gets this generator's next unsigned 53-bit integer.
 
 `number`
 
-An unsigned 53-bit integer `number` providing 53-bits of 
-randomness (the most we can fit into a JavaScript `number` type), between
+An unsigned 53-bit integer (providing the maximum randomness
+that can fit into a JavaScript `number` type) between
 0 and 2^53 - 1 (aka `Number.MAX_SAFE_INTEGER`)
 
 ##### nextInteger32()
@@ -374,7 +358,7 @@ Gets this generator's next unsigned 32-bit integer.
 
 `number`
 
-An unsigned 32-bit integer `number` providing 32-bits of 
+An unsigned 32-bit integer providing 32-bits of 
 randomness, between 0 and 2^32 - 1
 
 ##### nextNumber()
@@ -383,13 +367,14 @@ randomness, between 0 and 2^32 - 1
 nextNumber(): number;
 ```
 
-Gets this generator's next floating point number in range [0, 1).
+Gets this generator's next 53-bit floating point number in range [0, 1).
 
 ###### Returns
 
 `number`
 
-A floating point `number` between 0 and 1
+A 53-bit float (providing the maximum randomness
+that can fit into a JavaScript `number` type) between 0 and 1
 
 ***
 
@@ -397,10 +382,7 @@ A floating point `number` between 0 and 1
 
 Splitmix64 is the default pseudo random number generator algorithm in Java.
 It's a good generator for 64 bit seeds, and is is included for seeding
-the other generators within this package.
-
-Note: This PRNG runs only in JS and does not conform to the same interface 
-as the WASM PRNGs.
+the other generators within this library.
 
 #### Constructors
 
@@ -414,11 +396,17 @@ new SplitMix64(seed): SplitMix64;
 
 | Parameter | Type | Default value |
 | ------ | ------ | ------ |
-| `seed` | `null` | `null` |
+| `seed` | `null` \| `number` \| `bigint` | `null` |
 
 ###### Returns
 
 [`SplitMix64`](#splitmix64)
+
+#### Properties
+
+| Property | Type |
+| ------ | ------ |
+| <a id="_state"></a> `_state` | `bigint` |
 
 #### Methods
 
@@ -437,18 +425,18 @@ next(): bigint;
 ### seed64Array()
 
 ```ts
-function seed64Array(count?, seed?): bigint[];
+function seed64Array(count, seed): bigint[];
 ```
 
-Generates an array of random 64-bit integers that are suitable for seeding
+Generates an array of random 64-bit integers suitable for seeding
 the other generators in this library.
 
 #### Parameters
 
 | Parameter | Type | Default value | Description |
 | ------ | ------ | ------ | ------ |
-| `count?` | `number` | `8` | Optional number of seeds to generate. Defaults to 8. |
-| `seed?` | `number` \| `bigint` | `null` | Optional seed for the SplitMix64 generator. Auto-seeds itself if not provided using a combination of the current time Math.random(). |
+| `count` | `number` | `8` | Number of random seeds to generate. |
+| `seed` | `null` \| `number` \| `bigint` | `null` | Seed for SplitMix64 generator initialization. If not provided, will auto-seed using a combination of the current time and Math.random(). |
 
 #### Returns
 

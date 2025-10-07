@@ -18,17 +18,17 @@ import { int53Number, number, coord, coordSquared } from './common';
 const MULTIPLIER: u64 = 6364136223846793005;
 
 // In PCG, the stream increment is used to provide a unique random stream.
-// *Note:* This number must ALWAYS BE ODD! Enforced below.
+// Note: This number must always be odd! This is enforced below.
 let streamIncrement: u64 = 1442695040888963407;
 
 // Internal PCG state
 let state: u64 = 0;
 
-/** Number of seed parameters required for this generator's {@link setSeed} function. */
+/** Number of seeds required for this generator's {@link setSeeds} function. */
 export const SEED_COUNT: i32 = 1;
 
 /** Initializes this generator's internal state with the provided random seed. */
-export function setSeed(seed: u64): void {
+export function setSeeds(seed: u64): void {
     state = seed;
     nextInt32();
 }

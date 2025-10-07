@@ -29,11 +29,11 @@ let s1: v128 = i64x2.splat(0);
 let s2: v128 = i64x2.splat(0);
 let s3: v128 = i64x2.splat(0);
 
-/** Number of seed parameters required for this generator's {@link setSeed} function. */
+/** Number of seeds required for this generator's {@link setSeeds} function. */
 export const SEED_COUNT: i32 = 8;
 
 /** Initializes this generator's internal state with the provided random seeds. */
-export function setSeed(
+export function setSeeds(
     a: u64, b: u64, c: u64, d: u64,
     e: u64, f: u64, g: u64, h: u64
 ): void {

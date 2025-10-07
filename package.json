@@ -30,7 +30,9 @@
   "exports": {
     ".": {
       "require": "./dist/index.js",
-      "import": "./dist/index.mjs"
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.mjs"
     },
     "./assembly/*": {
       "import": "./dist/assembly/*"
@@ -46,6 +48,7 @@
     "conventional-changelog-conventionalcommits": "^9.1.0",
     "rollup": "^4.52.4",
     "rollup-plugin-copy": "^3.5.0",
+    "rollup-plugin-delete": "^3.0.1",
     "rollup-plugin-dts": "^6.2.3",
     "tslib": "^2.8.1",
     "typedoc": "^0.28.13",
@@ -57,23 +60,24 @@
     "url": "git+https://github.com/themattspiral/fast-prng-wasm.git"
   },
   "scripts": {
-    " // build npm package ------------": "",
-    "build": "npm run clean && npm run wasm:all && npm run docs && npm run build:lib",
-    "build:lib": "rollup -c",
+    " // Build: Compiles WASM & Bundles Lib ------------": "",
     "clean": "node util/clean.mjs",
-    " // Docs -------------------------": "",
+    "build": "npm run clean && npm run wasm && npm run lib",
+    " // Lib: Transpiles TS and bundles modules into dist ------------": "",
+    "lib": "rollup -c rollup.config.mjs",
+    " // Docs: Generates API docs as Markdown ------------": "",
     "docs": "npm run docs:js && npm run docs:as",
     "docs:js": "typedoc --options typedoc.json",
     "docs:as": "typedoc --options src/assembly/typedoc.json --tsconfig src/assembly/tsconfig.json",
-    " // WASM Release -----------------": "",
-    "wasm:all": "npm run wasm:pcg && npm run wasm:xoroshiro128plus && npm run wasm:xoroshiro128plus-simd && npm run wasm:xoshiro256plus && npm run wasm:xoshiro256plus-simd",
+    " // WASM Release: Compiles AssemblyScript to WASM binaries ------------": "",
+    "wasm": "npm run wasm:pcg && npm run wasm:xoroshiro128plus && npm run wasm:xoroshiro128plus-simd && npm run wasm:xoshiro256plus && npm run wasm:xoshiro256plus-simd",
     "wasm:pcg": "asc src/assembly/pcg.ts --target pcg --config asconfig.release.json",
     "wasm:xoroshiro128plus": "asc src/assembly/xoroshiro128plus.ts --target xoroshiro128plus --config asconfig.release.json",
     "wasm:xoroshiro128plus-simd": "asc src/assembly/xoroshiro128plus-simd.ts --target xoroshiro128plus-simd --config asconfig.release.json",
     "wasm:xoshiro256plus": "asc src/assembly/xoshiro256plus.ts --target xoshiro256plus --config asconfig.release.json",
     "wasm:xoshiro256plus-simd": "asc src/assembly/xoshiro256plus-simd.ts --target xoshiro256plus-simd --config asconfig.release.json",
-    " // WASM Debug -------------------": "",
-    "wasm:dev:all": "npm run wasm:dev:pcg && npm run wasm:dev:xoroshiro128plus && npm run wasm:dev:xoroshiro128plus-simd && npm run wasm:dev:xoshiro256plus && npm run wasm:dev:xoshiro256plus-simd",
+    " // WASM Debug: Compiles AssemblyScript to WASM Binaries & Debug Text ------------": "",
+    "wasm:dev": "npm run wasm:dev:pcg && npm run wasm:dev:xoroshiro128plus && npm run wasm:dev:xoroshiro128plus-simd && npm run wasm:dev:xoshiro256plus && npm run wasm:dev:xoshiro256plus-simd",
     "wasm:dev:pcg": "asc src/assembly/pcg.ts --target pcg --config asconfig.debug.json",
     "wasm:dev:xoroshiro128plus": "asc src/assembly/xoroshiro128plus.ts --target xoroshiro128plus --config asconfig.debug.json",
     "wasm:dev:xoroshiro128plus-simd": "asc src/assembly/xoroshiro128plus-simd.ts --target xoroshiro128plus-simd --config asconfig.debug.json",

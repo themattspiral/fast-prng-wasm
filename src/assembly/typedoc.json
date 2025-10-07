@@ -1,36 +1,33 @@
 {
-    "$schema": "https://typedoc-plugin-markdown.org/schema.json",
-    "cleanOutputDir": false,
-    "compilerOptions": {
-        "outDir": "../../docs/",
-        "allowJs": false,
-        "alwaysStrict": true
-    },
-    "disableSources": true,
-    "readme": "none",
-    "mergeReadme": true,
-    "exclude": [
-        "node_modules", 
-        "**/*.spec.*", 
-        "../../docs/**"
-    ],
-    "entryPoints": [
-        "index.ts"
-    ],
-    "plugin": ["typedoc-plugin-markdown"],
-    "entryFileName": "as-api",
-    "outputFileStrategy": "modules",
-    "useCodeBlocks": true,
-    "hidePageHeader": true,
-    "indexFormat": "table",
-    "parametersFormat": "table",
-    "interfacePropertiesFormat": "table",
-    "classPropertiesFormat": "table",
-    "propertiesFormat": "table",
-    "enumMembersFormat": "table",
-    "propertyMembersFormat": "table",
-    "typeDeclarationFormat": "table",
-    "tableColumnSettings": {
-        "hideSources": true,
-    }
+  "$schema": "https://typedoc-plugin-markdown.org/schema.json",
+  "entryPoints": [
+    "index.ts"
+  ],
+  "exclude": [
+    "node_modules", 
+    "**/*.spec.*"
+  ],
+
+  "out": "../../docs",
+  "cleanOutputDir": false,
+  "disableSources": true,
+  "readme": "none",
+  
+  "plugin": ["typedoc-plugin-markdown"],
+  "entryFileName": "as-api",
+  // custom router "module" is provided by the plugin
+  "router": "module",
+  "mergeReadme": true,
+  "useCodeBlocks": true,
+  "hidePageHeader": true,
+  "indexFormat": "table",
+  "parametersFormat": "table",
+  "interfacePropertiesFormat": "table",
+  "classPropertiesFormat": "table",
+  "enumMembersFormat": "table",
+  "propertyMembersFormat": "table",
+  "typeDeclarationFormat": "table",
+  "tableColumnSettings": {
+    "hideSources": true,
   }
+}

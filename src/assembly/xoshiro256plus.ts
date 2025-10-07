@@ -19,11 +19,11 @@ let s1: u64 = 0;
 let s2: u64 = 0;
 let s3: u64 = 0;
 
-/** Number of seed parameters required for this generator's {@link setSeed} function. */
+/** Number of seeds required for this generator's {@link setSeeds} function. */
 export const SEED_COUNT: i32 = 4;
 
 /** Initializes this generator's internal state with the provided random seeds. */
-export function setSeed(a: u64, b: u64, c: u64, d: u64): void {
+export function setSeeds(a: u64, b: u64, c: u64, d: u64): void {
     s0 = a;
     s1 = b;
     s2 = c;

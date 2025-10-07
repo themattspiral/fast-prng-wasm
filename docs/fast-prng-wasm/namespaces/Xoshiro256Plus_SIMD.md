@@ -17,7 +17,7 @@ when using array output functions.
 const SEED_COUNT: i32 = 8;
 ```
 
-Number of seed parameters required for this generator's [setSeed](#setseed) function.
+Number of seeds required for this generator's [setSeeds](#setseeds) function.
 
 ## Functions
 
@@ -416,10 +416,10 @@ Useful for Monte Carlo simulation.
 
 ***
 
-### setSeed()
+### setSeeds()
 
 ```ts
-function setSeed(
+function setSeeds(
    a, 
    b, 
    c, 

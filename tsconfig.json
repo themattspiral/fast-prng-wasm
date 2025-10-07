@@ -1,24 +1,33 @@
 {
   "compilerOptions": {
     "target": "es2020",
-    "module": "node16",
-    "moduleResolution": "node16",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "lib": ["ES2020", "DOM"],
     "strict": true,
     "noEmitOnError": true,
-    "allowJs": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "removeComments": false,
-    "declaration": false,
-    "outDir": "./dist",
-    "rootDir": "./src"
+    "declaration": true,
+    "importHelpers": false,
+    "isolatedModules": true,
+    "isolatedDeclarations": true,
+    "outDir": "dist",
+    "declarationDir": "dist/dts",
+    "rootDir": "src",
   },
-  "include": ["src/index.js"],
+  "include": [
+    "src/index.ts",
+    "src/types" // required to pickup ambient declaration in wasm.d.ts
+  ],
   "exclude": [
     "node_modules", 
     "**/*.spec.*", 
-    "docs/**",
-    "src/assembly"
-  ],
+    "src/assembly/**/*.ts",
+    "demo",
+    "dist",
+    "docs",
+    "util"
+  ]
 }
