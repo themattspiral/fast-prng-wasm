@@ -1,7 +1,7 @@
 # fast-prng-wasm
 
-JavaScript API - Can be used within any environment that supports WebAssembly,
-(e.g. most modern browsers and Node runtimes).
+JavaScript API - Can be used from any environment that supports WebAssembly.
+See project README for compatability details.
 
 ## Enumerations
 

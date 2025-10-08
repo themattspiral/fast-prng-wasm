@@ -34,7 +34,7 @@ console.log(gen.nextBigInt());      // random 64-bit int (bigint)
 
 - **🚀 High Performance** - Optimized for speed and SIMD-accelerated
 - **🎯 Simple API** - Clean JavaScript/TypeScript interface
-- **🌐 Universal** - Works in Node.js 16.4+ and most modern browsers
+- **🌐 Universal** - Works in Node.js 16.4+ and all modern browsers
 - **✨ Zero Config** - Synchronous WASM loading, no `fs` or `fetch` required
 - **⚡ Bulk Generation** - Single values or bulk array fills (up to 1000 at once)
 - **🔢 Multiple Formats** - 64-bit `bigint`, 53-bit int, 32-bit int, or float (0 to 1)
@@ -111,12 +111,14 @@ The fastest way to get random numbers **in bulk** is to use the `nextArray_*` me
 #### Bulk Fill Example
 ```javascript
 const gen = new RandomGenerator();
-const randomBigIntArray = gen.nextArray_BigInt(); // 1000 unsigned 64-bit bigints (in BigUint64Array)
-let randomFloatArray = gen.nextArray_Number();    // 1000 float numbers in [0, 1) (in Float64Array)
 
-// Other types are also available for array fill
-randomFloatArray = gen.nextArray_Integer();     // 1000 unsigned 53-bit integer numbers (in Float64Array)
-randomFloatArray = gen.nextArray_Integer32();   // 1000 unsigned 32-bit integer numbers (in Float64Array)
+// `bigint`s in BigUint64Array
+const bigintArray = gen.nextArray_BigInt();   // 1000 64-bit integers
+
+// `number`s in Float64Array
+let floatArray = gen.nextArray_Number();      // 1000 floats in [0, 1)
+floatArray = gen.nextArray_Integer();         // 1000 53-bit integers
+floatArray = gen.nextArray_Integer32();       // 1000 32-bit integers
 ```
 
 #### Shared Array Memory Buffer
@@ -127,11 +129,11 @@ const gen = new RandomGenerator();
 
 // ⚠️ Warning: Consume this output before making another call to nextArray_*
 const randomArray1 = gen.nextArray_Number();   // 1000 floats in [0, 1)
-console.log(randomArray1);                     // example consumption (extract random results)
+console.log(randomArray1);                     // consume (extract random results)
 
-// The values originally in randomArray1 will be replaced now! (despite using a different local variable)
+// Values originally in randomArray1 have been replaced! (despite different local variable)
 const randomArray2 = gen.nextArray_Number();   // 1000 new floats in [0, 1)
-console.log(randomArray2);                     // example consumption again (extract more random results)
+console.log(randomArray2);                     // consume again (extract more random results)
 
 console.log(randomArray1 === randomArray2);           // true (same shared memory array)
 console.log(randomArray1[42] === randomArray2[42]);   // true (second call to nextArray_Number() refilled the same array memory)
@@ -225,26 +227,29 @@ console.log(num2 === num3);           // true: using same seeds and same jumpCou
 
 ## Performance
 
-The goal is to provide random number generation in WASM that's faster and higher-quality than `Math.random`, and faster than any equivalent JavaScript implementation of these PRNGs. Algorithms are implemented in [AssemblyScript](https://www.assemblyscript.org/), a variant of TypeScript that compiles to WASM.
+The goal is to provide random number generation in WASM that's faster and higher-quality than `Math.random`, and faster than any equivalent JavaScript implementation of these PRNG algorithms. 
+
+Generator algorithms are implemented in [AssemblyScript](https://www.assemblyscript.org/), a variant of TypeScript that compiles to WASM.
 
 **Key performance advantages:**
+- PRNG algorithms chosen for speed
 - WASM is faster than JS by design
-- AssemblyScript project structure and settings are optimized for speed
+- AssemblyScript project structure and compilation are optimized for speed
 - Bulk array generation minimizes JS/WASM boundary crossing overhead
 - Reusing shared array memory avoids alloc delays and heap fragmentation
 - SIMD acceleration can nearly double throughput for supported algorithms
 - Monte Carlo unit square vs unit circle test included for validation
 
-Performance demos showing optimizations, tradeoffs, and comparisons are coming soon!
+> ⚡⚡ Performance stats and demos showing optimizations, tradeoffs, and comparisons are coming soon! ⚡⚡
 
 ## Demos
 
 See the [`demo/` folder](demo/) for all available demos. Each one is treated as a separate project.
 
-- [**`pmc` - Pi Monte Carlo:**](demo/pmc) A Monte Carlo statistical estimation of π (pi) using a large quantity of random numbers
-  - Node CLI demo app
-  - Uses parallel generator instances in worker threads
-  - Shares seeds across instances with unique jump count for each
+[**`pmc` - Pi Monte Carlo:**](demo/pmc) A Monte Carlo statistical estimation of π (pi) using a large quantity of random numbers
+- Node CLI demo app
+- Uses parallel generator instances in worker threads
+- Shares seeds across instances with unique jump count for each
 
 ## API Documentation
 
@@ -254,24 +259,24 @@ See the [`demo/` folder](demo/) for all available demos. Each one is treated as 
 ## Compatibility
 
 ### Node
- | Version | Notes |
-|----------|-------|
+| Version | Notes |
+|---------|-------|
 | 16.4+ | Full support |
 | 15.0 | All features except SIMD |
-| < 15 | Not recommended |
+| 8.5.7 - 15 | No SIMD, No `bigint` |
 
-Node versions older than 15 are not recommended as they lack support for `i64` to `bigint` conversion, but in theory they will otherwise work back to the beginning of WASM support in Node 8.5.7.
+> Node versions older than 15 are not recommended, as they lack support for `i64` to `bigint` conversion. Versions going back to 8.5.7 (first WASM support in Node) should otherwise still work correctly for 53-bit integer and float `number` values, though they haven't been fully tested.
 
 ### Browsers
-Most modern browsers are fully supported. 
+All modern browsers are fully supported. 
 
-| Browser | Full Support | Partial (No SIMD) |
-|---------|--------------|---------------------|
-| Chrome  | 91+ | 85 |
-| Edge    | 91+ | 85 |
-| Firefox | 89+ | 78 |
-| Safari  | 16.4+ | 14.1 |
-| Opera   | 77+ | 71 |
+| Browser | Full Support | Partial (No SIMD) | Degraded (No `bigint`) |
+|---------|--------------|-------------------|------------------------|
+| Chrome  | 91+ | 85 | 57 |
+| Edge    | 91+ | 85 | 16 |
+| Safari  | 16.4+ | 14.1 | 11 |
+| Firefox | 89+ | 78 | 52 |
+| Opera   | 77+ | 71 | 44 |
 
 Check caniuse.com for other browser support:
  - [WASM SIMD](https://caniuse.com/wasm-simd) - Indicates Full Support
