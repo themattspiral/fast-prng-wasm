@@ -44,9 +44,9 @@ Creates a WASM pseudo random number generator.
 | Parameter | Type | Default value | Description |
 | ------ | ------ | ------ | ------ |
 | `prngType` | [`PRNGType`](#prngtype) | `PRNGType.Xoroshiro128Plus_SIMD` | The PRNG algorithm to use. Defaults to Xoroshiro128Plus_SIMD. |
-| `seeds` | `null` \| `bigint`[] | `null` | Collection of 64-bit integers used to seed the generator. 1-8 seeds are required depending on generator type (see [seedCount](#seedcount) or API docs to determine the required seed count). Auto-seeds itself if no seeds are provided. |
-| `jumpCountOrStreamIncrement` | `null` \| `number` \| `bigint` | `null` | Optional unique identifier to be used when sharing the same seeds across multiple parallel generators (e.g. worker threads or distributed computation), allowing each to choose a unique random stream. For Xoshiro generators, this value indicates the number of state jumps to make after seeding. For PCG generators, this value is used as the internal stream increment for state advances. Negative, 0, null, or undefined will select the default stream. |
-| `outputArraySize` | `number` | `1000` | Size of the output array used when filling shared memory using the `nextArray` methods. Defaults to 1000. |
+| `seeds` | `null` \| `bigint`[] | `null` | Collection of 64-bit integers used to initialize this generator's internal state. 1-8 seeds are required depending on generator type (see [seedCount](#seedcount) or API docs to determine the required seed count). <br><br> Auto-seeds itself if no seeds are provided. |
+| `jumpCountOrStreamIncrement` | `null` \| `number` \| `bigint` | `null` | Determines the unique random stream this generator will return within its period, given a particular starting state. Values <= 0, `null`, or `undefined` will select the default stream. <br><br> This optional unique identifier should be used when sharing the same seeds across parallel generator instances, so that each can provide a unique random stream. <br><br> For Xoshiro generators, this value indicates the number of state jumps to make after seeding. For PCG generators, this value is used as the internal stream increment for state advances. |
+| `outputArraySize` | `number` | `1000` | Size of the output array used when filling shared memory using the `nextArray` methods. |
 
 ###### Returns
 
