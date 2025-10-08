@@ -13,40 +13,52 @@ export default [
             { file: 'dist/index.umd.js', format: 'umd', name: 'fastPRNGWasm' }
         ],
         plugins: [
+            // cleanup existing dist output
+            del({
+                targets: 'dist', hook: 'buildStart'
+            }),
+
+            // handle typescript compilation
             typescript({
                 tsconfig: './tsconfig.json'
             }),
+
+            // handle .wasm module imports
             wasm({
+                // comiple module synchronously when loading
                 sync: [
                     'bin/pcg.wasm',
                     'bin/xoroshiro128plus.wasm',
                     'bin/xoroshiro128plus-simd.wasm',
                     'bin/xoshiro256plus.wasm',
-                    'bin/xoshiro256plus-simd.wasm',
+                    'bin/xoshiro256plus-simd.wasm'
                 ],
+
+                // always embed as base64 (these will always be small)
                 targetEnv: 'auto-inline'
             }),
+
+            // make AssemblyScript sources available from the package
             copy({
                 targets: [
-                    // make AssemblyScript sources available from the package
                     { src: 'src/assembly/*', dest: 'dist/assembly' },
                 ]
             })
         ]
     },
 
-    // emit a single bundled type definition
+    // emit a single bundled type definition using typescript's emitted definitions
     {
         input: 'dist/dts/index.d.ts',
         output: {
-          file: 'dist/index.d.ts',
-          format: 'es',
+          file: 'dist/index.d.ts', format: 'es'
         },
         plugins: [
             dts(),
+            
+            // cleanup the intermediate .d.ts files emitted by typescript 
             del({
-                targets: 'dist/dts',
-                hook: 'buildEnd'
+                targets: 'dist/dts', hook: 'buildEnd'
             })
         ]
     }
