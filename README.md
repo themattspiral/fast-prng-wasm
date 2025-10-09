@@ -1,9 +1,10 @@
 # fast-prng-wasm
+
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md) [![npm package version](https://img.shields.io/npm/v/fast-prng-wasm.svg?style=flat)](https://www.npmjs.com/package/fast-prng-wasm) [![CI/CD Pipeline](https://github.com/themattspiral/fast-prng-wasm/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/themattspiral/fast-prng-wasm/actions/workflows/ci-cd.yml)
 
-High-performance, SIMD-enabled, WebAssembly pseudo random number generators (PRNGs) with a seamless JavaScript interface. Faster and better statistical quality than `Math.random()`.
+High-performance, SIMD-enabled, WebAssembly pseudo random number generators (PRNGs) with a seamless TypeScript interface. Faster and better statistical quality than `Math.random()`.
 
-**Perfect for:** Simulations, Monte Carlo methods, games, procedural generation, and parallel computations.
+**Perfect for:** Simulations, Monte Carlo methods, games, procedural generation, parallel computations
 
 - [Quick Start](#quick-start)
 - [Features](#features)
@@ -24,7 +25,7 @@ npm install fast-prng-wasm
 ```javascript
 import { RandomGenerator } from 'fast-prng-wasm';
 
-const gen = new RandomGenerator();
+const gen = new RandomGenerator();  // Xoroshiro128+ SIMD is default
 console.log(gen.nextNumber());      // random 53-bit float (number) in [0, 1)
 console.log(gen.nextInteger());     // random 53-bit int (number)
 console.log(gen.nextBigInt());      // random 64-bit int (bigint)
@@ -33,18 +34,17 @@ console.log(gen.nextBigInt());      // random 64-bit int (bigint)
 ## Features
 
 - **🚀 High Performance** - Optimized for speed and SIMD-accelerated
-- **🎯 Simple API** - Clean JavaScript/TypeScript interface
-- **🌐 Universal** - Works in Node.js 16.4+ and most modern browsers
-- **✨ Zero Config** - Synchronous WASM loading, no `fs` or `fetch` required
-- **⚡ Bulk Generation** - Single values or bulk array fills (up to 1000 at once)
-- **🔢 Multiple Formats** - 64-bit `bigint`, 53-bit int, 32-bit int, or float (0 to 1)
+- **📊 Better Statistical Quality** - Superior uniformity and randomness vs. `Math.random()`
+- **⚡ Bulk Generation** - Single values or bulk array fills
+- **🎯 Simple API** - Clean TypeScript interface, no memory-management required
+- **🔢 Multiple Formats** - 64-bit `bigint`, 53-bit int, 32-bit int, and 53-bit float
 - **🌱 Seedable** - Full control over initialization (or automatic seeding)
 - **🧵 Parallel-Ready** - Unique stream selection for multi-threaded applications
-- **📦 AssemblyScript Compatible** - Use within larger WASM project builds
+- **✨ Zero Config** - Synchronous WASM loading, no `fs` or `fetch` required
+- **🌐 Universal** - Works in Node.js 16.4+ and all modern browsers
+- **📦 AssemblyScript Library** - Can be imported to larger WASM project builds
 
 ## PRNG Algorithms
-
-These algorithms are optimized for high speed, excellent statistical randomness, and parallelization support.
 
 | Algorithm | Native Output Size | State Size | Period | SIMD Support |
 |-----------|-------------|------------|--------|--------------|
@@ -52,11 +52,13 @@ These algorithms are optimized for high speed, excellent statistical randomness,
 | **Xoroshiro128+** | 64-bit | 128 bits | 2<sup>128</sup> | ✅ |
 | **PCG (XSH RR)** | 32-bit | 64 bits | 2<sup>64</sup> | ❌ |
 
+The included algorithms were chosen for their high speed, parallelization support, and statistical quality. They pass rigorous statistical tests (BigCrush, PractRand) and provide excellent uniformity, making them suitable for Monte Carlo simulations and other applications requiring high-quality pseudo-randomness. They offer a significant improvement over Math.random(), which varies by JavaScript engine and may exhibit statistical flaws.
+
 **SIMD (Single Instruction, Multiple Data)** generates 2 random numbers simultaneously, theoretically doubling throughput when using array output methods.
 
 > **⚠️ Security Note:** These PRNGs are NOT cryptographically secure. Do not use for cryptography or security-sensitive applications, as they are not resilient against attacks that could reveal sequence history.
 
-### Learn More
+#### Learn More
 - [PCG: A Family of Better Random Number Generators](https://www.pcg-random.org)
 - [`xoshiro` / `xoroshiro` generators and the PRNG shootout](https://prng.di.unimi.it/)
 
@@ -85,14 +87,13 @@ const { RandomGenerator, PRNGType, seed64Array } = require('fast-prng-wasm');
 ### The Basics
 
 ```javascript
-// Default PRNG type is Xoroshiro128Plus_SIMD with auto-seeding
-const gen = new RandomGenerator();
+const gen = new RandomGenerator();      // Xoroshiro128Plus_SIMD, auto-seeded
 console.log(gen.nextBigInt());          // unsigned 64-bit int (bigint)
 console.log(gen.nextInteger());         // unsigned 53-bit int (number)
 console.log(gen.nextInteger32());       // unsigned 32-bit int (number)
 console.log(gen.nextNumber());          // 53-bit float (number) in [0, 1)
 
-// All PRNG types expose the same interface
+// All PRNG types expose the same JS/TS interface
 const pcgGen = new RandomGenerator(PRNGType.PCG);
 console.log(pcgGen.nextBigInt());
 console.log(pcgGen.nextInteger());
@@ -104,36 +105,38 @@ The internal WASM binary is instantiated automatically when a `RandomGenerator` 
 
 ### Array Output (Bulk Array Fill)
 
-The fastest way to get random numbers **in bulk** is to use the `nextArray_*` methods of `RandomGenerator`. Each call fills a WASM shared memory buffer with the next 1000 (by default) random numbers, and returns a view of the buffer as an appropriate [`TypedArray`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray): either `BigUint64Array` or `Float64Array`.
+The fastest way to get random numbers **in bulk** is to use the `nextArray_*` methods of `RandomGenerator`. Each call fills a WASM memory buffer with the next 1000 (by default) random numbers, and returns a view of the buffer as an appropriate [`TypedArray`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray): either `BigUint64Array` or `Float64Array`.
 
-> **💡 SIMD Performance:** Array methods **MUST** be used to realize the additional throughput offered by SIMD-enabled PRNG algorithms (these have higher throughput because they produce multiple random numbers at the same time).
+> **💡 SIMD Performance:** Array methods **MUST** be used to realize the additional throughput offered by SIMD-enabled PRNG algorithms. These have higher throughput because they produce 2 random numbers at the same time with WASM's 128-bit SIMD support) .
 
 #### Bulk Fill Example
 ```javascript
 const gen = new RandomGenerator();
-const randomBigIntArray = gen.nextArray_BigInt(); // 1000 unsigned 64-bit bigints (in BigUint64Array)
-let randomFloatArray = gen.nextArray_Number();    // 1000 float numbers in [0, 1) (in Float64Array)
 
-// Other types are also available for array fill
-randomFloatArray = gen.nextArray_Integer();     // 1000 unsigned 53-bit integer numbers (in Float64Array)
-randomFloatArray = gen.nextArray_Integer32();   // 1000 unsigned 32-bit integer numbers (in Float64Array)
+// `bigint`s in BigUint64Array
+const bigintArray = gen.nextArray_BigInt();   // 1000 64-bit integers
+
+// `number`s in Float64Array
+let floatArray = gen.nextArray_Number();      // 1000 floats in [0, 1)
+floatArray = gen.nextArray_Integer();         // 1000 53-bit integers
+floatArray = gen.nextArray_Integer32();       // 1000 32-bit integers
 ```
 
-#### Shared Array Memory Buffer
-> **⚠️ Shared Buffer Warning:** The array returned by these methods is actually a `DataView` looking at a portion of shared WebAssembly memory. This shared memory buffer is **reused between calls** to the `nextArray_*` methods, so **you must actually consume (e.g. read/copy) the output between each call**.
+#### WASM Array Memory Buffer
+> **⚠️ Reused Buffer Warning:** The array returned by these methods is actually a `DataView` looking at a portion of WebAssembly memory. This memory buffer is **reused between calls** to the `nextArray_*` methods (to minimize WASM-JS boundary crossing time), so **you must actually consume (e.g. read/copy) the output between each call**.
 
 ```javascript
 const gen = new RandomGenerator();
 
 // ⚠️ Warning: Consume this output before making another call to nextArray_*
 const randomArray1 = gen.nextArray_Number();   // 1000 floats in [0, 1)
-console.log(randomArray1);                     // example consumption (extract random results)
+console.log(randomArray1);                     // consume (extract random results)
 
-// The values originally in randomArray1 will be replaced now! (despite using a different local variable)
+// Values originally in randomArray1 have been replaced! (despite different local variable)
 const randomArray2 = gen.nextArray_Number();   // 1000 new floats in [0, 1)
-console.log(randomArray2);                     // example consumption again (extract more random results)
+console.log(randomArray2);                     // consume again (extract more random results)
 
-console.log(randomArray1 === randomArray2);           // true (same shared memory array)
+console.log(randomArray1 === randomArray2);           // true (same array in memory)
 console.log(randomArray1[42] === randomArray2[42]);   // true (second call to nextArray_Number() refilled the same array memory)
 ```
 
@@ -225,26 +228,30 @@ console.log(num2 === num3);           // true: using same seeds and same jumpCou
 
 ## Performance
 
-The goal is to provide random number generation in WASM that's faster and higher-quality than `Math.random`, and faster than any equivalent JavaScript implementation of these PRNGs. Algorithms are implemented in [AssemblyScript](https://www.assemblyscript.org/), a variant of TypeScript that compiles to WASM.
+The goal is to provide random number generation in WASM that's faster and higher-quality than `Math.random`, and faster than any equivalent JavaScript implementation of these PRNG algorithms. 
 
-**Key performance advantages:**
+Generator algorithms are implemented in [AssemblyScript](https://www.assemblyscript.org/), a variant of TypeScript that compiles to WASM.
+
+#### Key performance advantages:
+- PRNG algorithms chosen for speed
 - WASM is faster than JS by design
-- AssemblyScript project structure and settings are optimized for speed
+- AssemblyScript project structure and compilation are optimized for speed
 - Bulk array generation minimizes JS/WASM boundary crossing overhead
-- Reusing shared array memory avoids alloc delays and heap fragmentation
+- Reusing WASM array memory avoids alloc delays and heap fragmentation
 - SIMD acceleration can nearly double throughput for supported algorithms
 - Monte Carlo unit square vs unit circle test included for validation
 
-Performance demos showing optimizations, tradeoffs, and comparisons are coming soon!
+> ⚡⚡ Performance stats and demos coming soon! ⚡⚡
 
 ## Demos
 
-See the [`demo/` folder](demo/) for all available demos. Each one is treated as a separate project.
+See the [`demo/` folder](demo/) for all available demos.
 
-- [**`pmc` - Pi Monte Carlo:**](demo/pmc) A Monte Carlo statistical estimation of π (pi) using a large quantity of random numbers
-  - Node CLI demo app
-  - Uses parallel generator instances in worker threads
-  - Shares seeds across instances with unique jump count for each
+#### [**`pmc` - Pi Monte Carlo**](demo/pmc)
+A Monte Carlo statistical estimation of π (pi) using a large quantity of random numbers
+- Node CLI app
+- Uses parallel generator instances in `worker_threads`
+- Shares seeds across instances, using a unique jump count / stream increment for each
 
 ## API Documentation
 
@@ -254,24 +261,24 @@ See the [`demo/` folder](demo/) for all available demos. Each one is treated as 
 ## Compatibility
 
 ### Node
- | Version | Notes |
-|----------|-------|
+| Version | Notes |
+|---------|-------|
 | 16.4+ | Full support |
 | 15.0 | All features except SIMD |
-| < 15 | Not recommended |
+| 8.5.7 - 15 | No SIMD, No `bigint` |
 
-Node versions older than 15 are not recommended as they lack support for `i64` to `bigint` conversion, but in theory they will otherwise work back to the beginning of WASM support in Node 8.5.7.
+> Node versions older than 15 are not recommended, as they lack support for `i64` to `bigint` conversion. Versions going back to 8.5.7 (first WASM support in Node) should otherwise still work correctly for 53-bit integer and float `number` values, though they haven't been fully tested.
 
 ### Browsers
-Most modern browsers are fully supported. 
+All modern browsers are fully supported. 
 
-| Browser | Full Support | Partial (No SIMD) |
-|---------|--------------|---------------------|
-| Chrome  | 91+ | 85 |
-| Edge    | 91+ | 85 |
-| Firefox | 89+ | 78 |
-| Safari  | 16.4+ | 14.1 |
-| Opera   | 77+ | 71 |
+| Browser | Full Support | Partial (No SIMD) | Degraded (No `bigint`) |
+|---------|--------------|-------------------|------------------------|
+| Chrome  | 91+ | 85 | 57 |
+| Edge    | 91+ | 85 | 16 |
+| Safari  | 16.4+ | 14.1 | 11 |
+| Firefox | 89+ | 78 | 52 |
+| Opera   | 77+ | 71 | 44 |
 
 Check caniuse.com for other browser support:
  - [WASM SIMD](https://caniuse.com/wasm-simd) - Indicates Full Support

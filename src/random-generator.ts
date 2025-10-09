@@ -78,25 +78,25 @@ export class RandomGenerator {
      * @param prngType The PRNG algorithm to use. Defaults to 
      * Xoroshiro128Plus_SIMD.
      * 
-     * @param seeds Collection of 64-bit integers used to seed 
-     * the generator. 1-8 seeds are required depending on generator type (see
-     * {@link seedCount} or API docs to determine the required seed count).
-     * 
+     * @param seeds Collection of 64-bit integers used to initialize this
+     * generator's internal state. 1-8 seeds are required depending on generator 
+     * type (see {@link seedCount} or API docs to determine the required seed count).
+     * <br><br>
      * Auto-seeds itself if no seeds are provided.
      * 
-     * @param jumpCountOrStreamIncrement Optional unique
-     * identifier to be used when sharing the same seeds across multiple
-     * parallel generators (e.g. worker threads or distributed computation),
-     * allowing each to choose a unique random stream.
-     * 
+     * @param jumpCountOrStreamIncrement Determines the unique random stream
+     * this generator will return within its period, given a particular starting state.
+     * Values <= 0, `null`, or `undefined` will select the default stream.
+     * <br><br>
+     * This optional unique identifier should be used when sharing the same seeds across
+     * parallel generator instances, so that each can provide a unique random stream.
+     * <br><br>
      * For Xoshiro generators, this value indicates the number of state jumps
      * to make after seeding. For PCG generators, this value is used as the
      * internal stream increment for state advances.
      * 
-     * Negative, 0, null, or undefined will select the default stream.
-     * 
      * @param outputArraySize Size of the output array used when 
-     * filling shared memory using the `nextArray` methods. Defaults to 1000.
+     * filling WASM memory buffer using the `nextArray` methods.
      */
     constructor(
         prngType: PRNGType = PRNGType.Xoroshiro128Plus_SIMD,
@@ -261,11 +261,11 @@ export class RandomGenerator {
     }
 
     /**
-     * Fills shared memory array with this generator's next set of unsigned 64-bit integers.
+     * Fills WASM memory array with this generator's next set of unsigned 64-bit integers.
      * 
      * Array size is set when generator is created or by changing {@link outputArraySize}.
      * 
-     * @returns View of the WASM shared memory array for this generator, now refilled.
+     * @returns View of the array in WASM memory for this generator, now refilled.
      * This output buffer is reused with each call.
      */
     nextArray_BigInt(): BigUint64Array {
@@ -274,11 +274,11 @@ export class RandomGenerator {
     }
     
     /**
-     * Fills shared memory array with this generator's next set of 53-bit integers.
+     * Fills WASM memory array with this generator's next set of 53-bit integers.
      * 
      * Array size is set when generator is created or by changing {@link outputArraySize}.
      * 
-     * @returns View of the WASM shared memory array for this generator, now refilled.
+     * @returns View of the array in WASM memory for this generator, now refilled.
      * This output buffer is reused with each call.
      */
     nextArray_Integer(): Float64Array {
@@ -287,11 +287,11 @@ export class RandomGenerator {
     }
     
     /**
-     * Fills shared memory array with this generator's next set of 32-bit integers.
+     * Fills WASM memory array with this generator's next set of 32-bit integers.
      * 
      * Array size is set when generator is created or by changing {@link outputArraySize}.
      * 
-     * @returns View of the WASM shared memory array for this generator, now refilled.
+     * @returns View of the array in WASM memory for this generator, now refilled.
      * This output buffer is reused with each call.
      */
     nextArray_Integer32(): Float64Array {
@@ -300,11 +300,11 @@ export class RandomGenerator {
     }
 
     /**
-     * Fills shared memory array with this generator's next set of floats in range [0, 1).
+     * Fills WASM memory array with this generator's next set of floats in range [0, 1).
      * 
      * Array size is set when generator is created or by changing {@link outputArraySize}.
      * 
-     * @returns View of the WASM shared memory array for this generator, now refilled.
+     * @returns View of the array in WASM memory for this generator, now refilled.
      * This output buffer is reused with each call.
      */
     nextArray_Number(): Float64Array {
@@ -313,13 +313,13 @@ export class RandomGenerator {
     }
     
     /**
-     * Fills shared memory array with this generator's next set of floats in range (-1, 1).
+     * Fills WASM memory array with this generator's next set of floats in range (-1, 1).
      * 
      * Array size is set when generator is created or by changing {@link outputArraySize}.
      * 
      * Useful for Monte Carlo simulation.
      * 
-     * @returns View of the WASM shared memory array for this generator, now refilled.
+     * @returns View of the array in WASM memory for this generator, now refilled.
      * This output buffer is reused with each call.
      */
     nextArray_Coord(): Float64Array {
@@ -328,14 +328,14 @@ export class RandomGenerator {
     }
 
     /**
-     * Fills shared memory array with this generator's next set of floats in range (-1, 1)
+     * Fills WASM memory array with this generator's next set of floats in range (-1, 1)
      * that have been squared.
      * 
      * Array size is set when generator is created or by changing {@link outputArraySize}.
      * 
      * Useful for Monte Carlo simulation.
      * 
-     * @returns View of the WASM shared memory array for this generator, now refilled.
+     * @returns View of the array in WASM memory for this generator, now refilled.
      * This output buffer is reused with each call.
      */
     nextArray_CoordSquared(): Float64Array {

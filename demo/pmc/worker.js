@@ -38,7 +38,7 @@ if (!isMainThread) {
         }
     }
 
-    // ArrayFill mode consumes random numbers out of the shared memory buffer and tests them
+    // ArrayFill mode consumes random numbers out of the WASM memory buffer and tests them
     // here in the JavaScript runtime. This is a demonstration of the fastest strategy for
     // consuming random numbers from fast-prng-wasm's JavaScript API
     else if (workerData.batchMode === WorkerBatchMode.ArrayFill) {
