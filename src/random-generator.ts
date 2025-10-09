@@ -96,7 +96,7 @@ export class RandomGenerator {
      * internal stream increment for state advances.
      * 
      * @param outputArraySize Size of the output array used when 
-     * filling shared memory using the `nextArray` methods.
+     * filling WASM memory buffer using the `nextArray` methods.
      */
     constructor(
         prngType: PRNGType = PRNGType.Xoroshiro128Plus_SIMD,
@@ -261,11 +261,11 @@ export class RandomGenerator {
     }
 
     /**
-     * Fills shared memory array with this generator's next set of unsigned 64-bit integers.
+     * Fills WASM memory array with this generator's next set of unsigned 64-bit integers.
      * 
      * Array size is set when generator is created or by changing {@link outputArraySize}.
      * 
-     * @returns View of the WASM shared memory array for this generator, now refilled.
+     * @returns View of the array in WASM memory for this generator, now refilled.
      * This output buffer is reused with each call.
      */
     nextArray_BigInt(): BigUint64Array {
@@ -274,11 +274,11 @@ export class RandomGenerator {
     }
     
     /**
-     * Fills shared memory array with this generator's next set of 53-bit integers.
+     * Fills WASM memory array with this generator's next set of 53-bit integers.
      * 
      * Array size is set when generator is created or by changing {@link outputArraySize}.
      * 
-     * @returns View of the WASM shared memory array for this generator, now refilled.
+     * @returns View of the array in WASM memory for this generator, now refilled.
      * This output buffer is reused with each call.
      */
     nextArray_Integer(): Float64Array {
@@ -287,11 +287,11 @@ export class RandomGenerator {
     }
     
     /**
-     * Fills shared memory array with this generator's next set of 32-bit integers.
+     * Fills WASM memory array with this generator's next set of 32-bit integers.
      * 
      * Array size is set when generator is created or by changing {@link outputArraySize}.
      * 
-     * @returns View of the WASM shared memory array for this generator, now refilled.
+     * @returns View of the array in WASM memory for this generator, now refilled.
      * This output buffer is reused with each call.
      */
     nextArray_Integer32(): Float64Array {
@@ -300,11 +300,11 @@ export class RandomGenerator {
     }
 
     /**
-     * Fills shared memory array with this generator's next set of floats in range [0, 1).
+     * Fills WASM memory array with this generator's next set of floats in range [0, 1).
      * 
      * Array size is set when generator is created or by changing {@link outputArraySize}.
      * 
-     * @returns View of the WASM shared memory array for this generator, now refilled.
+     * @returns View of the array in WASM memory for this generator, now refilled.
      * This output buffer is reused with each call.
      */
     nextArray_Number(): Float64Array {
@@ -313,13 +313,13 @@ export class RandomGenerator {
     }
     
     /**
-     * Fills shared memory array with this generator's next set of floats in range (-1, 1).
+     * Fills WASM memory array with this generator's next set of floats in range (-1, 1).
      * 
      * Array size is set when generator is created or by changing {@link outputArraySize}.
      * 
      * Useful for Monte Carlo simulation.
      * 
-     * @returns View of the WASM shared memory array for this generator, now refilled.
+     * @returns View of the array in WASM memory for this generator, now refilled.
      * This output buffer is reused with each call.
      */
     nextArray_Coord(): Float64Array {
@@ -328,14 +328,14 @@ export class RandomGenerator {
     }
 
     /**
-     * Fills shared memory array with this generator's next set of floats in range (-1, 1)
+     * Fills WASM memory array with this generator's next set of floats in range (-1, 1)
      * that have been squared.
      * 
      * Array size is set when generator is created or by changing {@link outputArraySize}.
      * 
      * Useful for Monte Carlo simulation.
      * 
-     * @returns View of the WASM shared memory array for this generator, now refilled.
+     * @returns View of the array in WASM memory for this generator, now refilled.
      * This output buffer is reused with each call.
      */
     nextArray_CoordSquared(): Float64Array {

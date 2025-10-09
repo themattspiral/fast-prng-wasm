@@ -1,4 +1,4 @@
-import { BIT_53 } from './common';
+import { BIT_53 } from './conversion';
 
 export const BIT_53x2: v128 = f64x2.splat(BIT_53);
 export const ONEx2: v128 = f64x2.splat(1.0);
@@ -41,7 +41,7 @@ export function int32Numbers(next: v128): v128 {
     );
 }
 
-/*
+/**
  * Derives 2 `f64`s in range [0, 1) from the 2 given `u64`s.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
@@ -53,7 +53,7 @@ export function numbers(next: v128): v128 {
     return v128.div<f64>(randShifted, BIT_53x2);
 }
 
-/*
+/**
  * Derives 2 `f64`s in range (-1, 1) from the 2 given ``u64`s`.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
@@ -68,7 +68,7 @@ export function point(next: v128): v128 {
     return n;
 }
 
-/*
+/**
  * Derives the squares of 2 `f64`s in range (-1, 1) from the 2 given ``u64`s`.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript

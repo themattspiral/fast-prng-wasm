@@ -1,7 +1,10 @@
 # fast-prng-wasm
 
-JavaScript API - Can be used from any environment that supports WebAssembly.
-See project README for compatability details.
+PRNG JavaScript/TypeScript API - Can be used from most modern environments
+that support WebAssembly. See project README for compatability details.
+
+This wrapper around the WebAssembly PRNGs simplifies WASM usage and makes 
+them thread safe from the JS runtime by allowing for separate WASM instances.
 
 ## Enumerations
 
@@ -46,7 +49,7 @@ Creates a WASM pseudo random number generator.
 | `prngType` | [`PRNGType`](#prngtype) | `PRNGType.Xoroshiro128Plus_SIMD` | The PRNG algorithm to use. Defaults to Xoroshiro128Plus_SIMD. |
 | `seeds` | `null` \| `bigint`[] | `null` | Collection of 64-bit integers used to initialize this generator's internal state. 1-8 seeds are required depending on generator type (see [seedCount](#seedcount) or API docs to determine the required seed count). <br><br> Auto-seeds itself if no seeds are provided. |
 | `jumpCountOrStreamIncrement` | `null` \| `number` \| `bigint` | `null` | Determines the unique random stream this generator will return within its period, given a particular starting state. Values <= 0, `null`, or `undefined` will select the default stream. <br><br> This optional unique identifier should be used when sharing the same seeds across parallel generator instances, so that each can provide a unique random stream. <br><br> For Xoshiro generators, this value indicates the number of state jumps to make after seeding. For PCG generators, this value is used as the internal stream increment for state advances. |
-| `outputArraySize` | `number` | `1000` | Size of the output array used when filling shared memory using the `nextArray` methods. |
+| `outputArraySize` | `number` | `1000` | Size of the output array used when filling WASM memory buffer using the `nextArray` methods. |
 
 ###### Returns
 
@@ -178,7 +181,7 @@ unit circle with radius 1.
 nextArray_BigInt(): BigUint64Array;
 ```
 
-Fills shared memory array with this generator's next set of unsigned 64-bit integers.
+Fills WASM memory array with this generator's next set of unsigned 64-bit integers.
 
 Array size is set when generator is created or by changing [outputArraySize](#outputarraysize).
 
@@ -186,7 +189,7 @@ Array size is set when generator is created or by changing [outputArraySize](#ou
 
 `BigUint64Array`
 
-View of the WASM shared memory array for this generator, now refilled.
+View of the array in WASM memory for this generator, now refilled.
 This output buffer is reused with each call.
 
 ##### nextArray\_Coord()
@@ -195,7 +198,7 @@ This output buffer is reused with each call.
 nextArray_Coord(): Float64Array;
 ```
 
-Fills shared memory array with this generator's next set of floats in range (-1, 1).
+Fills WASM memory array with this generator's next set of floats in range (-1, 1).
 
 Array size is set when generator is created or by changing [outputArraySize](#outputarraysize).
 
@@ -205,7 +208,7 @@ Useful for Monte Carlo simulation.
 
 `Float64Array`
 
-View of the WASM shared memory array for this generator, now refilled.
+View of the array in WASM memory for this generator, now refilled.
 This output buffer is reused with each call.
 
 ##### nextArray\_CoordSquared()
@@ -214,7 +217,7 @@ This output buffer is reused with each call.
 nextArray_CoordSquared(): Float64Array;
 ```
 
-Fills shared memory array with this generator's next set of floats in range (-1, 1)
+Fills WASM memory array with this generator's next set of floats in range (-1, 1)
 that have been squared.
 
 Array size is set when generator is created or by changing [outputArraySize](#outputarraysize).
@@ -225,7 +228,7 @@ Useful for Monte Carlo simulation.
 
 `Float64Array`
 
-View of the WASM shared memory array for this generator, now refilled.
+View of the array in WASM memory for this generator, now refilled.
 This output buffer is reused with each call.
 
 ##### nextArray\_Integer()
@@ -234,7 +237,7 @@ This output buffer is reused with each call.
 nextArray_Integer(): Float64Array;
 ```
 
-Fills shared memory array with this generator's next set of 53-bit integers.
+Fills WASM memory array with this generator's next set of 53-bit integers.
 
 Array size is set when generator is created or by changing [outputArraySize](#outputarraysize).
 
@@ -242,7 +245,7 @@ Array size is set when generator is created or by changing [outputArraySize](#ou
 
 `Float64Array`
 
-View of the WASM shared memory array for this generator, now refilled.
+View of the array in WASM memory for this generator, now refilled.
 This output buffer is reused with each call.
 
 ##### nextArray\_Integer32()
@@ -251,7 +254,7 @@ This output buffer is reused with each call.
 nextArray_Integer32(): Float64Array;
 ```
 
-Fills shared memory array with this generator's next set of 32-bit integers.
+Fills WASM memory array with this generator's next set of 32-bit integers.
 
 Array size is set when generator is created or by changing [outputArraySize](#outputarraysize).
 
@@ -259,7 +262,7 @@ Array size is set when generator is created or by changing [outputArraySize](#ou
 
 `Float64Array`
 
-View of the WASM shared memory array for this generator, now refilled.
+View of the array in WASM memory for this generator, now refilled.
 This output buffer is reused with each call.
 
 ##### nextArray\_Number()
@@ -268,7 +271,7 @@ This output buffer is reused with each call.
 nextArray_Number(): Float64Array;
 ```
 
-Fills shared memory array with this generator's next set of floats in range [0, 1).
+Fills WASM memory array with this generator's next set of floats in range [0, 1).
 
 Array size is set when generator is created or by changing [outputArraySize](#outputarraysize).
 
@@ -276,7 +279,7 @@ Array size is set when generator is created or by changing [outputArraySize](#ou
 
 `Float64Array`
 
-View of the WASM shared memory array for this generator, now refilled.
+View of the array in WASM memory for this generator, now refilled.
 This output buffer is reused with each call.
 
 ##### nextBigInt()

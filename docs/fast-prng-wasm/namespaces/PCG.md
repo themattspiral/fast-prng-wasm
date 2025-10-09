@@ -17,52 +17,6 @@ Number of seeds required for this generator's [setSeeds](#setseeds) function.
 
 ## Functions
 
-### allocFloat64Array()
-
-```ts
-function allocFloat64Array(count): number;
-```
-
-Allocates shared WebAssembly memory for a `Float64Array` of the given size, and pins it to
-avoid garbage collection. Must be explicitly freed with [freeArray](#freearray) if cleanup is needed.
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `count` | `number` | The size of the array to allocate (number of `f64`s it can hold). |
-
-#### Returns
-
-`number`
-
-A pointer to the newly allocated shared-memory array, which can be used from JS runtimes.
-
-***
-
-### allocUint64Array()
-
-```ts
-function allocUint64Array(count): number;
-```
-
-Allocates shared WebAssembly memory for a `Uint64Array` of the given size, and pins it to
-avoid garbage collection. Must be explicitly freed with [freeArray](#freearray) if cleanup is needed.
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `count` | `number` | The size of the array to allocate (number of `u64`s it can hold). |
-
-#### Returns
-
-`number`
-
-A pointer to the newly allocated shared-memory array, which can be used from JS runtimes.
-
-***
-
 ### batchTestUnitCirclePoints()
 
 ```ts
@@ -103,7 +57,7 @@ Useful for Monte Carlo simulation.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocFloat64Array](#allocfloat64array). |
+| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be a pointer to an array that exists in WASM memory. |
 
 #### Returns
 
@@ -126,7 +80,7 @@ Useful for Monte Carlo simulation.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocFloat64Array](#allocfloat64array). |
+| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be a pointer to an array that exists in WASM memory. |
 
 #### Returns
 
@@ -146,7 +100,7 @@ Fills the provided array with this generator's next set of unsigned 32-bit integ
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocFloat64Array](#allocfloat64array). |
+| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be a pointer to an array that exists in WASM memory. |
 
 #### Returns
 
@@ -166,7 +120,7 @@ Fills the provided array with this generator's next set of unsigned 53-bit integ
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocFloat64Array](#allocfloat64array). |
+| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be a pointer to an array that exists in WASM memory. |
 
 #### Returns
 
@@ -187,7 +141,7 @@ in range [0, 1).
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocFloat64Array](#allocfloat64array). |
+| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be a pointer to an array that exists in WASM memory. |
 
 #### Returns
 
@@ -207,28 +161,7 @@ Fills the provided array with this generator's next set of unsigned 64-bit integ
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `arr` | `Uint64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocUint64Array](#allocuint64array). |
-
-#### Returns
-
-`void`
-
-***
-
-### freeArray()
-
-```ts
-function freeArray(arrPtr): void;
-```
-
-Frees shared WebAssembly memory that was previously allocated by [allocUint64Array](#allocuint64array) 
-or [allocFloat64Array](#allocfloat64array).
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `arrPtr` | `number` | A pointer to the previously allocated shared-memory array to cleanup. |
+| `arr` | `Uint64Array` | The array to fully fill. If called from a JS runtime, this value should be a pointer to an array that exists in WASM memory. |
 
 #### Returns
 

@@ -105,7 +105,7 @@ The internal WASM binary is instantiated automatically when a `RandomGenerator` 
 
 ### Array Output (Bulk Array Fill)
 
-The fastest way to get random numbers **in bulk** is to use the `nextArray_*` methods of `RandomGenerator`. Each call fills a WASM shared memory buffer with the next 1000 (by default) random numbers, and returns a view of the buffer as an appropriate [`TypedArray`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray): either `BigUint64Array` or `Float64Array`.
+The fastest way to get random numbers **in bulk** is to use the `nextArray_*` methods of `RandomGenerator`. Each call fills a WASM memory buffer with the next 1000 (by default) random numbers, and returns a view of the buffer as an appropriate [`TypedArray`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray): either `BigUint64Array` or `Float64Array`.
 
 > **💡 SIMD Performance:** Array methods **MUST** be used to realize the additional throughput offered by SIMD-enabled PRNG algorithms. These have higher throughput because they produce 2 random numbers at the same time with WASM's 128-bit SIMD support) .
 
@@ -122,8 +122,8 @@ floatArray = gen.nextArray_Integer();         // 1000 53-bit integers
 floatArray = gen.nextArray_Integer32();       // 1000 32-bit integers
 ```
 
-#### Shared Array Memory Buffer
-> **⚠️ Shared Buffer Warning:** The array returned by these methods is actually a `DataView` looking at a portion of shared WebAssembly memory. This shared memory buffer is **reused between calls** to the `nextArray_*` methods, so **you must actually consume (e.g. read/copy) the output between each call**.
+#### WASM Array Memory Buffer
+> **⚠️ Reused Buffer Warning:** The array returned by these methods is actually a `DataView` looking at a portion of WebAssembly memory. This memory buffer is **reused between calls** to the `nextArray_*` methods (to minimize WASM-JS boundary crossing time), so **you must actually consume (e.g. read/copy) the output between each call**.
 
 ```javascript
 const gen = new RandomGenerator();
@@ -136,7 +136,7 @@ console.log(randomArray1);                     // consume (extract random result
 const randomArray2 = gen.nextArray_Number();   // 1000 new floats in [0, 1)
 console.log(randomArray2);                     // consume again (extract more random results)
 
-console.log(randomArray1 === randomArray2);           // true (same shared memory array)
+console.log(randomArray1 === randomArray2);           // true (same array in memory)
 console.log(randomArray1[42] === randomArray2[42]);   // true (second call to nextArray_Number() refilled the same array memory)
 ```
 
@@ -237,7 +237,7 @@ Generator algorithms are implemented in [AssemblyScript](https://www.assemblyscr
 - WASM is faster than JS by design
 - AssemblyScript project structure and compilation are optimized for speed
 - Bulk array generation minimizes JS/WASM boundary crossing overhead
-- Reusing shared array memory avoids alloc delays and heap fragmentation
+- Reusing WASM array memory avoids alloc delays and heap fragmentation
 - SIMD acceleration can nearly double throughput for supported algorithms
 - Monte Carlo unit square vs unit circle test included for validation
 

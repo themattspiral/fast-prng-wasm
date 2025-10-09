@@ -58,7 +58,7 @@ Useful for Monte Carlo simulation.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocFloat64Array](PCG.md#allocfloat64array). |
+| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be a pointer to an array that exists in WASM memory. |
 
 #### Returns
 
@@ -81,7 +81,7 @@ Useful for Monte Carlo simulation.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocFloat64Array](PCG.md#allocfloat64array). |
+| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be a pointer to an array that exists in WASM memory. |
 
 #### Returns
 
@@ -101,7 +101,7 @@ Fills the provided array with this generator's next set of unsigned 32-bit integ
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocFloat64Array](PCG.md#allocfloat64array). |
+| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be a pointer to an array that exists in WASM memory. |
 
 #### Returns
 
@@ -121,7 +121,7 @@ Fills the provided array with this generator's next set of unsigned 53-bit integ
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocFloat64Array](PCG.md#allocfloat64array). |
+| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be a pointer to an array that exists in WASM memory. |
 
 #### Returns
 
@@ -142,7 +142,7 @@ in range [0, 1).
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocFloat64Array](PCG.md#allocfloat64array). |
+| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be a pointer to an array that exists in WASM memory. |
 
 #### Returns
 
@@ -162,7 +162,7 @@ Fills the provided array with this generator's next set of unsigned 64-bit integ
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `arr` | `Uint64Array` | The array to fully fill. If called from a JS runtime, this value should be an array pointer returned by [allocUint64Array](PCG.md#allocuint64array). |
+| `arr` | `Uint64Array` | The array to fully fill. If called from a JS runtime, this value should be a pointer to an array that exists in WASM memory. |
 
 #### Returns
 
@@ -306,21 +306,3 @@ Initializes this generator's internal state with the provided random seeds.
 #### Returns
 
 `void`
-
-## References
-
-### allocFloat64Array
-
-Re-exports [allocFloat64Array](PCG.md#allocfloat64array)
-
-***
-
-### allocUint64Array
-
-Re-exports [allocUint64Array](PCG.md#allocuint64array)
-
-***
-
-### freeArray
-
-Re-exports [freeArray](PCG.md#freearray)

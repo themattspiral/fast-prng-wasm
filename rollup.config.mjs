@@ -41,7 +41,9 @@ export default [
             // make AssemblyScript sources available from the package
             copy({
                 targets: [
-                    { src: 'src/assembly/*', dest: 'dist/assembly' },
+                    { src: 'src/assembly/index.ts', dest: 'dist/assembly' },
+                    { src: 'src/assembly/prng/*', dest: 'dist/assembly/prng' },
+                    { src: 'src/assembly/common/*', dest: 'dist/assembly/common' }
                 ]
             })
         ]
