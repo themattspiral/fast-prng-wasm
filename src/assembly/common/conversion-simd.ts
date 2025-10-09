@@ -10,7 +10,7 @@ export const TWOx2: v128 = f64x2.splat(2.0);
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function int53Numbers(next: v128): v128 {
+export function uint64x2_to_uint53AsFloatx2(next: v128): v128 {
     // Shift right by 11 (>> 11) to extract upper 53 bits
     // of each output (highest quality randomness in upper,
     // and JS `number` only supports 53 bit precision)
@@ -29,7 +29,7 @@ export function int53Numbers(next: v128): v128 {
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function int32Numbers(next: v128): v128 {
+export function uint64x2_to_uint32AsFloatx2(next: v128): v128 {
     // Shift right by 32 (>> 32) to extract upper 32 bits
     // of each output (highest quality randomness in upper)
     const randShifted: v128 = v128.shr<u64>(next, 32);
@@ -46,20 +46,20 @@ export function int32Numbers(next: v128): v128 {
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function numbers(next: v128): v128 {
-    const randShifted: v128 = int53Numbers(next);
+export function uint64x2_to_float53x2(next: v128): v128 {
+    const randShifted: v128 = uint64x2_to_uint53AsFloatx2(next);
     
     // Scale:  number / 2^53 to get range [0, 1)
     return v128.div<f64>(randShifted, BIT_53x2);
 }
 
 /**
- * Derives 2 `f64`s in range (-1, 1) from the 2 given ``u64`s`.
+ * Derives 2 `f64`s in range (-1, 1) from the 2 given `u64`s.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function point(next: v128): v128 {
-    let n: v128 = numbers(next);
+export function uint64x2_to_coord53x2(next: v128): v128 {
+    let n: v128 = uint64x2_to_float53x2(next);
 
     // Scale:  number * 2 - 1 to get range (-1, 1)
     n = v128.mul<f64>(n, TWOx2);
@@ -69,12 +69,12 @@ export function point(next: v128): v128 {
 }
 
 /**
- * Derives the squares of 2 `f64`s in range (-1, 1) from the 2 given ``u64`s`.
+ * Derives the squares of 2 `f64`s in range (-1, 1) from the 2 given `u64`s.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function pointSquared(next: v128): v128 {
-    const p: v128 = point(next);
+export function uint64x2_to_coord53Squaredx2(next: v128): v128 {
+    const p: v128 = uint64x2_to_coord53x2(next);
 
     return v128.mul<f64>(p, p);
 }

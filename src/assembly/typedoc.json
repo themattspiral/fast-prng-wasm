@@ -5,7 +5,12 @@
   ],
   "exclude": [
     "node_modules", 
-    "**/*.spec.*"
+    "**/*.spec.*",
+
+    // Memory management functions aren't meant for public consumption,
+    // as they're only used by the JS wrapper. Assume AS consumers will
+    // be doing their own array memory management.
+    "common/memory.ts"
   ],
 
   "out": "../../docs",

@@ -22,13 +22,13 @@ High-performance, SIMD-enabled, WebAssembly pseudo random number generators (PRN
 npm install fast-prng-wasm
 ```
 
-```javascript
+```typescript
 import { RandomGenerator } from 'fast-prng-wasm';
 
 const gen = new RandomGenerator();  // Xoroshiro128+ SIMD is default
-console.log(gen.nextNumber());      // random 53-bit float (number) in [0, 1)
-console.log(gen.nextInteger());     // random 53-bit int (number)
-console.log(gen.nextBigInt());      // random 64-bit int (bigint)
+console.log(gen.float());           // random 53-bit float (number) in [0, 1)
+console.log(gen.int53());           // random 53-bit int (number)
+console.log(gen.int64());           // random 64-bit int (bigint)
 ```
 
 ## Features
@@ -52,7 +52,7 @@ console.log(gen.nextBigInt());      // random 64-bit int (bigint)
 | **Xoroshiro128+** | 64-bit | 128 bits | 2<sup>128</sup> | ✅ |
 | **PCG (XSH RR)** | 32-bit | 64 bits | 2<sup>64</sup> | ❌ |
 
-The included algorithms were chosen for their high speed, parallelization support, and statistical quality. They pass rigorous statistical tests (BigCrush, PractRand) and provide excellent uniformity, making them suitable for Monte Carlo simulations and other applications requiring high-quality pseudo-randomness. They offer a significant improvement over Math.random(), which varies by JavaScript engine and may exhibit statistical flaws.
+The included algorithms were chosen for their high speed, parallelization support, and statistical quality. They pass rigorous statistical tests (BigCrush, PractRand) and provide excellent uniformity, making them suitable for Monte Carlo simulations and other applications requiring high-quality pseudo-randomness. They offer a significant improvement over `Math.random()`, which varies by JavaScript engine and may exhibit statistical flaws.
 
 **SIMD (Single Instruction, Multiple Data)** generates 2 random numbers simultaneously, theoretically doubling throughput when using array output methods.
 
@@ -67,7 +67,7 @@ The included algorithms were chosen for their high speed, parallelization suppor
 ### Importing
 
 #### ES Module (bundler / modern browser / modern Node)
-```javascript
+```typescript
 import { RandomGenerator, PRNGType, seed64Array } from 'fast-prng-wasm';
 ```
 
@@ -86,87 +86,87 @@ const { RandomGenerator, PRNGType, seed64Array } = require('fast-prng-wasm');
 
 ### The Basics
 
-```javascript
+```typescript
 const gen = new RandomGenerator();      // Xoroshiro128Plus_SIMD, auto-seeded
-console.log(gen.nextBigInt());          // unsigned 64-bit int (bigint)
-console.log(gen.nextInteger());         // unsigned 53-bit int (number)
-console.log(gen.nextInteger32());       // unsigned 32-bit int (number)
-console.log(gen.nextNumber());          // 53-bit float (number) in [0, 1)
+console.log(gen.int64());               // unsigned 64-bit int (bigint)
+console.log(gen.int53());               // unsigned 53-bit int (number)
+console.log(gen.int32());               // unsigned 32-bit int (number)
+console.log(gen.float());               // 53-bit float (number) in [0, 1)
+console.log(gen.coord());               // 53-bit float (number) in (-1, 1)
+console.log(gen.coordSquared());        // 53-bit float (number) in (-1, 1) squared
 
-// All PRNG types expose the same JS/TS interface
 const pcgGen = new RandomGenerator(PRNGType.PCG);
-console.log(pcgGen.nextBigInt());
-console.log(pcgGen.nextInteger());
-console.log(pcgGen.nextInteger32());
-console.log(pcgGen.nextNumber());
+console.log(pcgGen.int64());
+// ... etc - all PRNG types expose the same JS/TS interface
 ```
 
 The internal WASM binary is instantiated automatically when a `RandomGenerator` instance is created.
 
 ### Array Output (Bulk Array Fill)
 
-The fastest way to get random numbers **in bulk** is to use the `nextArray_*` methods of `RandomGenerator`. Each call fills a WASM memory buffer with the next 1000 (by default) random numbers, and returns a view of the buffer as an appropriate [`TypedArray`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray): either `BigUint64Array` or `Float64Array`.
+The fastest way to get random numbers **in bulk** is to use the `*Array()` methods of `RandomGenerator`. Each call fills a WASM memory buffer with the next 1000 (by default) random numbers, and returns a view of the buffer as an appropriate [`TypedArray`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray): either `BigUint64Array` for `int64Array()`, or `Float64Array` for all methods.
 
 > **💡 SIMD Performance:** Array methods **MUST** be used to realize the additional throughput offered by SIMD-enabled PRNG algorithms. These have higher throughput because they produce 2 random numbers at the same time with WASM's 128-bit SIMD support) .
 
 #### Bulk Fill Example
-```javascript
+```typescript
 const gen = new RandomGenerator();
 
 // `bigint`s in BigUint64Array
-const bigintArray = gen.nextArray_BigInt();   // 1000 64-bit integers
+const bigintArray = gen.int64Array();     // 1000 64-bit integers
 
 // `number`s in Float64Array
-let floatArray = gen.nextArray_Number();      // 1000 floats in [0, 1)
-floatArray = gen.nextArray_Integer();         // 1000 53-bit integers
-floatArray = gen.nextArray_Integer32();       // 1000 32-bit integers
+let numberArray = gen.int53Array();       // 1000 53-bit integers
+numberArray = gen.int32Array();           // 1000 32-bit integers
+numberArray = gen.floatArray();           // 1000 floats in [0, 1)
 ```
 
 #### WASM Array Memory Buffer
-> **⚠️ Reused Buffer Warning:** The array returned by these methods is actually a `DataView` looking at a portion of WebAssembly memory. This memory buffer is **reused between calls** to the `nextArray_*` methods (to minimize WASM-JS boundary crossing time), so **you must actually consume (e.g. read/copy) the output between each call**.
+> **⚠️ Reused Buffer Warning:** The array returned by these methods is actually a `DataView` looking at a portion of WebAssembly memory. This memory buffer is **reused between calls** to the `*Array()` methods (to minimize WASM-JS boundary crossing time), so **you must actually consume (e.g. read/copy) the output between each call**.
 
-```javascript
+```typescript
 const gen = new RandomGenerator();
 
-// ⚠️ Warning: Consume this output before making another call to nextArray_*
-const randomArray1 = gen.nextArray_Number();   // 1000 floats in [0, 1)
-console.log(randomArray1);                     // consume (extract random results)
+// ⚠️ Warning: Consume before making another call to any method that returns a Float64Array
+const array1 = gen.floatArray();          // 1000 floats in [0, 1)
+console.log(array1);                      // consume (extract random results)
 
-// Values originally in randomArray1 have been replaced! (despite different local variable)
-const randomArray2 = gen.nextArray_Number();   // 1000 new floats in [0, 1)
-console.log(randomArray2);                     // consume again (extract more random results)
+// Values originally in array1 have been replaced! (despite different local variable)
+const array2 = gen.floatArray();          // 1000 new floats in [0, 1)
+console.log(array2);                      // consume again (extract more random results)
 
-console.log(randomArray1 === randomArray2);           // true (same array in memory)
-console.log(randomArray1[42] === randomArray2[42]);   // true (second call to nextArray_Number() refilled the same array memory)
+console.log(array1 === array2);           // true (same array in memory)
+console.log(array1[42] === array2[42]);   // true (second call refilled the same array)
 ```
 
 #### Set Array Output Size
 If you don't need 1000 numbers with each method call, you can specify your preferred size for the output array instead. Note that an array larger than the default of 1000 does not increase performance further in test scenarios.
 
-```javascript
+```typescript
 // Set size of output buffer to 200
 //  - `null` for `seeds` param will auto-seed
-//  - `null` for `jumpCountOrStreamIncrement` param will use default stream
+//  - `null` for `uniqueStreamId` param will use default stream
 const gen = new RandomGenerator(PRNGType.PCG, null, null, 200);
-const randomArray = gen.nextArray_Number();    // 200 random floats in [0, 1)
+let randomArray = gen.floatArray();       // 200 floats in [0, 1)
 
 // Resize output buffer to 42
-gen.outputArraySize = 42;                      // change output array size
-const randomArray2 = gen.nextArray_Number();   // 42 random floats in [0, 1)
-console.log(randomArray2);
-
-// This exceeds the set memory limits of the WASM instance
-gen.outputArraySize = 5000;                    // Runtime Error ⚠️
+gen.outputArraySize = 42;                 // change output array size
+randomArray = gen.floatArray();           // 42 floats in [0, 1)
 ```
 
-> **⚙ Configuration Note:** The AssemblyScript compiler configuration in `asconfig.release.json` specifies a fixed WASM memory size of 1 page. This is intentionally kept small to limit resources allocated to WASM instances, but is still enough space for the default of 1000 numbers.
+> **⚙ Configuration Note:** The AssemblyScript compiler configuration in `asconfig.release.json` specifies a fixed WASM memory size of 1 page.
+> This is intentionally kept small to limit resources allocated to WASM instances, but is still enough space for the default of 1000 numbers.
+> ```typescript
+> // exceeds the configured memory limits of WASM instances
+> gen.outputArraySize = 5000;             // Runtime Error ⚠️
+> ```
 
 ### Manual Seeding
 Manual seeding is optional. When no seeds are provided, a `RandomGenerator` will seed itself automatically.
 
 Manual seeding is done by providing a collection of `bigint` values to initialize the internal generator state. Each generator type requires a different number of seeds (between 1 and 8). The required count for a specific PRNG is exposed via `RandomGenerator`'s `seedCount` property, as well as in the `SEED_COUNT` variable and `setSeed()` function signature in the [AssemblyScript API](docs/as-api.md).
 
-```javascript
+```typescript
 const customSeeds = [7n, 9876543210818181n];    // Xoroshiro128+ takes 2 bigint seeds
 const customSeededGen = new RandomGenerator(PRNGType.Xoroshiro128Plus, customSeeds);
 
@@ -189,46 +189,72 @@ See the [`pmc` demo](demo/pmc) for an example that follows this approach, with e
 If you don't have custom seeds already, the `seed64Array()` function is provided. It returns a `bigint[8]` containing seeds generated with SplitMix64 (which in turn was seeded with a combination of the current time and JavaScript's `Math.random()`). This collection can be provided as the `seeds` argument for any PRNG in this package.
 
 #### Choose a Unique Stream for Each Parallel Generator
-Sharing seeds between generators assumes you will also provide a unique `jumpCountOrStreamIncrement` argument:
+Sharing seeds between generators assumes you will also provide a unique `uniqueStreamId` argument:
 - For the PCG PRNG, this will set the internal increment value within the generator, which selects a unique random stream given a specific starting state (seed).
 - For Xoshiro family PRNGs, this will advance the initial state (aka `jump()`) to a unique point within the generator period, allowing for effectively the same behavior - choosing a non-overlapping random stream given a specific starting state
 
-In both cases, this value is simply a unique positive integer.
+In both cases, this value is simply a unique positive integer (the examples below provide this as `bigint` literals).
 
 #### Examples
 
-```javascript
+```typescript
 const sharedSeeds = seed64Array();    // bigint[8]
 
-// Two PCG generators, using the same seeds but choosing unique stream increments
-const pcgGen1 = new RandomGenerator(PRNGType.PCG, sharedSeeds, 17n);
-const pcgNum1 = pcgGen1.nextNumber();
+// Two PCG generators, using the same seeds but choosing unique stream increments (5n vs 4001n)
+const pcgGen1 = new RandomGenerator(PRNGType.PCG, sharedSeeds, 5n);
+const pcgNum1 = pcgGen1.float();
 
-const pcgGen2 = new RandomGenerator(PRNGType.PCG, sharedSeeds, 12345678901234n);
-const pcgNum2 = pcgGen2.nextNumber();
+const pcgGen2 = new RandomGenerator(PRNGType.PCG, sharedSeeds, 4001n);
+const pcgNum2 = pcgGen2.float();
 
 console.log(pcgNum1 === pcgNum2);     // false
 
-// Two Xoshiro256+ generators using the same seeds, but with unique jumpCounts
-const seededGen1 = new RandomGenerator(PRNGType.Xoshiro256Plus_SIMD, sharedSeeds, 1);
-const num1 = seededGen1.nextNumber();
+// Two Xoshiro256+ generators using the same seeds, but with unique jump counts (1n vs 13n)
+const seededGen1 = new RandomGenerator(PRNGType.Xoshiro256Plus_SIMD, sharedSeeds, 1n);
+const num1 = seededGen1.float();
 
-const seededGen2 = new RandomGenerator(PRNGType.Xoshiro256Plus_SIMD, sharedSeeds, 2);
-const num2 = seededGen2.nextNumber();
+const seededGen2 = new RandomGenerator(PRNGType.Xoshiro256Plus_SIMD, sharedSeeds, 13n);
+const num2 = seededGen2.float();
 
 console.log(num1 === num2);           // false
 
-// Another Xoshiro256+ generator using the same seeds, and same jumpCount as seededGen2.
+// Another Xoshiro256+ generator using the same seeds, and same jump count (13n) as seededGen2.
 // ⚠️ seededGen2 and seededGen3 are effectively identical and will return the same random stream.
-const seededGen3 = new RandomGenerator(PRNGType.Xoshiro256Plus_SIMD, sharedSeeds, 2);
-const num3 = seededGen3.nextNumber();
+const seededGen3 = new RandomGenerator(PRNGType.Xoshiro256Plus_SIMD, sharedSeeds, 13n);
+const num3 = seededGen3.float();
 
-console.log(num2 === num3);           // true: using same seeds and same jumpCount!!
+console.log(num2 === num3);           // true: using same seeds and same uniqueStreamId!!
 ```
+
+### Using from AssemblyScript Projects
+```typescript
+// import the namespace(es) you want to use
+import { PCG, Xoroshiro128Plus } from 'fast-prng-wasm/assembly';
+
+Xoroshiro128Plus.setSeeds(57n, 1000123n);             // manually seeded - seed64Array() only in JS
+
+const rand: u64 = Xoroshiro128Plus.uint64();          // using the AS interface
+const rand2: f64 = Xoroshiro128Plus.uint53AsFloat();  // return types are cast for JS runtime usage
+
+const arr = new Uint64Array(1000);                    // create array in WASM memory
+Xoroshiro128Plus.uint64Array(arr);                    // generate & fill
+```
+
+> **⚠️ Thread Safety Warning ⚠️:**
+> WASM PRNG implemetations use top-level internal state and functions to
+> prevent the accumulation of small overhead that comes with using classes.
+> 
+> While they are encapsulted within namespaces so as not to interfere with
+> your own AssemblyScript project's global namespace, this also means that
+> they are NOT THREAD SAFE WITHIN WASM DIRECTLY.
+> 
+> To acheive thread safety from the JS runtime calling your AssemvblyScript WASM
+> project binary, it must be structured in such a way as to create separate WASM 
+> instances from JS. This is the approach used by the included JavaScript/TypeScript wrapper API.
 
 ## Performance
 
-The goal is to provide random number generation in WASM that's faster and higher-quality than `Math.random`, and faster than any equivalent JavaScript implementation of these PRNG algorithms. 
+The goal is to provide random number generation in WASM that's faster and higher-quality than `Math.random()`, and faster than any equivalent JavaScript implementation of these PRNG algorithms. 
 
 Generator algorithms are implemented in [AssemblyScript](https://www.assemblyscript.org/), a variant of TypeScript that compiles to WASM.
 

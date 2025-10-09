@@ -36,7 +36,7 @@ A seedable pseudo random number generator that runs in WebAssembly.
 new RandomGenerator(
    prngType, 
    seeds, 
-   jumpCountOrStreamIncrement, 
+   uniqueStreamId, 
    outputArraySize): RandomGenerator;
 ```
 
@@ -48,8 +48,8 @@ Creates a WASM pseudo random number generator.
 | ------ | ------ | ------ | ------ |
 | `prngType` | [`PRNGType`](#prngtype) | `PRNGType.Xoroshiro128Plus_SIMD` | The PRNG algorithm to use. Defaults to Xoroshiro128Plus_SIMD. |
 | `seeds` | `null` \| `bigint`[] | `null` | Collection of 64-bit integers used to initialize this generator's internal state. 1-8 seeds are required depending on generator type (see [seedCount](#seedcount) or API docs to determine the required seed count). <br><br> Auto-seeds itself if no seeds are provided. |
-| `jumpCountOrStreamIncrement` | `null` \| `number` \| `bigint` | `null` | Determines the unique random stream this generator will return within its period, given a particular starting state. Values <= 0, `null`, or `undefined` will select the default stream. <br><br> This optional unique identifier should be used when sharing the same seeds across parallel generator instances, so that each can provide a unique random stream. <br><br> For Xoshiro generators, this value indicates the number of state jumps to make after seeding. For PCG generators, this value is used as the internal stream increment for state advances. |
-| `outputArraySize` | `number` | `1000` | Size of the output array used when filling WASM memory buffer using the `nextArray` methods. |
+| `uniqueStreamId` | `null` \| `number` \| `bigint` | `null` | Determines the unique random stream this generator will return within its period, given a particular starting state. Values <= 0, `null`, or `undefined` will select the default stream. <br><br> This optional unique identifier should be used when sharing the same seeds across parallel generator instances, so that each can provide a unique random stream. <br><br> For Xoshiro generators, this value indicates the number of state jumps to make after seeding. For PCG generators, this value is used as the internal stream increment for state advances. |
+| `outputArraySize` | `number` | `1000` | Size of the output array used when filling WASM memory buffer using the `*Array()` methods. |
 
 ###### Returns
 
@@ -65,7 +65,7 @@ Creates a WASM pseudo random number generator.
 get outputArraySize(): number;
 ```
 
-Gets the size of the array populated by the `nextArray` methods.
+Gets the size of the array populated by the `*Array()` methods.
 
 ###### Returns
 
@@ -77,13 +77,13 @@ Gets the size of the array populated by the `nextArray` methods.
 set outputArraySize(newSize): void;
 ```
 
-Changes the size of the array populated by the `nextArray` methods.
+Changes the size of the array populated by the `*Array()` methods.
 
 ###### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `newSize` | `number` | The count of items to be populated by the `nextArray` methods. |
+| `newSize` | `number` | The count of items to be populated by the `*Array()` methods. |
 
 ###### Returns
 
@@ -157,8 +157,9 @@ Re-initializes the internal state of this generator instance with the given seed
 batchTestUnitCirclePoints(pointCount): number;
 ```
 
-Performs a batch test in WASM of random (x, y) points between -1 and 1
-and checks if they fall within the corresponding unit circle with radius 1.
+Performs a batch test entirely in WASM by generating random (x, y) coordinate pairs
+between -1 and 1 (in a unit square), and checks if they fall within the corresponding
+unit circle with radius 1.
 
 Useful for Monte Carlo simulation.
 
@@ -166,7 +167,7 @@ Useful for Monte Carlo simulation.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `pointCount` | `number` | Number of random (x, y) points in (-1, 1) to generate and test. |
+| `pointCount` | `number` | Number of random points in (-1, 1) to generate and test. |
 
 ###### Returns
 
@@ -175,33 +176,35 @@ Useful for Monte Carlo simulation.
 Number of random points in (-1, 1) which fell *inside* of the
 unit circle with radius 1.
 
-##### nextArray\_BigInt()
+##### coord()
 
 ```ts
-nextArray_BigInt(): BigUint64Array;
+coord(): number;
 ```
 
-Fills WASM memory array with this generator's next set of unsigned 64-bit integers.
+Gets this generator's next 53-bit floating point number in range (-1, 1).
 
-Array size is set when generator is created or by changing [outputArraySize](#outputarraysize).
+Can be used as part of a coordinate pair in a unit square with radius 1.
+Useful for Monte Carlo simulation.
 
 ###### Returns
 
-`BigUint64Array`
+`number`
 
-View of the array in WASM memory for this generator, now refilled.
-This output buffer is reused with each call.
+A 53-bit float between -1 and 1. This provides the maximum 
+randomness that can fit into a JavaScript `number` type.
 
-##### nextArray\_Coord()
+##### coordArray()
 
 ```ts
-nextArray_Coord(): Float64Array;
+coordArray(): Float64Array;
 ```
 
 Fills WASM memory array with this generator's next set of floats in range (-1, 1).
 
 Array size is set when generator is created or by changing [outputArraySize](#outputarraysize).
 
+Can be used as part of a coordinate pair in a unit square with radius 1.
 Useful for Monte Carlo simulation.
 
 ###### Returns
@@ -211,10 +214,30 @@ Useful for Monte Carlo simulation.
 View of the array in WASM memory for this generator, now refilled.
 This output buffer is reused with each call.
 
-##### nextArray\_CoordSquared()
+##### coordSquared()
 
 ```ts
-nextArray_CoordSquared(): Float64Array;
+coordSquared(): number;
+```
+
+Gets the square of this generator's next 53-bit floating point number in range (-1, 1).
+
+Can be used as part of a coordinate pair in a unit square with radius 1,
+already squared to speed up testing for unit circle inclusion.
+Useful for Monte Carlo simulation.
+
+###### Returns
+
+`number`
+
+A 53-bit float (providing the maximum randomness
+that can fit into a JavaScript `number` type) between -1 and 1,
+multiplied by itself
+
+##### coordSquaredArray()
+
+```ts
+coordSquaredArray(): Float64Array;
 ```
 
 Fills WASM memory array with this generator's next set of floats in range (-1, 1)
@@ -222,6 +245,8 @@ that have been squared.
 
 Array size is set when generator is created or by changing [outputArraySize](#outputarraysize).
 
+Can be used as part of a coordinate pair in a unit square with radius 1,
+already squared to speed up testing for unit circle inclusion.
 Useful for Monte Carlo simulation.
 
 ###### Returns
@@ -231,44 +256,25 @@ Useful for Monte Carlo simulation.
 View of the array in WASM memory for this generator, now refilled.
 This output buffer is reused with each call.
 
-##### nextArray\_Integer()
+##### float()
 
 ```ts
-nextArray_Integer(): Float64Array;
+float(): number;
 ```
 
-Fills WASM memory array with this generator's next set of 53-bit integers.
-
-Array size is set when generator is created or by changing [outputArraySize](#outputarraysize).
+Gets this generator's next 53-bit floating point number in range [0, 1).
 
 ###### Returns
 
-`Float64Array`
+`number`
 
-View of the array in WASM memory for this generator, now refilled.
-This output buffer is reused with each call.
+A 53-bit float between 0 and 1. This provides the maximum 
+randomness that can fit into a JavaScript `number` type, as a float.
 
-##### nextArray\_Integer32()
-
-```ts
-nextArray_Integer32(): Float64Array;
-```
-
-Fills WASM memory array with this generator's next set of 32-bit integers.
-
-Array size is set when generator is created or by changing [outputArraySize](#outputarraysize).
-
-###### Returns
-
-`Float64Array`
-
-View of the array in WASM memory for this generator, now refilled.
-This output buffer is reused with each call.
-
-##### nextArray\_Number()
+##### floatArray()
 
 ```ts
-nextArray_Number(): Float64Array;
+floatArray(): Float64Array;
 ```
 
 Fills WASM memory array with this generator's next set of floats in range [0, 1).
@@ -282,77 +288,10 @@ Array size is set when generator is created or by changing [outputArraySize](#ou
 View of the array in WASM memory for this generator, now refilled.
 This output buffer is reused with each call.
 
-##### nextBigInt()
+##### int32()
 
 ```ts
-nextBigInt(): bigint;
-```
-
-Gets this generator's next unsigned 64-bit integer.
-
-###### Returns
-
-`bigint`
-
-An unsigned 64-bit integer,
-providing 64-bits of randomness, between 0 and 2^64 - 1
-
-##### nextCoord()
-
-```ts
-nextCoord(): number;
-```
-
-Gets this generator's next floating point number in range (-1, 1).
-
-Can be considered part of a "coordinate" in a unit circle with radius 1.
-Useful for Monte Carlo simulation.
-
-###### Returns
-
-`number`
-
-A 53-bit float (providing the maximum randomness
-that can fit into a JavaScript `number` type) between -1 and 1
-
-##### nextCoordSquared()
-
-```ts
-nextCoordSquared(): number;
-```
-
-Gets the square of this generator's next floating point number in range (-1, 1).
-
-Useful for Monte Carlo simulation.
-
-###### Returns
-
-`number`
-
-A 53-bit float (providing the maximum randomness
-that can fit into a JavaScript `number` type) between -1 and 1,
-multiplied by itself
-
-##### nextInteger()
-
-```ts
-nextInteger(): number;
-```
-
-Gets this generator's next unsigned 53-bit integer.
-
-###### Returns
-
-`number`
-
-An unsigned 53-bit integer (providing the maximum randomness
-that can fit into a JavaScript `number` type) between
-0 and 2^53 - 1 (aka `Number.MAX_SAFE_INTEGER`)
-
-##### nextInteger32()
-
-```ts
-nextInteger32(): number;
+int32(): number;
 ```
 
 Gets this generator's next unsigned 32-bit integer.
@@ -361,23 +300,89 @@ Gets this generator's next unsigned 32-bit integer.
 
 `number`
 
-An unsigned 32-bit integer providing 32-bits of 
-randomness, between 0 and 2^32 - 1
+An unsigned 32-bit integer between 0 and 2^32 - 1.
 
-##### nextNumber()
+##### int32Array()
 
 ```ts
-nextNumber(): number;
+int32Array(): Float64Array;
 ```
 
-Gets this generator's next 53-bit floating point number in range [0, 1).
+Fills WASM memory array with this generator's next set of unsigned 32-bit integers.
+
+Array size is set when generator is created or by changing [outputArraySize](#outputarraysize).
+
+###### Returns
+
+`Float64Array`
+
+View of the array in WASM memory for this generator, now refilled.
+This output buffer is reused with each call.
+
+##### int53()
+
+```ts
+int53(): number;
+```
+
+Gets this generator's next unsigned 53-bit integer.
 
 ###### Returns
 
 `number`
 
-A 53-bit float (providing the maximum randomness
-that can fit into a JavaScript `number` type) between 0 and 1
+An unsigned 53-bit integer between 0 and 2^53 - 1
+(aka `Number.MAX_SAFE_INTEGER`). This provides the maximum randomness
+that can fit into a JavaScript `number` type, which is limited to
+53 bits.
+
+##### int53Array()
+
+```ts
+int53Array(): Float64Array;
+```
+
+Fills WASM memory array with this generator's next set of unsigned 53-bit integers.
+
+Array size is set when generator is created or by changing [outputArraySize](#outputarraysize).
+
+###### Returns
+
+`Float64Array`
+
+View of the array in WASM memory for this generator, now refilled.
+This output buffer is reused with each call.
+
+##### int64()
+
+```ts
+int64(): bigint;
+```
+
+Gets this generator's next unsigned 64-bit integer.
+
+###### Returns
+
+`bigint`
+
+An unsigned 64-bit integer between 0 and 2^64 - 1.
+
+##### int64Array()
+
+```ts
+int64Array(): BigUint64Array;
+```
+
+Fills WASM memory array with this generator's next set of unsigned 64-bit integers.
+
+Array size is set when generator is created or by changing [outputArraySize](#outputarraysize).
+
+###### Returns
+
+`BigUint64Array`
+
+View of the array in WASM memory for this generator, now refilled.
+This output buffer is reused with each call.
 
 ***
 
