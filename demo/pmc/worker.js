@@ -53,7 +53,7 @@ if (!isMainThread) {
             const pointTestCount = Math.min(maxPointsPerRandomArray, remainingPointsToTest);
 
             // generate the next batch of random numbers
-            const nums = generator.nextArray_CoordSquared();
+            const nums = generator.coordSquaredArray();
 
             // test if points are within the unit circle of radius 1
             for (let i = 0; i < pointTestCount * 2; i += 2) {
@@ -76,8 +76,8 @@ if (!isMainThread) {
     // Single mode generates each random point one at a time
     else if (workerData.batchMode === WorkerBatchMode.Single) {
         for (let i = 0; i < workerData.pointCount; i++) {
-            const xSquared = generator.nextCoordSquared();
-            const ySquared = generator.nextCoordSquared();
+            const xSquared = generator.coordSquared();
+            const ySquared = generator.coordSquared();
 
             if (xSquared + ySquared <= 1) {
                 pointsInCircle++;

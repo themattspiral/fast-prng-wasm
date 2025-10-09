@@ -31,10 +31,10 @@ Modify parameters within `pmc.js` to alter characteristics of the PRNGs used:
 
 **`WORKER_BATCH_MODE`**: Approach to transferring random numbers between WASM and JS runtimes, which has a notable impact on performance with large batches of numbers:
   - `WorkerBatchModeType.Single`: Makes one call per random number (2 calls per point) to `fast-prng-wasm`
-  - `WorkerBatchModeType.ArrayFill`: Uses `fast-prng-wasm`'s [Array Full functions]() (specifically `nextArray_CoordsSquared()`) to retreive batches of random numbers, and then in JS checks if each point falls within the unit circle.
+  - `WorkerBatchModeType.ArrayFill`: Uses `fast-prng-wasm`'s [Array Fill functions]() (specifically `coordSquaredArray()`) to retreive batches of random numbers, and then in JS checks if each point falls within the unit circle.
   - `WorkerBatchModeType.GeneratorBatch` *(pmc default)*: The fastest option. Uses Monte Carlo estimation embedded in PRNG, so that random numbers aren't actually transferred back into the JS runtime - only the results (i.e. number of points within the unit circle) are returned, which makes this very speedy.
 
-**`GENERATOR_ARRAY_OUTPUT_SIZE`**: The size of the output array in which each batch of numbers is placed when calling `nextArray_*` functions. This was configured mainly for testing how different array sizes impact performance.
+**`GENERATOR_ARRAY_OUTPUT_SIZE`**: The size of the output array in which each batch of numbers is placed when calling `*Array()` methods. This was configured mainly for testing how different array sizes impact performance.
   - The sweet spot seems to be 100 - 1000, so pmc leaves this the same as `fast-prng-wasm`'s default, 1000. YMMV.
   - Only applicable when `WORKER_BATCH_MODE` is set to `WorkerBatchModeType.ArrayFill`
 
