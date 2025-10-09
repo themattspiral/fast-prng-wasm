@@ -15,8 +15,10 @@
  * @packageDocumentation
  */
 
-export * from './prng/pcg';
-export * from './prng/xoroshiro128plus';
-export * from './prng/xoroshiro128plus-simd';
-export * from './prng/xoshiro256plus';
-export * from './prng/xoshiro256plus-simd';
+// encapsulate top-level exports in namespaces for AssemblyScript consumers
+// to avoid polluting the global namespace
+export * as PCG from './prng/pcg';
+export * as Xoroshiro128Plus from './prng/xoroshiro128plus';
+export * as Xoroshiro128Plus_SIMD from './prng/xoroshiro128plus-simd';
+export * as Xoshiro256Plus from './prng/xoshiro256plus';
+export * as Xoshiro256Plus_SIMD from './prng/xoshiro256plus-simd';

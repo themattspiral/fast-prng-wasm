@@ -72,17 +72,17 @@
     "docs:as": "typedoc --options src/assembly/typedoc.json --tsconfig src/assembly/tsconfig.json",
     " // WASM Release: Compiles AssemblyScript to WASM binaries ------------": "",
     "wasm": "npm run wasm:pcg && npm run wasm:xoroshiro128plus && npm run wasm:xoroshiro128plus-simd && npm run wasm:xoshiro256plus && npm run wasm:xoshiro256plus-simd",
-    "wasm:pcg": "asc src/assembly/wasm-module/pcg.ts --target pcg --config asconfig.release.json",
-    "wasm:xoroshiro128plus": "asc src/assembly/wasm-module/xoroshiro128plus.ts --target xoroshiro128plus --config asconfig.release.json",
-    "wasm:xoroshiro128plus-simd": "asc src/assembly/wasm-module/xoroshiro128plus-simd.ts --target xoroshiro128plus-simd --config asconfig.release.json",
-    "wasm:xoshiro256plus": "asc src/assembly/wasm-module/xoshiro256plus.ts --target xoshiro256plus --config asconfig.release.json",
-    "wasm:xoshiro256plus-simd": "asc src/assembly/wasm-module/xoshiro256plus-simd.ts --target xoshiro256plus-simd --config asconfig.release.json",
+    "wasm:pcg": "asc src/assembly/prng/pcg.ts --target pcg --config asconfig.release.json",
+    "wasm:xoroshiro128plus": "asc src/assembly/prng/xoroshiro128plus.ts --target xoroshiro128plus --config asconfig.release.json",
+    "wasm:xoroshiro128plus-simd": "asc src/assembly/prng/xoroshiro128plus-simd.ts --target xoroshiro128plus-simd --config asconfig.release.json",
+    "wasm:xoshiro256plus": "asc src/assembly/prng/xoshiro256plus.ts --target xoshiro256plus --config asconfig.release.json",
+    "wasm:xoshiro256plus-simd": "asc src/assembly/prng/xoshiro256plus-simd.ts --target xoshiro256plus-simd --config asconfig.release.json",
     " // WASM Debug: Compiles AssemblyScript to WASM Binaries & Debug Text ------------": "",
     "wasm:debug": "npm run wasm:pcg:debug && npm run wasm:xoroshiro128plus:debug && npm run wasm:xoroshiro128plus:debug-simd && npm run wasm:xoshiro256:debugplus && npm run wasm:xoshiro256:debugplus-simd",
-    "wasm:pcg:debug": "asc src/assembly/wasm-module/pcg.ts --target pcg --config asconfig.debug.json",
-    "wasm:xoroshiro128plus:debug": "asc src/assembly/wasm-module/xoroshiro128plus.ts --target xoroshiro128plus --config asconfig.debug.json",
-    "wasm:xoroshiro128plus:debug-simd": "asc src/assembly/wasm-module/xoroshiro128plus-simd.ts --target xoroshiro128plus-simd --config asconfig.debug.json",
-    "wasm:xoshiro256:debugplus": "asc src/assembly/wasm-module/xoshiro256plus.ts --target xoshiro256plus --config asconfig.debug.json",
-    "wasm:xoshiro256:debugplus-simd": "asc src/assembly/wasm-module/xoshiro256plus-simd.ts --target xoshiro256plus-simd --config asconfig.debug.json"
+    "wasm:pcg:debug": "asc src/assembly/prng/pcg.ts --target pcg --config asconfig.debug.json",
+    "wasm:xoroshiro128plus:debug": "asc src/assembly/prng/xoroshiro128plus.ts --target xoroshiro128plus --config asconfig.debug.json",
+    "wasm:xoroshiro128plus:debug-simd": "asc src/assembly/prng/xoroshiro128plus-simd.ts --target xoroshiro128plus-simd --config asconfig.debug.json",
+    "wasm:xoshiro256:debugplus": "asc src/assembly/prng/xoshiro256plus.ts --target xoshiro256plus --config asconfig.debug.json",
+    "wasm:xoshiro256:debugplus-simd": "asc src/assembly/prng/xoshiro256plus-simd.ts --target xoshiro256plus-simd --config asconfig.debug.json"
   }
 }

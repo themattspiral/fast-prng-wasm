@@ -42,8 +42,8 @@ export default [
             copy({
                 targets: [
                     { src: 'src/assembly/index.ts', dest: 'dist/assembly' },
-                    { src: 'src/assembly/prng/*', dest: 'dist/assembly/prng' },
-                    { src: 'src/assembly/common/*', dest: 'dist/assembly/common' }
+                    { src: 'src/assembly/prng/*.ts', dest: 'dist/assembly/prng' },
+                    { src: 'src/assembly/common/*.ts', dest: 'dist/assembly/common' }
                 ]
             })
         ]
