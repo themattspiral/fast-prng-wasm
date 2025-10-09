@@ -11,7 +11,14 @@
 * https://prng.di.unimi.it/xoroshiro128plus.c
 */
 
-import { int32Number, int53Number, number, coord, coordSquared, JUMP_128 } from '../common/conversion';
+import {
+    uint64_to_uint53AsFloat,
+    uint64_to_uint32AsFloat,
+    uint64_to_float53,
+    uint64_to_coord53,
+    uint64_to_coord53Squared,
+    JUMP_128
+} from '../common/conversion';
 
 // Expose array memory management functions for this WASM module to JS consumers
 export { allocUint64Array, allocFloat64Array, freeArray } from '../common/memory';
@@ -29,7 +36,7 @@ export const SEED_COUNT: i32 = 2;
 export function setSeeds(a: u64, b: u64): void {
     s0 = a;
     s1 = b;
-    nextInt64();
+    uint64();
 };
 
 /**
@@ -50,7 +57,7 @@ export function jump(): void {
                 jump_s0 ^= s0;
                 jump_s1 ^= s1;
             }
-            nextInt64();
+            uint64();
         }
     }
 
@@ -66,7 +73,7 @@ export function jump(): void {
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function nextInt64(): u64 {
+export function uint64(): u64 {
     // output
     const result: u64 = s0 + s1;
     
@@ -86,8 +93,8 @@ export function nextInt64(): u64 {
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function nextInt53Number(): f64 {
-    return int53Number(nextInt64());
+export function uint53AsFloat(): f64 {
+    return uint64_to_uint53AsFloat(uint64());
 }
 
 /**
@@ -98,46 +105,46 @@ export function nextInt53Number(): f64 {
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function nextInt32Number(): f64 {
-    return int32Number(nextInt64());
+export function uint32AsFloat(): f64 {
+    return uint64_to_uint32AsFloat(uint64());
 }
 
 /**
- * Gets this generator's next floating point number in range [0, 1).
+ * Gets this generator's next 53-bit floating point number in range [0, 1).
  * 
- * @returns A floating point number in range [0, 1).
+ * @returns A 53-bit floating point number in range [0, 1).
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function nextNumber(): f64 {
-    return number(nextInt64());
+export function float53(): f64 {
+    return uint64_to_float53(uint64());
 }
 
 /**
- * Gets this generator's next floating point number in range (-1, 1).
+ * Gets this generator's next 53-bit floating point number in range (-1, 1).
  * 
  * Can be considered part of a "coordinate" in a unit circle with radius 1.
  * Useful for Monte Carlo simulation.
  * 
- * @returns A floating point number in range (-1, 1).
+ * @returns A 53-bit floating point number in range (-1, 1).
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function nextCoord(): f64 {
-    return coord(nextInt64());
+export function coord53(): f64 {
+    return uint64_to_coord53(uint64());
 }
 
 /**
- * Gets the square of this generator's next floating point number in range (-1, 1).
+ * Gets the square of this generator's next 53-bit floating point number in range (-1, 1).
  * 
  * Useful for Monte Carlo simulation.
  * 
- * @returns A floating point number in range (-1, 1), multiplied by itself.
+ * @returns A 53-bit floating point number in range (-1, 1), multiplied by itself.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function nextCoordSquared(): f64 {
-    return coordSquared(nextInt64());
+export function coord53Squared(): f64 {
+    return uint64_to_coord53Squared(uint64());
 }
 
 
@@ -176,8 +183,8 @@ export function batchTestUnitCirclePoints(count: i32): i32 {
     let ySquared: f64;
 
     for (let i: i32 = 0; i < count; i++) {
-        xSquared = nextCoordSquared();
-        ySquared = nextCoordSquared();
+        xSquared = coord53Squared();
+        ySquared = coord53Squared();
 
         if (xSquared + ySquared <= 1.0) {
             inCircle++;
@@ -195,9 +202,9 @@ export function batchTestUnitCirclePoints(count: i32): i32 {
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function fillUint64Array_Int64(arr: Uint64Array): void {
+export function uint64Array(arr: Uint64Array): void {
     for (let i: i32 = 0; i < arr.length; i++) {
-        unchecked(arr[i] = nextInt64());
+        unchecked(arr[i] = uint64());
     }
 }
 
@@ -209,9 +216,9 @@ export function fillUint64Array_Int64(arr: Uint64Array): void {
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function fillFloat64Array_Int53Numbers(arr: Float64Array): void {
+export function uint53AsFloatArray(arr: Float64Array): void {
     for (let i: i32 = 0; i < arr.length; i++) {
-        unchecked(arr[i] = nextInt53Number());
+        unchecked(arr[i] = uint53AsFloat());
     }
 }
 
@@ -223,14 +230,14 @@ export function fillFloat64Array_Int53Numbers(arr: Float64Array): void {
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function fillFloat64Array_Int32Numbers(arr: Float64Array): void {
+export function uint32AsFloatArray(arr: Float64Array): void {
     for (let i: i32 = 0; i < arr.length; i++) {
-        unchecked(arr[i] = nextInt32Number());
+        unchecked(arr[i] = uint32AsFloat());
     }
 }
 
 /**
- * Fills the provided array with this generator's next set of floating point numbers
+ * Fills the provided array with this generator's next set of 53-bit floating point numbers
  * in range [0, 1).
  * 
  * @param arr The array to fully fill. If called from a JS runtime, this value should
@@ -238,14 +245,14 @@ export function fillFloat64Array_Int32Numbers(arr: Float64Array): void {
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function fillFloat64Array_Numbers(arr: Float64Array): void {
+export function float53Array(arr: Float64Array): void {
     for (let i: i32 = 0; i < arr.length; i++) {
-        unchecked(arr[i] = nextNumber());
+        unchecked(arr[i] = float53());
     }
 }
 
 /**
- * Fills the provided array with this generator's next set of floating point numbers
+ * Fills the provided array with this generator's next set of 53-bit floating point numbers
  * in range (-1, 1).
  * 
  * Useful for Monte Carlo simulation.
@@ -255,14 +262,14 @@ export function fillFloat64Array_Numbers(arr: Float64Array): void {
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function fillFloat64Array_Coords(arr: Float64Array): void {
+export function coord53Array(arr: Float64Array): void {
     for (let i: i32 = 0; i < arr.length; i++) {
-        unchecked(arr[i] = nextCoord());
+        unchecked(arr[i] = coord53());
     }
 }
 
 /**
- * Fills the provided array with the squares of this generator's next set of floating 
+ * Fills the provided array with the squares of this generator's next set of 53-bit floating 
  * point numbers in range (-1, 1).
  * 
  * Useful for Monte Carlo simulation.
@@ -272,8 +279,8 @@ export function fillFloat64Array_Coords(arr: Float64Array): void {
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function fillFloat64Array_CoordsSquared(arr: Float64Array): void {
+export function coord53SquaredArray(arr: Float64Array): void {
     for (let i: i32 = 0; i < arr.length; i++) {
-        unchecked(arr[i] = nextCoordSquared());
+        unchecked(arr[i] = coord53Squared());
     }
 }

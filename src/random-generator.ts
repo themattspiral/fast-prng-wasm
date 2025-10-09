@@ -199,7 +199,7 @@ export class RandomGenerator {
         // `u64` return type in WASM is treated as an `i64` and converted to a
         // signed bigint when returning to JS runtime, so we mask it before
         // returning to ensure the value is always treated as unsigned
-        return this._instance.nextInt64() & 0xFFFFFFFFFFFFFFFFn;
+        return this._instance.uint64() & 0xFFFFFFFFFFFFFFFFn;
     }
 
     /**
@@ -213,7 +213,7 @@ export class RandomGenerator {
     int53(): number {
         // bit-shifted and returned as an `f64` from WASM, so we get an unsigned
         // integer that fits nicely into a `number` without any more transformation
-        return this._instance.nextInt53Number();
+        return this._instance.uint53AsFloat();
     }
 
     /**
@@ -223,7 +223,7 @@ export class RandomGenerator {
      */
     int32(): number {
         // bit-shifted and returned as an `f64` from WASM
-        return this._instance.nextInt32Number();
+        return this._instance.uint32AsFloat();
     }
 
     /**
@@ -233,11 +233,11 @@ export class RandomGenerator {
      * randomness that can fit into a JavaScript `number` type, as a float.
      */
     float(): number {
-        return this._instance.nextNumber();
+        return this._instance.float53();
     }
 
     /**
-     * Gets this generator's next floating point number in range (-1, 1).
+     * Gets this generator's next 53-bit floating point number in range (-1, 1).
      * 
      * Can be used as part of a coordinate pair in a unit square with radius 1.
      * Useful for Monte Carlo simulation.
@@ -246,11 +246,11 @@ export class RandomGenerator {
      * randomness that can fit into a JavaScript `number` type.
      */
     coord(): number {
-        return this._instance.nextCoord();
+        return this._instance.coord53();
     }
 
     /**
-     * Gets the square of this generator's next floating point number in range (-1, 1).
+     * Gets the square of this generator's next 53-bit floating point number in range (-1, 1).
      * 
      * Can be used as part of a coordinate pair in a unit square with radius 1,
      * already squared to speed up testing for unit circle inclusion.
@@ -261,7 +261,7 @@ export class RandomGenerator {
      * multiplied by itself
      */
     coordSquared(): number {
-        return this._instance.nextCoordSquared();
+        return this._instance.coord53Squared();
     }
 
     /**
@@ -273,7 +273,7 @@ export class RandomGenerator {
      * This output buffer is reused with each call.
      */
     int64Array(): BigUint64Array {
-        this._instance.fillUint64Array_Int64(this._arrayConfig.bigIntOutputArrayPtr);
+        this._instance.uint64Array(this._arrayConfig.bigIntOutputArrayPtr);
         return this._arrayConfig.bigIntOutputArray;
     }
     
@@ -286,7 +286,7 @@ export class RandomGenerator {
      * This output buffer is reused with each call.
      */
     int53Array(): Float64Array {
-        this._instance.fillFloat64Array_Int53Numbers(this._arrayConfig.floatOutputArrayPtr);
+        this._instance.uint53AsFloatArray(this._arrayConfig.floatOutputArrayPtr);
         return this._arrayConfig.floatOutputArray;
     }
     
@@ -299,7 +299,7 @@ export class RandomGenerator {
      * This output buffer is reused with each call.
      */
     int32Array(): Float64Array {
-        this._instance.fillFloat64Array_Int32Numbers(this._arrayConfig.floatOutputArrayPtr);
+        this._instance.uint32AsFloatArray(this._arrayConfig.floatOutputArrayPtr);
         return this._arrayConfig.floatOutputArray;
     }
 
@@ -312,7 +312,7 @@ export class RandomGenerator {
      * This output buffer is reused with each call.
      */
     floatArray(): Float64Array {
-        this._instance.fillFloat64Array_Numbers(this._arrayConfig.floatOutputArrayPtr);
+        this._instance.float53Array(this._arrayConfig.floatOutputArrayPtr);
         return this._arrayConfig.floatOutputArray;
     }
     
@@ -328,7 +328,7 @@ export class RandomGenerator {
      * This output buffer is reused with each call.
      */
     coordArray(): Float64Array {
-        this._instance.fillFloat64Array_Coords(this._arrayConfig.floatOutputArrayPtr);
+        this._instance.coord53Array(this._arrayConfig.floatOutputArrayPtr);
         return this._arrayConfig.floatOutputArray;
     }
 
@@ -346,7 +346,7 @@ export class RandomGenerator {
      * This output buffer is reused with each call.
      */
     coordSquaredArray(): Float64Array {
-        this._instance.fillFloat64Array_CoordsSquared(this._arrayConfig.floatOutputArrayPtr);
+        this._instance.coord53SquaredArray(this._arrayConfig.floatOutputArrayPtr);
         return this._arrayConfig.floatOutputArray;
     }
 

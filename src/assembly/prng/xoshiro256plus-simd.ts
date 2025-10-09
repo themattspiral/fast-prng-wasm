@@ -20,8 +20,21 @@
 * https://www.assemblyscript.org/stdlib/globals.html#simd-🦄
 */
 
-import { int32Number, int53Number, number, coord, coordSquared, JUMP_256 } from '../common/conversion';
-import { int32Numbers, int53Numbers, numbers, point, pointSquared } from '../common/conversion-simd';
+import {
+    uint64_to_uint53AsFloat,
+    uint64_to_uint32AsFloat,
+    uint64_to_float53,
+    uint64_to_coord53,
+    uint64_to_coord53Squared,
+    JUMP_256
+} from '../common/conversion';
+import {
+    uint64x2_to_uint53AsFloatx2,
+    uint64x2_to_uint32AsFloatx2,
+    uint64x2_to_float53x2,
+    uint64x2_to_coord53x2,
+    uint64x2_to_coord53Squaredx2
+} from '../common/conversion-simd';
 
 // Expose array memory management functions for this WASM module to JS consumers
 export { allocUint64Array, allocFloat64Array, freeArray } from '../common/memory';
@@ -46,7 +59,7 @@ export function setSeeds(
     s1 = i64x2(b, f);
     s2 = i64x2(c, g);
     s3 = i64x2(d, h);
-    nextInt64x2();
+    uint64x2();
 };
 
 /**
@@ -71,7 +84,7 @@ export function jump(): void {
                 jump_s2 = v128.xor(jump_s2, s2);
                 jump_s3 = v128.xor(jump_s3, s3);
             }
-            nextInt64x2();
+            uint64x2();
         }
     }
 
@@ -89,7 +102,7 @@ export function jump(): void {
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function nextInt64x2(): v128 {
+export function uint64x2(): v128 {
     // output
     const result: v128 = v128.add<u64>(s0, s3);
 
@@ -119,8 +132,8 @@ export function nextInt64x2(): v128 {
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function nextInt53x2(): v128 {
-    return int53Numbers(nextInt64x2());
+export function uint53AsFloatx2(): v128 {
+    return uint64x2_to_uint53AsFloatx2(uint64x2());
 }
 
 /**
@@ -131,8 +144,8 @@ export function nextInt53x2(): v128 {
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function nextInt32x2(): v128 {
-    return int32Numbers(nextInt64x2());
+export function uint32AsFloatx2(): v128 {
+    return uint64x2_to_uint32AsFloatx2(uint64x2());
 }
 
 /**
@@ -142,8 +155,8 @@ export function nextInt32x2(): v128 {
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function nextNumbers(): v128 {
-    return numbers(nextInt64x2());
+export function float53x2(): v128 {
+    return uint64x2_to_float53x2(uint64x2());
 }
 
 /**
@@ -156,8 +169,8 @@ export function nextNumbers(): v128 {
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function nextPoint(): v128 {
-    return point(nextInt64x2());
+export function coord53x2(): v128 {
+    return uint64x2_to_coord53x2(uint64x2());
 }
 
 /**
@@ -169,8 +182,8 @@ export function nextPoint(): v128 {
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function nextPointSquared(): v128 {
-    return pointSquared(nextInt64x2());
+export function coord53Squaredx2(): v128 {
+    return uint64x2_to_coord53Squaredx2(uint64x2());
 }
 
 
@@ -187,8 +200,8 @@ export function nextPointSquared(): v128 {
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function nextInt64(): u64 {
-    return v128.extract_lane<u64>(nextInt64x2(), 0);
+export function uint64(): u64 {
+    return v128.extract_lane<u64>(uint64x2(), 0);
 }
 
 /**
@@ -200,8 +213,8 @@ export function nextInt64(): u64 {
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function nextInt53Number(): f64 {
-    return int53Number(nextInt64());
+export function uint53AsFloat(): f64 {
+    return uint64_to_uint53AsFloat(uint64());
 }
 
 /**
@@ -213,12 +226,12 @@ export function nextInt53Number(): f64 {
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function nextInt32Number(): f64 {
-    return int32Number(nextInt64());
+export function uint32AsFloat(): f64 {
+    return uint64_to_uint32AsFloat(uint64());
 }
 
 /**
- * Gets this generator's next floating point number in range [0, 1).
+ * Gets this generator's next 53-bit floating point number in range [0, 1).
  * 
  * Discards the additional random number generated with SIMD.
  * 
@@ -226,12 +239,12 @@ export function nextInt32Number(): f64 {
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function nextNumber(): f64 {
-    return number(v128.extract_lane<u64>(nextInt64x2(), 0));
+export function float53(): f64 {
+    return uint64_to_float53(v128.extract_lane<u64>(uint64x2(), 0));
 }
 
 /**
- * Gets this generator's next floating point number in range (-1, 1).
+ * Gets this generator's next 53-bit floating point number in range (-1, 1).
  * 
  * Discards the additional random number generated with SIMD.
  * 
@@ -242,12 +255,12 @@ export function nextNumber(): f64 {
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function nextCoord(): f64 {
-    return coord(v128.extract_lane<u64>(nextInt64x2(), 0));
+export function coord53(): f64 {
+    return uint64_to_coord53(v128.extract_lane<u64>(uint64x2(), 0));
 }
 
 /**
- * Gets the square of this generator's next floating point number in range (-1, 1).
+ * Gets the square of this generator's next 53-bit floating point number in range (-1, 1).
  * 
  * Discards the additional random number generated with SIMD.
  * 
@@ -257,8 +270,8 @@ export function nextCoord(): f64 {
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function nextCoordSquared(): f64 {
-    return coordSquared(v128.extract_lane<u64>(nextInt64x2(), 0));
+export function coord53Squared(): f64 {
+    return uint64_to_coord53Squared(v128.extract_lane<u64>(uint64x2(), 0));
 }
 
 
@@ -298,7 +311,7 @@ export function batchTestUnitCirclePoints(count: i32): i32 {
     let ySquared: f64;
 
     for (let i: i32 = 0; i < count; i++) {
-        pSquared = nextPointSquared();
+        pSquared = coord53Squaredx2();
         xSquared = v128.extract_lane<f64>(pSquared, 0);
         ySquared = v128.extract_lane<f64>(pSquared, 1);
         
@@ -320,11 +333,11 @@ export function batchTestUnitCirclePoints(count: i32): i32 {
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function fillUint64Array_Int64(arr: Uint64Array): void {
+export function uint64Array(arr: Uint64Array): void {
     let rand: v128;
 
     for (let i: i32 = 0; i < arr.length - 1; i += 2) {
-        rand = nextInt64x2();
+        rand = uint64x2();
         unchecked(arr[i] = v128.extract_lane<u64>(rand, 0));
         unchecked(arr[i + 1] = v128.extract_lane<u64>(rand, 1));
     }
@@ -340,11 +353,11 @@ export function fillUint64Array_Int64(arr: Uint64Array): void {
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function fillFloat64Array_Int53Numbers(arr: Float64Array): void {
+export function uint53AsFloatArray(arr: Float64Array): void {
     let rand: v128;
 
     for (let i: i32 = 0; i < arr.length - 1; i += 2) {
-        rand = nextInt53x2();
+        rand = uint53AsFloatx2();
         unchecked(arr[i] = v128.extract_lane<f64>(rand, 0));
         unchecked(arr[i + 1] = v128.extract_lane<f64>(rand, 1));
     }
@@ -360,18 +373,18 @@ export function fillFloat64Array_Int53Numbers(arr: Float64Array): void {
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function fillFloat64Array_Int32Numbers(arr: Float64Array): void {
+export function uint32AsFloatArray(arr: Float64Array): void {
     let rand: v128;
 
     for (let i: i32 = 0; i < arr.length - 1; i += 2) {
-        rand = nextInt32x2();
+        rand = uint32AsFloatx2();
         unchecked(arr[i] = v128.extract_lane<f64>(rand, 0));
         unchecked(arr[i + 1] = v128.extract_lane<f64>(rand, 1));
     }
 }
 
 /**
- * Fills the provided array with this generator's next set of floating point numbers
+ * Fills the provided array with this generator's next set of 53-bit floating point numbers
  * in range [0, 1).
  * 
  * Utilizes SIMD.
@@ -381,18 +394,18 @@ export function fillFloat64Array_Int32Numbers(arr: Float64Array): void {
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function fillFloat64Array_Numbers(arr: Float64Array): void {
+export function float53Array(arr: Float64Array): void {
     let rand: v128;
 
     for (let i: i32 = 0; i < arr.length - 1; i += 2) {
-        rand = nextNumbers();
+        rand = float53x2();
         unchecked(arr[i] = v128.extract_lane<f64>(rand, 0));
         unchecked(arr[i + 1] = v128.extract_lane<f64>(rand, 1));
     }
 }
 
 /**
- * Fills the provided array with this generator's next set of floating point numbers
+ * Fills the provided array with this generator's next set of 53-bit floating point numbers
  * in range (-1, 1).
  * 
  * Utilizes SIMD.
@@ -404,11 +417,11 @@ export function fillFloat64Array_Numbers(arr: Float64Array): void {
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function fillFloat64Array_Coords(arr: Float64Array): void {
+export function coord53Array(arr: Float64Array): void {
     let rand: v128;
 
     for (let i: i32 = 0; i < arr.length - 1; i += 2) {
-        rand = nextPoint();
+        rand = coord53x2();
         unchecked(arr[i] = v128.extract_lane<f64>(rand, 0));
         unchecked(arr[i + 1] = v128.extract_lane<f64>(rand, 1));
     }
@@ -427,11 +440,11 @@ export function fillFloat64Array_Coords(arr: Float64Array): void {
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function fillFloat64Array_CoordsSquared(arr: Float64Array): void {
+export function coord53SquaredArray(arr: Float64Array): void {
     let rand: v128;
 
     for (let i: i32 = 0; i < arr.length - 1; i += 2) {
-        rand = nextPointSquared();
+        rand = coord53Squaredx2();
         unchecked(arr[i] = v128.extract_lane<f64>(rand, 0));
         unchecked(arr[i + 1] = v128.extract_lane<f64>(rand, 1));
     }

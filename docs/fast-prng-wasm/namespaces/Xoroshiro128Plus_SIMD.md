@@ -46,13 +46,34 @@ The number of random points which fell *inside* of the unit circle with radius 1
 
 ***
 
-### fillFloat64Array\_Coords()
+### coord53()
 
 ```ts
-function fillFloat64Array_Coords(arr): void;
+function coord53(): number;
 ```
 
-Fills the provided array with this generator's next set of floating point numbers
+Gets this generator's next 53-bit floating point number in range (-1, 1).
+
+Discards the additional random number generated with SIMD.
+
+Can be considered part of a "coordinate" in a unit circle with radius 1.
+Useful for Monte Carlo simulation.
+
+#### Returns
+
+`number`
+
+A 53-bit floating point number in range (-1, 1).
+
+***
+
+### coord53Array()
+
+```ts
+function coord53Array(arr): void;
+```
+
+Fills the provided array with this generator's next set of 53-bit floating point numbers
 in range (-1, 1).
 
 Utilizes SIMD.
@@ -71,13 +92,33 @@ Useful for Monte Carlo simulation.
 
 ***
 
-### fillFloat64Array\_CoordsSquared()
+### coord53Squared()
 
 ```ts
-function fillFloat64Array_CoordsSquared(arr): void;
+function coord53Squared(): number;
 ```
 
-Fills the provided array with the squares of this generator's next set of floating 
+Gets the square of this generator's next 53-bit floating point number in range (-1, 1).
+
+Discards the additional random number generated with SIMD.
+
+Useful for Monte Carlo simulation.
+
+#### Returns
+
+`number`
+
+A 53-bit floating point number in range (-1, 1), multiplied by itself.
+
+***
+
+### coord53SquaredArray()
+
+```ts
+function coord53SquaredArray(arr): void;
+```
+
+Fills the provided array with the squares of this generator's next set of 53-bit floating 
 point numbers in range (-1, 1).
 
 Utilizes SIMD.
@@ -96,57 +137,68 @@ Useful for Monte Carlo simulation.
 
 ***
 
-### fillFloat64Array\_Int32Numbers()
+### coord53Squaredx2()
 
 ```ts
-function fillFloat64Array_Int32Numbers(arr): void;
+function coord53Squaredx2(): object;
 ```
 
-Fills the provided array with this generator's next set of unsigned 32-bit integers.
+Gets the square of this generator's next 2 53-bit floating point numbers in range (-1, 1).
 
-Utilizes SIMD.
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be a pointer to an array that exists in WASM memory. |
+Useful for Monte Carlo simulation.
 
 #### Returns
 
-`void`
+`object`
+
+2 53-bit floating point numbers in range (-1, 1), each multiplied by itself.
 
 ***
 
-### fillFloat64Array\_Int53Numbers()
+### coord53x2()
 
 ```ts
-function fillFloat64Array_Int53Numbers(arr): void;
+function coord53x2(): object;
 ```
 
-Fills the provided array with this generator's next set of unsigned 53-bit integers.
+Gets this generator's next 2 53-bit floating point numbers in range (-1, 1).
 
-Utilizes SIMD.
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be a pointer to an array that exists in WASM memory. |
+Can be considered a "coordinate" in a unit circle with radius 1.
+Useful for Monte Carlo simulation.
 
 #### Returns
 
-`void`
+`object`
+
+2 53-bit floating point numbers in range (-1, 1).
 
 ***
 
-### fillFloat64Array\_Numbers()
+### float53()
 
 ```ts
-function fillFloat64Array_Numbers(arr): void;
+function float53(): number;
 ```
 
-Fills the provided array with this generator's next set of floating point numbers
+Gets this generator's next 53-bit floating point number in range [0, 1).
+
+Discards the additional random number generated with SIMD.
+
+#### Returns
+
+`number`
+
+A 53-bit floating point number in range [0, 1).
+
+***
+
+### float53Array()
+
+```ts
+function float53Array(arr): void;
+```
+
+Fills the provided array with this generator's next set of 53-bit floating point numbers
 in range [0, 1).
 
 Utilizes SIMD.
@@ -163,25 +215,19 @@ Utilizes SIMD.
 
 ***
 
-### fillUint64Array\_Int64()
+### float53x2()
 
 ```ts
-function fillUint64Array_Int64(arr): void;
+function float53x2(): object;
 ```
 
-Fills the provided array with this generator's next set of unsigned 64-bit integers.
-
-Utilizes SIMD.
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `arr` | `Uint64Array` | The array to fully fill. If called from a JS runtime, this value should be a pointer to an array that exists in WASM memory. |
+Gets this generator's next 2 53-bit floating point numbers in range [0, 1).
 
 #### Returns
 
-`void`
+`object`
+
+2 53-bit floating point numbers in range [0, 1).
 
 ***
 
@@ -197,222 +243,6 @@ non-overlapping subsequences (with the same seed) for parallel computations.
 #### Returns
 
 `void`
-
-***
-
-### nextCoord()
-
-```ts
-function nextCoord(): number;
-```
-
-Gets this generator's next floating point number in range (-1, 1).
-
-Discards the additional random number generated with SIMD.
-
-Can be considered part of a "coordinate" in a unit circle with radius 1.
-Useful for Monte Carlo simulation.
-
-#### Returns
-
-`number`
-
-A floating point number in range (-1, 1).
-
-***
-
-### nextCoordSquared()
-
-```ts
-function nextCoordSquared(): number;
-```
-
-Gets the square of this generator's next floating point number in range (-1, 1).
-
-Discards the additional random number generated with SIMD.
-
-Useful for Monte Carlo simulation.
-
-#### Returns
-
-`number`
-
-A floating point number in range (-1, 1), multiplied by itself.
-
-***
-
-### nextInt32Number()
-
-```ts
-function nextInt32Number(): number;
-```
-
-Gets this generator's next unsigned 32-bit integer.
-
-Discards the additional random number generated with SIMD.
-
-#### Returns
-
-`number`
-
-An unsigned 32-bit integer.
-
-***
-
-### nextInt32x2()
-
-```ts
-function nextInt32x2(): object;
-```
-
-Gets this generator's next 2 unsigned 32-bit integers.
-
-#### Returns
-
-`object`
-
-2 unsigned 32-bit integers, returned as `f64`s
-so that the JS runtime converts them to `number`s.
-
-***
-
-### nextInt53Number()
-
-```ts
-function nextInt53Number(): number;
-```
-
-Gets this generator's next unsigned 53-bit integer.
-
-Discards the additional random number generated with SIMD.
-
-#### Returns
-
-`number`
-
-An unsigned 53-bit integer.
-
-***
-
-### nextInt53x2()
-
-```ts
-function nextInt53x2(): object;
-```
-
-Gets this generator's next 2 unsigned 53-bit integers.
-
-#### Returns
-
-`object`
-
-2 unsigned 53-bit integers, returned as `f64`s
-so that the JS runtime converts them to `number`s.
-
-***
-
-### nextInt64()
-
-```ts
-function nextInt64(): number;
-```
-
-Gets this generator's next unsigned 64-bit integer.
-
-Discards the additional random number generated with SIMD.
-
-#### Returns
-
-`number`
-
-An unsigned 64-bit integer.
-
-***
-
-### nextInt64x2()
-
-```ts
-function nextInt64x2(): object;
-```
-
-Gets this generator's next 2 unsigned 64-bit integers.
-
-#### Returns
-
-`object`
-
-2 unsigned 64-bit integers.
-
-***
-
-### nextNumber()
-
-```ts
-function nextNumber(): number;
-```
-
-Gets this generator's next floating point number in range [0, 1).
-
-Discards the additional random number generated with SIMD.
-
-#### Returns
-
-`number`
-
-A floating point number in range [0, 1).
-
-***
-
-### nextNumbers()
-
-```ts
-function nextNumbers(): object;
-```
-
-Gets this generator's next 2 floating point numbers in range [0, 1).
-
-#### Returns
-
-`object`
-
-2 floating point numbers in range [0, 1).
-
-***
-
-### nextPoint()
-
-```ts
-function nextPoint(): object;
-```
-
-Gets this generator's next 2 floating point numbers in range (-1, 1).
-
-Can be considered a "coordinate" in a unit circle with radius 1.
-Useful for Monte Carlo simulation.
-
-#### Returns
-
-`object`
-
-2 floating point numbers in range (-1, 1).
-
-***
-
-### nextPointSquared()
-
-```ts
-function nextPointSquared(): object;
-```
-
-Gets the square of this generator's next 2 floating point numbers in range (-1, 1).
-
-Useful for Monte Carlo simulation.
-
-#### Returns
-
-`object`
-
-2 floating point numbers in range (-1, 1), each multiplied by itself.
 
 ***
 
@@ -440,3 +270,173 @@ Initializes this generator's internal state with the provided random seeds.
 #### Returns
 
 `void`
+
+***
+
+### uint32AsFloat()
+
+```ts
+function uint32AsFloat(): number;
+```
+
+Gets this generator's next unsigned 32-bit integer.
+
+Discards the additional random number generated with SIMD.
+
+#### Returns
+
+`number`
+
+An unsigned 32-bit integer.
+
+***
+
+### uint32AsFloatArray()
+
+```ts
+function uint32AsFloatArray(arr): void;
+```
+
+Fills the provided array with this generator's next set of unsigned 32-bit integers.
+
+Utilizes SIMD.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be a pointer to an array that exists in WASM memory. |
+
+#### Returns
+
+`void`
+
+***
+
+### uint32x2()
+
+```ts
+function uint32x2(): object;
+```
+
+Gets this generator's next 2 unsigned 32-bit integers.
+
+#### Returns
+
+`object`
+
+2 unsigned 32-bit integers, returned as `f64`s
+so that the JS runtime converts them to `number`s.
+
+***
+
+### uint53AsFloat()
+
+```ts
+function uint53AsFloat(): number;
+```
+
+Gets this generator's next unsigned 53-bit integer.
+
+Discards the additional random number generated with SIMD.
+
+#### Returns
+
+`number`
+
+An unsigned 53-bit integer.
+
+***
+
+### uint53AsFloatArray()
+
+```ts
+function uint53AsFloatArray(arr): void;
+```
+
+Fills the provided array with this generator's next set of unsigned 53-bit integers.
+
+Utilizes SIMD.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `arr` | `Float64Array` | The array to fully fill. If called from a JS runtime, this value should be a pointer to an array that exists in WASM memory. |
+
+#### Returns
+
+`void`
+
+***
+
+### uint53x2()
+
+```ts
+function uint53x2(): object;
+```
+
+Gets this generator's next 2 unsigned 53-bit integers.
+
+#### Returns
+
+`object`
+
+2 unsigned 53-bit integers, returned as `f64`s
+so that the JS runtime converts them to `number`s.
+
+***
+
+### uint64()
+
+```ts
+function uint64(): number;
+```
+
+Gets this generator's next unsigned 64-bit integer.
+
+Discards the additional random number generated with SIMD.
+
+#### Returns
+
+`number`
+
+An unsigned 64-bit integer.
+
+***
+
+### uint64Array()
+
+```ts
+function uint64Array(arr): void;
+```
+
+Fills the provided array with this generator's next set of unsigned 64-bit integers.
+
+Utilizes SIMD.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `arr` | `Uint64Array` | The array to fully fill. If called from a JS runtime, this value should be a pointer to an array that exists in WASM memory. |
+
+#### Returns
+
+`void`
+
+***
+
+### uint64x2()
+
+```ts
+function uint64x2(): object;
+```
+
+Gets this generator's next 2 unsigned 64-bit integers.
+
+#### Returns
+
+`object`
+
+2 unsigned 64-bit integers.

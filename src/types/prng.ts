@@ -26,8 +26,9 @@ export interface PRNGWasmInstance extends WebAssembly.Instance {
 }
 
 /**
- * The JS runtime interface exposed by
- * all WebAssembly PRNGs in this package.
+ * The JS runtime interface exposed by all WASM PRNGs in this package.
+ * This is the "translated" interface that the JS runtime sees when it
+ * instantiates a WASM module.
  */
 export interface PRNG extends WebAssembly.Exports {
   memory: WebAssembly.Memory;
@@ -37,23 +38,26 @@ export interface PRNG extends WebAssembly.Exports {
   };
   setSeeds(...seeds: bigint[]): void;
 
-  nextInt32(): number;
-  nextInt64(): bigint;
-  nextInt53Number(): number;
-  nextInt32Number(): number;
-  nextNumber(): number;
-  nextCoord(): number;
-  nextCoordSquared(): number;
-
-  fillUint64Array_Int64(arrPtr: number): void;
-  fillFloat64Array_Int53Numbers(arrPtr: number): void;
-  fillFloat64Array_Int32Numbers(arrPtr: number): void;
-  fillFloat64Array_Numbers(arrPtr: number): void;
-  fillFloat64Array_Coords(arrPtr: number): void;
-  fillFloat64Array_CoordsSquared(arrPtr: number): void;
+  // single numbers
+  uint64(): bigint;
+  uint53AsFloat(): number;
+  uint32AsFloat(): number;
+  float53(): number;
+  coord53(): number;
+  coord53Squared(): number;
   
+  // bulk array fill
+  uint64Array(int64Array: number): void;
+  uint53AsFloatArray(arrPtr: number): void;
+  uint32AsFloatArray(arrPtr: number): void;
+  float53Array(arrPtr: number): void;
+  coord53Array(arrPtr: number): void;
+  coord53SquaredArray(arrPtr: number): void;
+  
+  // embedded monte carlo test
   batchTestUnitCirclePoints(count: number): number;
 
+  // WASM instance memory management
   allocUint64Array(count: number): number;
   allocFloat64Array(count: number): number;
   freeArray(arrPtr: number): void;
