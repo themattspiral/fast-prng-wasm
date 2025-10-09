@@ -10,9 +10,9 @@ High-performance, SIMD-enabled, WebAssembly pseudo random number generators (PRN
 - [Features](#features)
 - [PRNG Algorithms](#prng-algorithms)
 - [Usage Guide](#usage-guide)
-- [Performance](#performance)
-- [Demos](#demos)
 - [API Documentation](#api-documentation)
+- [Examples & Demos](#examples--demos)
+- [Performance](#performance)
 - [Compatibility](#compatibility)
 - [Contributing](#contributing)
 
@@ -252,6 +252,21 @@ Xoroshiro128Plus.uint64Array(arr);                    // generate & fill
 > project binary, it must be structured in such a way as to create separate WASM 
 > instances from JS. This is the approach used by the included JavaScript/TypeScript wrapper API.
 
+## API Documentation
+
+- **[JavaScript/TypeScript API Documentation](docs/js-api.md)**
+- **[AssemblyScript API Documentation](docs/as-api.md)**
+
+## Examples & Demos
+
+See the [`demo/` folder](demo/) for all available demos.
+
+#### [**`pmc` - Pi Monte Carlo**](demo/pmc)
+A Monte Carlo statistical estimation of π (pi) using a large quantity of random numbers
+- Node CLI app
+- Uses parallel generator instances in `worker_threads`
+- Shares seeds across instances, using a unique jump count / stream increment for each
+
 ## Performance
 
 The goal is to provide random number generation in WASM that's faster and higher-quality than `Math.random()`, and faster than any equivalent JavaScript implementation of these PRNG algorithms. 
@@ -268,21 +283,6 @@ Generator algorithms are implemented in [AssemblyScript](https://www.assemblyscr
 - Monte Carlo unit square vs unit circle test included for validation
 
 > ⚡⚡ Performance stats and demos coming soon! ⚡⚡
-
-## Demos
-
-See the [`demo/` folder](demo/) for all available demos.
-
-#### [**`pmc` - Pi Monte Carlo**](demo/pmc)
-A Monte Carlo statistical estimation of π (pi) using a large quantity of random numbers
-- Node CLI app
-- Uses parallel generator instances in `worker_threads`
-- Shares seeds across instances, using a unique jump count / stream increment for each
-
-## API Documentation
-
-- **[JavaScript API Documentation](docs/js-api.md)**
-- **[AssemblyScript API Documentation](docs/as-api.md)**
 
 ## Compatibility
 
