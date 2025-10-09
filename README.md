@@ -52,7 +52,7 @@ console.log(gen.int64());           // random 64-bit int (bigint)
 | **Xoroshiro128+** | 64-bit | 128 bits | 2<sup>128</sup> | ✅ |
 | **PCG (XSH RR)** | 32-bit | 64 bits | 2<sup>64</sup> | ❌ |
 
-The included algorithms were chosen for their high speed, parallelization support, and statistical quality. They pass rigorous statistical tests (BigCrush, PractRand) and provide excellent uniformity, making them suitable for Monte Carlo simulations and other applications requiring high-quality pseudo-randomness. They offer a significant improvement over Math.random(), which varies by JavaScript engine and may exhibit statistical flaws.
+The included algorithms were chosen for their high speed, parallelization support, and statistical quality. They pass rigorous statistical tests (BigCrush, PractRand) and provide excellent uniformity, making them suitable for Monte Carlo simulations and other applications requiring high-quality pseudo-randomness. They offer a significant improvement over `Math.random()`, which varies by JavaScript engine and may exhibit statistical flaws.
 
 **SIMD (Single Instruction, Multiple Data)** generates 2 random numbers simultaneously, theoretically doubling throughput when using array output methods.
 
@@ -119,8 +119,6 @@ const bigintArray = gen.int64Array();     // 1000 64-bit integers
 let numberArray = gen.int53Array();       // 1000 53-bit integers
 numberArray = gen.int32Array();           // 1000 32-bit integers
 numberArray = gen.floatArray();           // 1000 floats in [0, 1)
-numberArray = gen.coordArray();           // 1000 floats in (-1, 1)
-numberArray = gen.coordSquaredArray();    // 1000 floats in (-1, 1) squared
 ```
 
 #### WASM Array Memory Buffer
@@ -195,23 +193,23 @@ Sharing seeds between generators assumes you will also provide a unique `uniqueS
 - For the PCG PRNG, this will set the internal increment value within the generator, which selects a unique random stream given a specific starting state (seed).
 - For Xoshiro family PRNGs, this will advance the initial state (aka `jump()`) to a unique point within the generator period, allowing for effectively the same behavior - choosing a non-overlapping random stream given a specific starting state
 
-In both cases, this value is simply a unique positive integer.
+In both cases, this value is simply a unique positive integer (the examples below provide this as `bigint` literals).
 
 #### Examples
 
 ```javascript
 const sharedSeeds = seed64Array();    // bigint[8]
 
-// Two PCG generators, using the same seeds but choosing unique stream increments
+// Two PCG generators, using the same seeds but choosing unique stream increments (5n vs 4001n)
 const pcgGen1 = new RandomGenerator(PRNGType.PCG, sharedSeeds, 5n);
 const pcgNum1 = pcgGen1.float();
 
-const pcgGen2 = new RandomGenerator(PRNGType.PCG, sharedSeeds, 12345678901234n);
+const pcgGen2 = new RandomGenerator(PRNGType.PCG, sharedSeeds, 4001n);
 const pcgNum2 = pcgGen2.float();
 
 console.log(pcgNum1 === pcgNum2);     // false
 
-// Two Xoshiro256+ generators using the same seeds, but with unique jump counts
+// Two Xoshiro256+ generators using the same seeds, but with unique jump counts (1n vs 13n)
 const seededGen1 = new RandomGenerator(PRNGType.Xoshiro256Plus_SIMD, sharedSeeds, 1n);
 const num1 = seededGen1.float();
 
@@ -220,7 +218,7 @@ const num2 = seededGen2.float();
 
 console.log(num1 === num2);           // false
 
-// Another Xoshiro256+ generator using the same seeds, and same jump count as seededGen2.
+// Another Xoshiro256+ generator using the same seeds, and same jump count (13n) as seededGen2.
 // ⚠️ seededGen2 and seededGen3 are effectively identical and will return the same random stream.
 const seededGen3 = new RandomGenerator(PRNGType.Xoshiro256Plus_SIMD, sharedSeeds, 13n);
 const num3 = seededGen3.float();
@@ -230,7 +228,7 @@ console.log(num2 === num3);           // true: using same seeds and same uniqueS
 
 ## Performance
 
-The goal is to provide random number generation in WASM that's faster and higher-quality than `Math.random`, and faster than any equivalent JavaScript implementation of these PRNG algorithms. 
+The goal is to provide random number generation in WASM that's faster and higher-quality than `Math.random()`, and faster than any equivalent JavaScript implementation of these PRNG algorithms. 
 
 Generator algorithms are implemented in [AssemblyScript](https://www.assemblyscript.org/), a variant of TypeScript that compiles to WASM.
 
