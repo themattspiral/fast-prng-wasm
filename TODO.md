@@ -1,17 +1,14 @@
 ## TODO
 
-This library is currently a work-in-progress, hobby project in alpha stage.
-
-As such, the interface is subject to change and shift somewhat, until reaching v1.0.0.
+This project has now reached a stable API.
 
 ## Roadmap
 Feel free to [suggest features and report any issues](https://github.com/themattspiral/fast-prng-wasm/issues) you encounter.
 
-# Remaining MVP for 1.0.0 Release
-- speed optimization notes (algo selection, unchecked, O3, @inline, stub, branch minimization with separate functions)
+# Leftover MVP
+- speed optimization notes
 - web demos
-- assemblyscript inclusion demo
-- update libs
+- update build libs
 
 ### Future Features / Demos
 - Bounded integer output

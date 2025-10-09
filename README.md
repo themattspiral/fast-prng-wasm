@@ -22,7 +22,7 @@ High-performance, SIMD-enabled, WebAssembly pseudo random number generators (PRN
 npm install fast-prng-wasm
 ```
 
-```javascript
+```typescript
 import { RandomGenerator } from 'fast-prng-wasm';
 
 const gen = new RandomGenerator();  // Xoroshiro128+ SIMD is default
@@ -67,7 +67,7 @@ The included algorithms were chosen for their high speed, parallelization suppor
 ### Importing
 
 #### ES Module (bundler / modern browser / modern Node)
-```javascript
+```typescript
 import { RandomGenerator, PRNGType, seed64Array } from 'fast-prng-wasm';
 ```
 
@@ -86,7 +86,7 @@ const { RandomGenerator, PRNGType, seed64Array } = require('fast-prng-wasm');
 
 ### The Basics
 
-```javascript
+```typescript
 const gen = new RandomGenerator();      // Xoroshiro128Plus_SIMD, auto-seeded
 console.log(gen.int64());               // unsigned 64-bit int (bigint)
 console.log(gen.int53());               // unsigned 53-bit int (number)
@@ -109,7 +109,7 @@ The fastest way to get random numbers **in bulk** is to use the `*Array()` metho
 > **💡 SIMD Performance:** Array methods **MUST** be used to realize the additional throughput offered by SIMD-enabled PRNG algorithms. These have higher throughput because they produce 2 random numbers at the same time with WASM's 128-bit SIMD support) .
 
 #### Bulk Fill Example
-```javascript
+```typescript
 const gen = new RandomGenerator();
 
 // `bigint`s in BigUint64Array
@@ -124,7 +124,7 @@ numberArray = gen.floatArray();           // 1000 floats in [0, 1)
 #### WASM Array Memory Buffer
 > **⚠️ Reused Buffer Warning:** The array returned by these methods is actually a `DataView` looking at a portion of WebAssembly memory. This memory buffer is **reused between calls** to the `*Array()` methods (to minimize WASM-JS boundary crossing time), so **you must actually consume (e.g. read/copy) the output between each call**.
 
-```javascript
+```typescript
 const gen = new RandomGenerator();
 
 // ⚠️ Warning: Consume before making another call to any method that returns a Float64Array
@@ -142,7 +142,7 @@ console.log(array1[42] === array2[42]);   // true (second call refilled the same
 #### Set Array Output Size
 If you don't need 1000 numbers with each method call, you can specify your preferred size for the output array instead. Note that an array larger than the default of 1000 does not increase performance further in test scenarios.
 
-```javascript
+```typescript
 // Set size of output buffer to 200
 //  - `null` for `seeds` param will auto-seed
 //  - `null` for `uniqueStreamId` param will use default stream
@@ -156,7 +156,7 @@ randomArray = gen.floatArray();           // 42 floats in [0, 1)
 
 > **⚙ Configuration Note:** The AssemblyScript compiler configuration in `asconfig.release.json` specifies a fixed WASM memory size of 1 page.
 > This is intentionally kept small to limit resources allocated to WASM instances, but is still enough space for the default of 1000 numbers.
-> ```javascript
+> ```typescript
 > // exceeds the configured memory limits of WASM instances
 > gen.outputArraySize = 5000;             // Runtime Error ⚠️
 > ```
@@ -166,7 +166,7 @@ Manual seeding is optional. When no seeds are provided, a `RandomGenerator` will
 
 Manual seeding is done by providing a collection of `bigint` values to initialize the internal generator state. Each generator type requires a different number of seeds (between 1 and 8). The required count for a specific PRNG is exposed via `RandomGenerator`'s `seedCount` property, as well as in the `SEED_COUNT` variable and `setSeed()` function signature in the [AssemblyScript API](docs/as-api.md).
 
-```javascript
+```typescript
 const customSeeds = [7n, 9876543210818181n];    // Xoroshiro128+ takes 2 bigint seeds
 const customSeededGen = new RandomGenerator(PRNGType.Xoroshiro128Plus, customSeeds);
 
@@ -197,7 +197,7 @@ In both cases, this value is simply a unique positive integer (the examples belo
 
 #### Examples
 
-```javascript
+```typescript
 const sharedSeeds = seed64Array();    // bigint[8]
 
 // Two PCG generators, using the same seeds but choosing unique stream increments (5n vs 4001n)
@@ -225,6 +225,32 @@ const num3 = seededGen3.float();
 
 console.log(num2 === num3);           // true: using same seeds and same uniqueStreamId!!
 ```
+
+### Using from AssemblyScript Projects
+```typescript
+// import the namespace(es) you want to use
+import { PCG, Xoroshiro128Plus } from 'fast-prng-wasm/assembly';
+
+Xoroshiro128Plus.setSeeds(57n, 1000123n);             // manually seeded - seed64Array() only in JS
+
+const rand: u64 = Xoroshiro128Plus.uint64();          // using the AS interface
+const rand2: f64 = Xoroshiro128Plus.uint53AsFloat();  // return types are cast for JS runtime usage
+
+const arr = new Uint64Array(1000);                    // create array in WASM memory
+Xoroshiro128Plus.uint64Array(arr);                    // generate & fill
+```
+
+> **⚠️ Thread Safety Warning ⚠️:**
+> WASM PRNG implemetations use top-level internal state and functions to
+> prevent the accumulation of small overhead that comes with using classes.
+> 
+> While they are encapsulted within namespaces so as not to interfere with
+> your own AssemblyScript project's global namespace, this also means that
+> they are NOT THREAD SAFE WITHIN WASM DIRECTLY.
+> 
+> To acheive thread safety from the JS runtime calling your AssemvblyScript WASM
+> project binary, it must be structured in such a way as to create separate WASM 
+> instances from JS. This is the approach used by the included JavaScript/TypeScript wrapper API.
 
 ## Performance
 
