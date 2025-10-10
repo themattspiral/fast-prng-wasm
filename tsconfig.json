@@ -25,7 +25,7 @@
     "node_modules", 
     "**/*.spec.*", 
     "src/assembly/**/*.ts",
-    "demo",
+    "examples",
     "dist",
     "docs",
     "util"

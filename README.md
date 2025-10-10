@@ -183,7 +183,7 @@ Per this guidance, automatic seeding using `seed64Array()` internally is done wi
 
 Some PRNG applications may require several (or very many) instances of a PRNG running in parallel - for example, multithreaded or distributed computing processes. In this case it is recommended to use the same set of seeds across all parallel generator instances **in combination with** a unique jump count or stream increment. This approach essentially ensures that randomness quality is maximized across all parallel instances.
 
-See the [`pmc` demo](demo/pmc) for an example that follows this approach, with each generator instance running in a different Node worker thread.
+See the [`pmc` demo](examples/pmc) for an example that follows this approach, with each generator instance running in a different Node worker thread.
 
 #### Generate a Seed Collection
 If you don't have custom seeds already, the `seed64Array()` function is provided. It returns a `bigint[8]` containing seeds generated with SplitMix64 (which in turn was seeded with a combination of the current time and JavaScript's `Math.random()`). This collection can be provided as the `seeds` argument for any PRNG in this package.
@@ -259,9 +259,9 @@ Xoroshiro128Plus.uint64Array(arr);                    // generate & fill
 
 ## Examples & Demos
 
-See the [`demo/` folder](demo/) for all available demos.
+See the [`examples/` folder](examples/) for all available examples and demos.
 
-#### [**`pmc` - Pi Monte Carlo**](demo/pmc)
+#### [**`pmc` - Pi Monte Carlo**](examples/pmc)
 A Monte Carlo statistical estimation of π (pi) using a large quantity of random numbers
 - Node CLI app
 - Uses parallel generator instances in `worker_threads`

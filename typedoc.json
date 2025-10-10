@@ -7,7 +7,7 @@
     "node_modules", 
     "**/*.spec.*", 
     "src/assembly",
-    "demo",
+    "examples",
     "dist",
     "docs",
     "util"
