@@ -72,6 +72,29 @@ export class RandomGenerator {
         };
     }
 
+    private _setStreamId(uniqueStreamId: bigint | number | null) {
+        if (uniqueStreamId !== null && uniqueStreamId > 0) {
+            // xoshiro PRNG family calls the jump function a unique number of times
+            // to "space out" the selected stream within the generator's period
+            if (this._instance.jump) {
+                for (let i = 0; i < uniqueStreamId; i++) {
+                    (<JumpablePRNG>this._instance).jump();
+                }
+            }
+
+            // PCG PRNG family uses a unique stream increment to permutate the state
+            // within the generator's period
+            // 
+            // Note that some PCG implementations provide jump-ahead and jump-back
+            // functionality as well, similar to the Xoshiro Jump function. In this
+            // library's PCG implementation, we only expose the increment as a way 
+            // to choose a stream, and have not implemented PCG state jumps.
+            else if (this._instance.setStreamIncrement) {
+                (<IncrementablePRNG>this._instance).setStreamIncrement(BigInt(uniqueStreamId));
+            }
+        }
+    }
+
     /**
      * Creates a WASM pseudo random number generator.
      * 
@@ -123,31 +146,11 @@ export class RandomGenerator {
         // seed the generator
         this._instance.setSeeds(...this._seeds);
         
+        // choose a unique random stream
+        this._setStreamId(uniqueStreamId);
+        
         // allocate WASM memory for bulk array fills
         this._arrayConfig = this._setupOutputArrays(outputArraySize);
-
-        // choose a unique random stream
-        if (uniqueStreamId !== null && uniqueStreamId > 0) {
-            
-            // xoshiro PRNG family calls the jump function a unique number of times
-            // to "space out" the selected stream within the generator's period
-            if (this._instance.jump) {
-                for (let i = 0; i < uniqueStreamId; i++) {
-                    (<JumpablePRNG>this._instance).jump();
-                }
-            }
-
-            // PCG PRNG family uses a unique stream increment to permutate the state
-            // within the generator's period
-            // 
-            // Note that some PCG implementations provide jump-ahead and jump-back
-            // functionality as well, similar to the Xoshiro Jump function. In this
-            // library's PCG implementation, we only expose the increment as a way 
-            // to choose a stream, and have not implemented PCG state jumps.
-            else if (this._instance.setStreamIncrement) {
-                (<IncrementablePRNG>this._instance).setStreamIncrement(BigInt(uniqueStreamId));
-            }
-        }
     }
 
     /** Gets the PRNG algorithm being used by this generator instance. */
@@ -196,8 +199,8 @@ export class RandomGenerator {
      * @returns An unsigned 64-bit integer between 0 and 2^64 - 1.
      */
     int64(): bigint {
-        // `u64` return type in WASM is treated as an `i64` and converted to a
-        // signed bigint when returning to JS runtime, so we mask it before
+        // `u64` is the return type in WASM, but this is converted to a
+        // *signed* bigint when returning to JS runtime, so we mask it before
         // returning to ensure the value is always treated as unsigned
         return this._instance.uint64() & 0xFFFFFFFFFFFFFFFFn;
     }
@@ -237,7 +240,7 @@ export class RandomGenerator {
     }
 
     /**
-     * Gets this generator's next 53-bit floating point number in range (-1, 1).
+     * Gets this generator's next 53-bit floating point number in range [-1, 1).
      * 
      * Can be used as part of a coordinate pair in a unit square with radius 1.
      * Useful for Monte Carlo simulation.
@@ -250,7 +253,7 @@ export class RandomGenerator {
     }
 
     /**
-     * Gets the square of this generator's next 53-bit floating point number in range (-1, 1).
+     * Gets the square of this generator's next 53-bit floating point number in range [-1, 1).
      * 
      * Can be used as part of a coordinate pair in a unit square with radius 1,
      * already squared to speed up testing for unit circle inclusion.
@@ -317,7 +320,7 @@ export class RandomGenerator {
     }
     
     /**
-     * Fills WASM memory array with this generator's next set of floats in range (-1, 1).
+     * Fills WASM memory array with this generator's next set of floats in range [-1, 1).
      * 
      * Array size is set when generator is created or by changing {@link outputArraySize}.
      * 
@@ -333,7 +336,7 @@ export class RandomGenerator {
     }
 
     /**
-     * Fills WASM memory array with this generator's next set of floats in range (-1, 1)
+     * Fills WASM memory array with this generator's next set of floats in range [-1, 1)
      * that have been squared.
      * 
      * Array size is set when generator is created or by changing {@link outputArraySize}.
