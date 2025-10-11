@@ -24,7 +24,7 @@ Number of seeds required for this generator's [setSeeds](#setseeds) function.
 function batchTestUnitCirclePoints(count): number;
 ```
 
-Monte Carlo test: Generates random (x,y) coordinates in range (-1, 1), and
+Monte Carlo test: Generates random (x,y) coordinates in range [-1, 1), and
 counts how many of them fall inside the unit circle with radius 1.
 
 Can be used to estimate pi (π).
@@ -49,7 +49,7 @@ The number of random points which fell *inside* of the unit circle with radius 1
 function coord53(): number;
 ```
 
-Gets this generator's next 53-bit floating point number in range (-1, 1).
+Gets this generator's next 53-bit floating point number in range [-1, 1).
 
 Can be considered part of a "coordinate" in a unit circle with radius 1.
 Useful for Monte Carlo simulation.
@@ -58,7 +58,7 @@ Useful for Monte Carlo simulation.
 
 `number`
 
-A floating point number in range (-1, 1).
+A floating point number in range [-1, 1).
 
 ***
 
@@ -69,7 +69,7 @@ function coord53Array(arr): void;
 ```
 
 Fills the provided array with this generator's next set of 53-bit floating point numbers
-in range (-1, 1).
+in range [-1, 1).
 
 Useful for Monte Carlo simulation.
 
@@ -91,7 +91,7 @@ Useful for Monte Carlo simulation.
 function coord53Squared(): number;
 ```
 
-Gets the square of this generator's next 53-bit floating point number in range (-1, 1).
+Gets the square of this generator's next 53-bit floating point number in range [-1, 1).
 
 Useful for Monte Carlo simulation.
 
@@ -99,7 +99,7 @@ Useful for Monte Carlo simulation.
 
 `number`
 
-A floating point number in range (-1, 1), multiplied by itself.
+A floating point number in range [-1, 1), multiplied by itself.
 
 ***
 
@@ -110,7 +110,7 @@ function coord53SquaredArray(arr): void;
 ```
 
 Fills the provided array with the squares of this generator's next set of floating 
-point numbers in range (-1, 1).
+point numbers in range [-1, 1).
 
 Useful for Monte Carlo simulation.
 

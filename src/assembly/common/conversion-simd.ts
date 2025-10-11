@@ -54,22 +54,22 @@ export function uint64x2_to_float53x2(next: v128): v128 {
 }
 
 /**
- * Derives 2 `f64`s in range (-1, 1) from the 2 given `u64`s.
+ * Derives 2 `f64`s in range [-1, 1) from the 2 given `u64`s.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function uint64x2_to_coord53x2(next: v128): v128 {
     let n: v128 = uint64x2_to_float53x2(next);
 
-    // Scale:  number * 2 - 1 to get range (-1, 1)
+    // Scale:  number * 2 - 1 to get range [-1, 1)
     n = v128.mul<f64>(n, TWOx2);
     n = v128.sub<f64>(n, ONEx2);
-    
+
     return n;
 }
 
 /**
- * Derives the squares of 2 `f64`s in range (-1, 1) from the 2 given `u64`s.
+ * Derives the squares of 2 `f64`s in range [-1, 1) from the 2 given `u64`s.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline

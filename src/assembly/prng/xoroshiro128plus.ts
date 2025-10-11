@@ -121,12 +121,12 @@ export function float53(): f64 {
 }
 
 /**
- * Gets this generator's next 53-bit floating point number in range (-1, 1).
+ * Gets this generator's next 53-bit floating point number in range [-1, 1).
  * 
  * Can be considered part of a "coordinate" in a unit circle with radius 1.
  * Useful for Monte Carlo simulation.
  * 
- * @returns A 53-bit floating point number in range (-1, 1).
+ * @returns A 53-bit floating point number in range [-1, 1).
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
@@ -135,11 +135,11 @@ export function coord53(): f64 {
 }
 
 /**
- * Gets the square of this generator's next 53-bit floating point number in range (-1, 1).
+ * Gets the square of this generator's next 53-bit floating point number in range [-1, 1).
  * 
  * Useful for Monte Carlo simulation.
  * 
- * @returns A 53-bit floating point number in range (-1, 1), multiplied by itself.
+ * @returns A 53-bit floating point number in range [-1, 1), multiplied by itself.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
@@ -166,7 +166,7 @@ export function coord53Squared(): f64 {
 
 
 /**
- * Monte Carlo test: Generates random (x,y) coordinates in range (-1, 1), and
+ * Monte Carlo test: Generates random (x,y) coordinates in range [-1, 1), and
  * counts how many of them fall inside the unit circle with radius 1.
  * 
  * Can be used to estimate pi (π).
@@ -253,7 +253,7 @@ export function float53Array(arr: Float64Array): void {
 
 /**
  * Fills the provided array with this generator's next set of 53-bit floating point numbers
- * in range (-1, 1).
+ * in range [-1, 1).
  * 
  * Useful for Monte Carlo simulation.
  * 
@@ -270,7 +270,7 @@ export function coord53Array(arr: Float64Array): void {
 
 /**
  * Fills the provided array with the squares of this generator's next set of 53-bit floating 
- * point numbers in range (-1, 1).
+ * point numbers in range [-1, 1).
  * 
  * Useful for Monte Carlo simulation.
  * 

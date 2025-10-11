@@ -182,7 +182,7 @@ unit circle with radius 1.
 coord(): number;
 ```
 
-Gets this generator's next 53-bit floating point number in range (-1, 1).
+Gets this generator's next 53-bit floating point number in range [-1, 1).
 
 Can be used as part of a coordinate pair in a unit square with radius 1.
 Useful for Monte Carlo simulation.
@@ -200,7 +200,7 @@ randomness that can fit into a JavaScript `number` type.
 coordArray(): Float64Array;
 ```
 
-Fills WASM memory array with this generator's next set of floats in range (-1, 1).
+Fills WASM memory array with this generator's next set of floats in range [-1, 1).
 
 Array size is set when generator is created or by changing [outputArraySize](#outputarraysize).
 
@@ -220,7 +220,7 @@ This output buffer is reused with each call.
 coordSquared(): number;
 ```
 
-Gets the square of this generator's next 53-bit floating point number in range (-1, 1).
+Gets the square of this generator's next 53-bit floating point number in range [-1, 1).
 
 Can be used as part of a coordinate pair in a unit square with radius 1,
 already squared to speed up testing for unit circle inclusion.
@@ -240,7 +240,7 @@ multiplied by itself
 coordSquaredArray(): Float64Array;
 ```
 
-Fills WASM memory array with this generator's next set of floats in range (-1, 1)
+Fills WASM memory array with this generator's next set of floats in range [-1, 1)
 that have been squared.
 
 Array size is set when generator is created or by changing [outputArraySize](#outputarraysize).
