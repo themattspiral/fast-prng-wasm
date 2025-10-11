@@ -25,7 +25,7 @@ export default [
 
             // handle .wasm module imports
             wasm({
-                // comiple module synchronously when loading
+                // loader returns a function that compiles modules synchronously
                 sync: [
                     'bin/pcg.wasm',
                     'bin/xoroshiro128plus.wasm',
