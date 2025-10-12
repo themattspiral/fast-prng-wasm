@@ -289,11 +289,11 @@ Generator algorithms are implemented in [AssemblyScript](https://www.assemblyscr
 - SIMD acceleration can nearly double throughput for supported algorithms
 - Monte Carlo unit square vs unit circle test included for validation
 
-#### Performance Deep Dive
+> ⚡ Additional performance stats coming soon! ⚡
+
+#### Arrays Deep Dive
 
 For a detailed explanation of **why array methods are 3-5× faster** than single-value methods, see **[Understanding Performance: Why Array Methods Are Faster](examples/basic-usage#understanding-performance-why-array-methods-are-faster)**
-
-> ⚡ Additional performance stats coming soon! ⚡
 
 ## Compatibility
 
