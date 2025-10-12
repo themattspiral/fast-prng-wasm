@@ -170,6 +170,9 @@ function setSeeds(seed): void;
 
 Initializes this generator's internal state with the provided random seed.
 
+TODO: This seeding implementation may currently differ from the PCG 
+reference implementation's seeding pattern.
+
 #### Parameters
 
 | Parameter | Type |
