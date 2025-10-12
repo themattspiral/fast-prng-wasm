@@ -46,11 +46,11 @@ console.log(gen.int64());           // random 64-bit int (bigint)
 
 ## PRNG Algorithms
 
-| Algorithm | Native Output Size | State Size | Period | SIMD Support |
-|-----------|-------------|------------|--------|--------------|
-| **Xoshiro256+** | 64-bit | 256 bits | 2<sup>256</sup> | ✅ |
-| **Xoroshiro128+** | 64-bit | 128 bits | 2<sup>128</sup> | ✅ |
-| **PCG (XSH RR)** | 32-bit | 64 bits | 2<sup>64</sup> | ❌ |
+| Algorithm | Description | Native Output | State Size | Period | SIMD |
+|-----------|-------------|---------------|------------|--------|------|
+| **Xoshiro256+** | Very fast, large state, very long period - best for applications needing maximum randomness guarantees | 64-bit | 256 bits | 2<sup>256</sup> | ✅ |
+| **Xoroshiro128+** | *Very* fast, smaller state - excellent balance for most applications, fastest provided here | 64-bit | 128 bits | 2<sup>128</sup> | ✅ |
+| **PCG (XSH RR)** | Small state, fast, possibly best randomness (read Learn More links) | 32-bit | 64 bits | 2<sup>64</sup> | ❌ |
 
 The included algorithms were chosen for their high speed, parallelization support, and statistical quality. They pass rigorous statistical tests (BigCrush, PractRand) and provide excellent uniformity, making them suitable for Monte Carlo simulations and other applications requiring high-quality pseudo-randomness. They offer a significant improvement over `Math.random()`, which varies by JavaScript engine and may exhibit statistical flaws.
 
@@ -261,15 +261,22 @@ Xoroshiro128Plus.uint64Array(arr);                    // generate & fill
 
 See the [`examples/` folder](examples/) for all available examples and demos.
 
+#### [**`basic-usage` - Getting Started**](examples/basic-usage)
+A simple walkthrough of core features
+- Quick start for new users
+- Covers all major API methods
+- Basic performance comparisons and tips
+- Practical examples (dice simulator, Monte Carlo basics)
+
 #### [**`pmc` - Pi Monte Carlo**](examples/pmc)
 A Monte Carlo statistical estimation of π (pi) using a large quantity of random numbers
-- Node CLI app
+- Node CLI app for advanced users
 - Uses parallel generator instances in `worker_threads`
 - Shares seeds across instances, using a unique jump count / stream increment for each
 
 ## Performance
 
-The goal is to provide random number generation in WASM that's faster and higher-quality than `Math.random()`, and faster than any equivalent JavaScript implementation of these PRNG algorithms. 
+The goal is to provide random number generation in WASM that's faster and higher-quality than `Math.random()`, and faster than any equivalent JavaScript implementation of these PRNG algorithms.
 
 Generator algorithms are implemented in [AssemblyScript](https://www.assemblyscript.org/), a variant of TypeScript that compiles to WASM.
 
@@ -282,7 +289,11 @@ Generator algorithms are implemented in [AssemblyScript](https://www.assemblyscr
 - SIMD acceleration can nearly double throughput for supported algorithms
 - Monte Carlo unit square vs unit circle test included for validation
 
-> ⚡⚡ Performance stats and demos coming soon! ⚡⚡
+#### Performance Deep Dive
+
+For a detailed explanation of **why array methods are 3-5× faster** than single-value methods, see **[Understanding Performance: Why Array Methods Are Faster](examples/basic-usage#understanding-performance-why-array-methods-are-faster)**
+
+> ⚡ Additional performance stats coming soon! ⚡
 
 ## Compatibility
 

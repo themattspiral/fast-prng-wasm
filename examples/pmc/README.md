@@ -1,4 +1,4 @@
-# pmc - Pi Monte Carlo
+# pmc - Pi Monte Carlo Estimation
 A [Monte Carlo estimation of pi (π)](https://www.geeksforgeeks.org/estimating-value-pi-using-monte-carlo/) using a large quantity of random numbers, demoing the **`fast-prng-wasm`** library.
 
 - Node CLI app
@@ -7,30 +7,32 @@ A [Monte Carlo estimation of pi (π)](https://www.geeksforgeeks.org/estimating-v
 - This project is a good example of using a single set of shared seeds across multiple generators, combined with providing `uniqueStreamId` values (via a parameter on generator creation) to select a unique random stream for each generator.
 
 ## Requirements
-See the [Compatability]() section of `fast-prng-wasm`'s README, but generally **Node 16.4+**
+See the [Compatability]() section of `fast-prng-wasm`'s README, but generally **Node 16.4+** for full support (SIMD + bigint).
 
 ## Running the Example
 This project uses a local dependency for `fast-prng-wasm`, so you must build the local library project first, or install a published version.
 
+#### Library Build
 From the `fast-prng-wasm` project root:
 ``` sh
 npm i
 npm run build
 ```
 
-As an alternative, you can install the latest published version. From the `examples/pmc` directory:
+As an alternative, you can install the latest published version. From this example directory:
 ```sh
 npm i fast-prng-wasm@latest
 ```
 
 #### Run the Demo
-From the `examples/pmc` directory:
+From this directory:
 ``` sh
 npm i
-node pmc
+node start
 ```
 
-This will estimate the value of π by generating 1 billion (x,y) points (2 billion random numbers) using all availavle CPU cores and the default PRNG that `fast-prng-wasm` provides, `Xoroshiro128Plus_SIMD`.
+## Output
+This example will estimate the value of π by generating 1 billion (x,y) coordinate pairs (2 billion random numbers) using all availavle CPU cores and the default (and fastest) PRNG that `fast-prng-wasm` provides, `Xoroshiro128Plus_SIMD`.
 
 ## Runtime Parameters
 Modify parameters within `pmc.js` to alter characteristics of the PRNGs used:
@@ -54,3 +56,6 @@ Modify parameters within `pmc.js` to alter characteristics of the PRNGs used:
   - The sweet spot seems to be 100 - 1000, so pmc leaves this the same as `fast-prng-wasm`'s default, 1000. YMMV.
   - Only applicable when `WORKER_BATCH_MODE` is set to `WorkerBatchModeType.ArrayFill`
 
+---
+
+**Need help?** Open an issue: https://github.com/themattspiral/fast-prng-wasm/issues

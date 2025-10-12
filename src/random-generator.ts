@@ -122,7 +122,9 @@ export class RandomGenerator {
      * internal stream increment for state advances.
      * 
      * @param outputArraySize Size of the output array used when 
-     * filling WASM memory buffer using the `*Array()` methods.
+     * filling WASM memory buffer using the `*Array()` methods (default: 1000).
+     * Larger sizes provide convenience but no performance benefit. PRNG generation speed
+     * is the bottleneck, rather than array access. Consider WASM memory constraints when increasing.
      */
     constructor(
         prngType: PRNGType = PRNGType.Xoroshiro128Plus_SIMD,
@@ -163,29 +165,26 @@ export class RandomGenerator {
         return this._instance.SEED_COUNT.value || 8;
     }
 
-    /** Gets the seed collection used to initialize this generator instance. */
+    /**
+     * Gets the seed collection used to initialize this generator instance, or sets the 
+     * given seeds and re-initializes the internal state of this generator instance.
+     * */
     get seeds(): bigint[] {
         return this._seeds || [];
     }
-    /**
-     * Re-initializes the internal state of this generator instance with the given seeds.
-     * 
-     * @param newSeeds Collection of 64-bit integers used to seed the generator.
-     */
     set seeds(newSeeds: bigint[]) {
         this._seeds = newSeeds;
         this._instance.setSeeds(...newSeeds);
     }
 
-    /** Gets the size of the array populated by the `*Array()` methods. */
+    /**
+     * Gets or sets the size of the array populated by the `*Array()` methods (default: 1000).
+     * Larger sizes provide convenience but no performance benefit. PRNG generation speed
+     * is the bottleneck, rather than array access. Consider WASM memory constraints when increasing.
+     */
     get outputArraySize(): number {
         return this._outputArraySize;
     }
-    /**
-     * Changes the size of the array populated by the `*Array()` methods.
-     *
-     * @param newSize The count of items to be populated by the `*Array()` methods. 
-     */
     set outputArraySize(newSize: number) {
         this._instance.freeArray(this._arrayConfig.bigIntOutputArrayPtr);
         this._instance.freeArray(this._arrayConfig.floatOutputArrayPtr);
