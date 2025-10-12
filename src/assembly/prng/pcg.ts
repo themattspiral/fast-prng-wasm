@@ -37,7 +37,12 @@ let state: u64 = 0;
 /** Number of seeds required for this generator's {@link setSeeds} function. */
 export const SEED_COUNT: i32 = 1;
 
-/** Initializes this generator's internal state with the provided random seed. */
+/**
+ * Initializes this generator's internal state with the provided random seed.
+ *
+ * TODO: This seeding implementation may currently differ from the PCG 
+ * reference implementation's seeding pattern.
+ */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function setSeeds(seed: u64): void {
@@ -83,7 +88,8 @@ export function uint32(): u32 {
     const rot: u32 = <u32>(oldState >>> 59);
 
     // 32-bit branch-free rotate right
-    // note: >>> is a logical right shift, which fills high bits with 0s
+    // Use >>> for unsigned/logical right shift which fills high bits with 0s
+    // >> in AssemblyScript is signed/arithmetic shift
     return (xorshifted >>> rot) | (xorshifted << ((-rot) & 31));
 }
 

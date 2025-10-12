@@ -17,7 +17,8 @@ export const JUMP_256: StaticArray<u64> = [0x180ec6d33cfd0aba, 0xd5a61266f0c9392
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function uint64_to_uint53AsFloat(next: u64): f64 {
-    // note: >>> is a logical right shift, which fills high bits with 0s
+    // Use >>> for unsigned/logical right shift which fills high bits with 0s
+    // >> in AssemblyScript is signed/arithmetic shift
     return <f64>(next >>> 11);
 }
 
@@ -28,7 +29,8 @@ export function uint64_to_uint53AsFloat(next: u64): f64 {
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function uint64_to_uint32AsFloat(next: u64): f64 {
-    // note: >>> is a logical right shift, which fills high bits with 0s
+    // Use >>> for unsigned/logical right shift which fills high bits with 0s
+    // >> in AssemblyScript is signed/arithmetic shift
     return <f64>(next >>> 32);
 }
 
@@ -38,7 +40,8 @@ export function uint64_to_uint32AsFloat(next: u64): f64 {
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function uint64_to_float53(next: u64): f64 {
-    // note: >>> is a logical right shift , which fills high bits with 0s
+    // Use >>> for unsigned/logical right shift which fills high bits with 0s
+    // >> in AssemblyScript is signed/arithmetic shift
     return <f64>(next >>> 11) / BIT_53;
 }
 

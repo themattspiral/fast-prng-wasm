@@ -48,14 +48,18 @@ export function allocFloat64Array(count: i32): usize {
 }
 
 /**
- * Frees WebAssembly memory that was previously allocated by {@link allocUint64Array} 
+ * Frees WebAssembly memory that was previously allocated by {@link allocUint64Array}
  * or {@link allocFloat64Array}.
- * 
+ *
  * @param arrPtr A pointer to a previously allocated WASM memory array for cleanup.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function freeArray(arrPtr: usize): void {
     // @ts-ignore: it won't find __unpin
+    // allow WASM runtime GC to free the array
     __unpin(arrPtr);
+    // @ts-ignore: it won't find __free
+    // explicitly free memory in stub runtime where no GC is available
+    __free(arrPtr);
 }
