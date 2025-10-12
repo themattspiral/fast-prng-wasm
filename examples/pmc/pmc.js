@@ -2,6 +2,7 @@ import { availableParallelism } from 'os';
 import { Worker } from 'worker_threads';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import * as readline from 'readline';
 import { BigNumber } from 'bignumber.js';
 
 import { PRNGType, seed64Array } from 'fast-prng-wasm';
@@ -12,7 +13,7 @@ import { WorkerBatchMode, WorkerSeedMode } from './enum.js';
  * Modify these parameters to change characteristics of the Monte Carlo simulation *
  * ******************************************************************************* */
 
-const TOTAL_POINT_COUNT = 2000000000;                   // 1 Billion points
+const TOTAL_POINT_COUNT = 1000000000;                   // 1 Billion points
 const PRNG = PRNGType.Xoshiro256Plus_SIMD;
 const WORKER_BATCH_MODE = WorkerBatchMode.GeneratorBatch;
 const WORKER_COUNT = availableParallelism();            // use all CPU cores
@@ -54,33 +55,36 @@ const piPrecise = () => {
 
 // update console as the simulation runs
 const logStatus = () => {
+    readline.cursorTo(process.stdout, 0, 0);
+    readline.clearScreenDown(process.stdout);
 
-    let status =`
-pmc - Pi Monte Carlo
+    let status = `pmc - Pi Monte Carlo
 
 PRNG Algorithm: ${PRNG}
-Point Count: ${TOTAL_POINT_COUNT}
+Point Count: ${TOTAL_POINT_COUNT.toLocaleString()}
 Batch Mode: ${WORKER_BATCH_MODE}
 `;
     WORKERS.forEach((wrk, idx) => {
-        status += `Worker ${idx}: ${wrk.pointsGenerated} / ${wrk.pointCount} | ${wrk.seedMode} ${wrk.jumpCount > 0 ? `(jumps: ${wrk.jumpCount})` : ''}\n`;
+        status += `Worker ${idx}: ${wrk.pointsGenerated.toLocaleString()} / ${wrk.pointCount.toLocaleString()} | ${wrk.seedMode} ${wrk.jumpCount > 0 ? `(jumps: ${wrk.jumpCount})` : ''}\n`;
     });
-    
-    status += '\nPoints in Circle:';
 
-    console.log(status, totalPointsInCircle);
-    console.log('Points Generated:', totalPointsGenerated);
-    console.log('% Completed:', totalPointsGenerated * 100 / TOTAL_POINT_COUNT);
-    console.log('\nπ:', piPrecise());
+    status += `\n% Completed: ${(totalPointsGenerated * 100 / TOTAL_POINT_COUNT).toFixed(2)}%`;
+    status += `\nPoints Generated: ${totalPointsGenerated.toLocaleString()}`;
+    status += `\nPoints in Circle: ${totalPointsInCircle.toLocaleString()}`;
+    status += `\n\nπ: ${piPrecise()}`;
+
+    process.stdout.write(status);
+    console.log('');  // newline
     console.timeLog('elapsed');
 };
 
 // cleanup, final logging, and exit
 const finish = () => {
     clearInterval(consoleUpdateIntervalId);
-    console.log('');
+    console.log(`\n${'-'.repeat(60)}`);
     console.log('Final π Estimate:', piPrecise());
     console.timeEnd('elapsed');
+    console.log(`\n${'-'.repeat(60)}`);
     process.exit();
 };
 
@@ -96,6 +100,9 @@ process.on('SIGINT', () => {
 });
 
 console.time('elapsed');
+
+// Clear screen once at startup
+console.clear();
 
 // create workers
 for (let workerNumber = 0; workerNumber < WORKER_COUNT; workerNumber++) {
@@ -129,7 +136,6 @@ for (let workerNumber = 0; workerNumber < WORKER_COUNT; workerNumber++) {
 
 // update console and check for completion
 consoleUpdateIntervalId = setInterval(() => {
-    console.clear();
     logStatus();
 
     if (totalPointsGenerated === TOTAL_POINT_COUNT) {
