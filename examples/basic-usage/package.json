@@ -1,7 +1,7 @@
 {
   "name": "basic-usage",
   "version": "1.0.0",
-  "description": "Simple getting-started example for fast-prng-wasm - demonstrates core features without complexity",
+  "description": "Simple getting-started example for fast-prng-wasm to demonstrate core features",
   "author": "Matt Ritter <matthew.d.ritter@gmail.com>",
   "license": "MIT",
   "type": "module",
