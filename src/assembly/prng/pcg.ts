@@ -83,7 +83,8 @@ export function uint32(): u32 {
     const rot: u32 = <u32>(oldState >>> 59);
 
     // 32-bit branch-free rotate right
-    // note: >>> is a logical right shift, which fills high bits with 0s
+    // Use >>> for unsigned/logical right shift which fills high bits with 0s
+    // >> in AssemblyScript is signed/arithmetic shift
     return (xorshifted >>> rot) | (xorshifted << ((-rot) & 31));
 }
 

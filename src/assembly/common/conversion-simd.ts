@@ -14,7 +14,8 @@ export function uint64x2_to_uint53AsFloatx2(next: v128): v128 {
     // Shift right by 11 (>> 11) to extract upper 53 bits
     // of each output (highest quality randomness in upper,
     // and JS `number` only supports 53 bit precision)
-    const randShifted: v128 = v128.shr<u64>(next, 11);
+    // Use i64x2.shr_u for unsigned/logical right shift (v128.shr is signed/arithmetic)
+    const randShifted: v128 = i64x2.shr_u(next, 11);
 
     // extract bit-shifted `u64`s and cast to `f64`s
     return f64x2(
@@ -32,7 +33,8 @@ export function uint64x2_to_uint53AsFloatx2(next: v128): v128 {
 export function uint64x2_to_uint32AsFloatx2(next: v128): v128 {
     // Shift right by 32 (>> 32) to extract upper 32 bits
     // of each output (highest quality randomness in upper)
-    const randShifted: v128 = v128.shr<u64>(next, 32);
+    // Use i64x2.shr_u for unsigned/logical right shift (v128.shr is signed/arithmetic)
+    const randShifted: v128 = i64x2.shr_u(next, 32);
 
     // extract bit-shifted `u64`s and cast to `f64`s
     return f64x2(

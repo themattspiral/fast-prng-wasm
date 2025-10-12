@@ -119,7 +119,8 @@ export function uint64x2(): v128 {
     s2 = v128.xor(s2, t);
 
     // Rotate: rotl(45) == (sl 45 | sr (64-45))
-    s3 = v128.or(v128.shl<u64>(s3, 45), v128.shr<u64>(s3, 19));
+    // Use i64x2.shr_u for unsigned/logical right shift (v128.shr is signed/arithmetic)
+    s3 = v128.or(v128.shl<u64>(s3, 45), i64x2.shr_u(s3, 19));
 
     return result;
 }

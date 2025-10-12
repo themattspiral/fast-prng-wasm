@@ -99,13 +99,15 @@ export function uint64x2(): v128 {
     const t: v128 = v128.xor(s1, s0);
 
     // s0 = ((s0 << 24) | (s0 >> 40)) ^ t ^ (t << 16);
-    const rot = v128.or( v128.shl<u64>(s0, 24), v128.shr<u64>(s0, 40) );
+    // Use i64x2.shr_u for unsigned/logical right shift (v128.shr is signed/arithmetic)
+    const rot = v128.or( v128.shl<u64>(s0, 24), i64x2.shr_u(s0, 40) );
     s0 = v128.xor( rot, v128.xor(t, v128.shl<u64>(t, 16)) );
-    
+
     // s1 = ((t << 37) | (t >> 27));
     s1 = v128.or(
         v128.shl<u64>(t, 37),
-        v128.shr<u64>(t, 27)
+        // Use i64x2.shr_u for unsigned/logical right shift (v128.shr is signed/arithmetic)
+        i64x2.shr_u(t, 27)
     )
 
     return result;
