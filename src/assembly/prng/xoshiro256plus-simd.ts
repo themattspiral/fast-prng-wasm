@@ -59,7 +59,6 @@ export function setSeeds(
     s1 = i64x2(b, f);
     s2 = i64x2(c, g);
     s3 = i64x2(d, h);
-    uint64x2();
 };
 
 /**

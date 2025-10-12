@@ -40,7 +40,6 @@ export function setSeeds(a: u64, b: u64, c: u64, d: u64): void {
     s1 = b;
     s2 = c;
     s3 = d;
-    uint64();
 };
 
 /**

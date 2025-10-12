@@ -52,7 +52,6 @@ export const SEED_COUNT: i32 = 4;
 export function setSeeds(a: u64, b: u64, c: u64, d: u64): void {
     s0 = i64x2(a, c);
     s1 = i64x2(b, d);
-    uint64x2();
 };
 
 /**
