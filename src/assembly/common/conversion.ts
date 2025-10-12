@@ -43,7 +43,7 @@ export function uint64_to_float53(next: u64): f64 {
 }
 
 /**
- * Derives a 53-bit float in range (-1, 1) from the given `u64`.
+ * Derives a 53-bit float in range [-1, 1) from the given `u64`.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
@@ -52,7 +52,7 @@ export function uint64_to_coord53(next: u64): f64 {
 }
 
 /**
- * Derives the square of a 53-bit float in range (-1, 1) from the given `u64`.
+ * Derives the square of a 53-bit float in range [-1, 1) from the given `u64`.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline

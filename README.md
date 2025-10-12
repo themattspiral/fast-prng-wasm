@@ -10,9 +10,9 @@ High-performance, SIMD-enabled, WebAssembly pseudo random number generators (PRN
 - [Features](#features)
 - [PRNG Algorithms](#prng-algorithms)
 - [Usage Guide](#usage-guide)
-- [Performance](#performance)
-- [Demos](#demos)
 - [API Documentation](#api-documentation)
+- [Examples & Demos](#examples--demos)
+- [Performance](#performance)
 - [Compatibility](#compatibility)
 - [Contributing](#contributing)
 
@@ -46,11 +46,11 @@ console.log(gen.int64());           // random 64-bit int (bigint)
 
 ## PRNG Algorithms
 
-| Algorithm | Native Output Size | State Size | Period | SIMD Support |
-|-----------|-------------|------------|--------|--------------|
-| **Xoshiro256+** | 64-bit | 256 bits | 2<sup>256</sup> | ✅ |
-| **Xoroshiro128+** | 64-bit | 128 bits | 2<sup>128</sup> | ✅ |
-| **PCG (XSH RR)** | 32-bit | 64 bits | 2<sup>64</sup> | ❌ |
+| Algorithm | Description | Native Output | State Size | Period | SIMD |
+|-----------|-------------|---------------|------------|--------|------|
+| **Xoshiro256+** | Very fast, large state, very long period - best for applications needing maximum randomness guarantees | 64-bit | 256 bits | 2<sup>256</sup> | ✅ |
+| **Xoroshiro128+** | *Very* fast, smaller state - excellent balance for most applications, fastest provided here | 64-bit | 128 bits | 2<sup>128</sup> | ✅ |
+| **PCG (XSH RR)** | Small state, fast, possibly best randomness (read Learn More links) | 32-bit | 64 bits | 2<sup>64</sup> | ❌ |
 
 The included algorithms were chosen for their high speed, parallelization support, and statistical quality. They pass rigorous statistical tests (BigCrush, PractRand) and provide excellent uniformity, making them suitable for Monte Carlo simulations and other applications requiring high-quality pseudo-randomness. They offer a significant improvement over `Math.random()`, which varies by JavaScript engine and may exhibit statistical flaws.
 
@@ -183,7 +183,7 @@ Per this guidance, automatic seeding using `seed64Array()` internally is done wi
 
 Some PRNG applications may require several (or very many) instances of a PRNG running in parallel - for example, multithreaded or distributed computing processes. In this case it is recommended to use the same set of seeds across all parallel generator instances **in combination with** a unique jump count or stream increment. This approach essentially ensures that randomness quality is maximized across all parallel instances.
 
-See the [`pmc` demo](demo/pmc) for an example that follows this approach, with each generator instance running in a different Node worker thread.
+See the [`pmc` demo](examples/pmc) for an example that follows this approach, with each generator instance running in a different Node worker thread.
 
 #### Generate a Seed Collection
 If you don't have custom seeds already, the `seed64Array()` function is provided. It returns a `bigint[8]` containing seeds generated with SplitMix64 (which in turn was seeded with a combination of the current time and JavaScript's `Math.random()`). This collection can be provided as the `seeds` argument for any PRNG in this package.
@@ -252,9 +252,31 @@ Xoroshiro128Plus.uint64Array(arr);                    // generate & fill
 > project binary, it must be structured in such a way as to create separate WASM 
 > instances from JS. This is the approach used by the included JavaScript/TypeScript wrapper API.
 
+## API Documentation
+
+- **[JavaScript/TypeScript API Documentation](docs/js-api.md)**
+- **[AssemblyScript API Documentation](docs/as-api.md)**
+
+## Examples & Demos
+
+See the [`examples/` folder](examples/) for all available examples and demos.
+
+#### [**`basic-usage` - Getting Started**](examples/basic-usage)
+A simple walkthrough of core features
+- Quick start for new users
+- Covers all major API methods
+- Basic performance comparisons and tips
+- Practical examples (dice simulator, Monte Carlo basics)
+
+#### [**`pmc` - Pi Monte Carlo**](examples/pmc)
+A Monte Carlo statistical estimation of π (pi) using a large quantity of random numbers
+- Node CLI app for advanced users
+- Uses parallel generator instances in `worker_threads`
+- Shares seeds across instances, using a unique jump count / stream increment for each
+
 ## Performance
 
-The goal is to provide random number generation in WASM that's faster and higher-quality than `Math.random()`, and faster than any equivalent JavaScript implementation of these PRNG algorithms. 
+The goal is to provide random number generation in WASM that's faster and higher-quality than `Math.random()`, and faster than any equivalent JavaScript implementation of these PRNG algorithms.
 
 Generator algorithms are implemented in [AssemblyScript](https://www.assemblyscript.org/), a variant of TypeScript that compiles to WASM.
 
@@ -267,22 +289,11 @@ Generator algorithms are implemented in [AssemblyScript](https://www.assemblyscr
 - SIMD acceleration can nearly double throughput for supported algorithms
 - Monte Carlo unit square vs unit circle test included for validation
 
-> ⚡⚡ Performance stats and demos coming soon! ⚡⚡
+> ⚡ Additional performance stats coming soon! ⚡
 
-## Demos
+#### Arrays Deep Dive
 
-See the [`demo/` folder](demo/) for all available demos.
-
-#### [**`pmc` - Pi Monte Carlo**](demo/pmc)
-A Monte Carlo statistical estimation of π (pi) using a large quantity of random numbers
-- Node CLI app
-- Uses parallel generator instances in `worker_threads`
-- Shares seeds across instances, using a unique jump count / stream increment for each
-
-## API Documentation
-
-- **[JavaScript API Documentation](docs/js-api.md)**
-- **[AssemblyScript API Documentation](docs/as-api.md)**
+For a detailed explanation of **why array methods are 3-5× faster** than single-value methods, see **[Understanding Performance: Why Array Methods Are Faster](examples/basic-usage#understanding-performance-why-array-methods-are-faster)**
 
 ## Compatibility
 

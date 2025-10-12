@@ -49,7 +49,7 @@ Creates a WASM pseudo random number generator.
 | `prngType` | [`PRNGType`](#prngtype) | `PRNGType.Xoroshiro128Plus_SIMD` | The PRNG algorithm to use. Defaults to Xoroshiro128Plus_SIMD. |
 | `seeds` | `null` \| `bigint`[] | `null` | Collection of 64-bit integers used to initialize this generator's internal state. 1-8 seeds are required depending on generator type (see [seedCount](#seedcount) or API docs to determine the required seed count). <br><br> Auto-seeds itself if no seeds are provided. |
 | `uniqueStreamId` | `null` \| `number` \| `bigint` | `null` | Determines the unique random stream this generator will return within its period, given a particular starting state. Values <= 0, `null`, or `undefined` will select the default stream. <br><br> This optional unique identifier should be used when sharing the same seeds across parallel generator instances, so that each can provide a unique random stream. <br><br> For Xoshiro generators, this value indicates the number of state jumps to make after seeding. For PCG generators, this value is used as the internal stream increment for state advances. |
-| `outputArraySize` | `number` | `1000` | Size of the output array used when filling WASM memory buffer using the `*Array()` methods. |
+| `outputArraySize` | `number` | `1000` | Size of the output array used when filling WASM memory buffer using the `*Array()` methods (default: 1000). Larger sizes provide convenience but no performance benefit. PRNG generation speed is the bottleneck, rather than array access. Consider WASM memory constraints when increasing. |
 
 ###### Returns
 
@@ -65,7 +65,9 @@ Creates a WASM pseudo random number generator.
 get outputArraySize(): number;
 ```
 
-Gets the size of the array populated by the `*Array()` methods.
+Gets or sets the size of the array populated by the `*Array()` methods (default: 1000).
+Larger sizes provide convenience but no performance benefit. PRNG generation speed
+is the bottleneck, rather than array access. Consider WASM memory constraints when increasing.
 
 ###### Returns
 
@@ -77,13 +79,11 @@ Gets the size of the array populated by the `*Array()` methods.
 set outputArraySize(newSize): void;
 ```
 
-Changes the size of the array populated by the `*Array()` methods.
-
 ###### Parameters
 
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `newSize` | `number` | The count of items to be populated by the `*Array()` methods. |
+| Parameter | Type |
+| ------ | ------ |
+| `newSize` | `number` |
 
 ###### Returns
 
@@ -125,7 +125,8 @@ Gets the number of `bigint`s required to seed this generator instance.
 get seeds(): bigint[];
 ```
 
-Gets the seed collection used to initialize this generator instance.
+Gets the seed collection used to initialize this generator instance, or sets the 
+given seeds and re-initializes the internal state of this generator instance.
 
 ###### Returns
 
@@ -137,13 +138,11 @@ Gets the seed collection used to initialize this generator instance.
 set seeds(newSeeds): void;
 ```
 
-Re-initializes the internal state of this generator instance with the given seeds.
-
 ###### Parameters
 
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `newSeeds` | `bigint`[] | Collection of 64-bit integers used to seed the generator. |
+| Parameter | Type |
+| ------ | ------ |
+| `newSeeds` | `bigint`[] |
 
 ###### Returns
 
@@ -182,7 +181,7 @@ unit circle with radius 1.
 coord(): number;
 ```
 
-Gets this generator's next 53-bit floating point number in range (-1, 1).
+Gets this generator's next 53-bit floating point number in range [-1, 1).
 
 Can be used as part of a coordinate pair in a unit square with radius 1.
 Useful for Monte Carlo simulation.
@@ -200,7 +199,7 @@ randomness that can fit into a JavaScript `number` type.
 coordArray(): Float64Array;
 ```
 
-Fills WASM memory array with this generator's next set of floats in range (-1, 1).
+Fills WASM memory array with this generator's next set of floats in range [-1, 1).
 
 Array size is set when generator is created or by changing [outputArraySize](#outputarraysize).
 
@@ -220,7 +219,7 @@ This output buffer is reused with each call.
 coordSquared(): number;
 ```
 
-Gets the square of this generator's next 53-bit floating point number in range (-1, 1).
+Gets the square of this generator's next 53-bit floating point number in range [-1, 1).
 
 Can be used as part of a coordinate pair in a unit square with radius 1,
 already squared to speed up testing for unit circle inclusion.
@@ -240,7 +239,7 @@ multiplied by itself
 coordSquaredArray(): Float64Array;
 ```
 
-Fills WASM memory array with this generator's next set of floats in range (-1, 1)
+Fills WASM memory array with this generator's next set of floats in range [-1, 1)
 that have been squared.
 
 Array size is set when generator is created or by changing [outputArraySize](#outputarraysize).
