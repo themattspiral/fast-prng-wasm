@@ -29,9 +29,9 @@
   "unpkg": "./dist/index.umd.js",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "require": "./dist/index.js",
       "import": "./dist/index.mjs",
-      "types": "./dist/index.d.ts",
       "default": "./dist/index.mjs"
     },
     "./assembly": {
@@ -45,7 +45,10 @@
   "devDependencies": {
     "@rollup/plugin-typescript": "^12.1.4",
     "@rollup/plugin-wasm": "^6.2.2",
+    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/ui": "^3.2.4",
     "assemblyscript": "~0.27.31",
+    "assemblyscript-unittest-framework": "^1.4.0",
     "conventional-changelog-conventionalcommits": "^9.1.0",
     "rollup": "^4.52.4",
     "rollup-plugin-copy": "^3.5.0",
@@ -54,7 +57,8 @@
     "tslib": "^2.8.1",
     "typedoc": "^0.28.13",
     "typedoc-plugin-markdown": "^4.9.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
   },
   "repository": {
     "type": "git",
@@ -70,6 +74,15 @@
     "docs": "npm run docs:js && npm run docs:as",
     "docs:js": "typedoc --options typedoc.json",
     "docs:as": "typedoc --options src/assembly/typedoc.json --tsconfig src/assembly/tsconfig.json",
+    " // Test: Runs unit tests ------------": "",
+    "test": "npm run test:as && npm run test:js",
+    "test:coverage": "node util/clean-coverage.mjs && npm run test:as:coverage && npm run test:js:coverage",
+    "test:as": "as-test --collectCoverage false",
+    "test:as:coverage": "as-test --collectCoverage true",
+    "test:js": "(node util/check-build.mjs || npm run build) && vitest run",
+    "test:js:ui": "(node util/check-build.mjs || npm run build) && vitest --ui",
+    "test:js:coverage": "(node util/check-build.mjs || npm run build) && vitest run --coverage",
+    "test:js:watch": "vitest watch",
     " // WASM Release: Compiles AssemblyScript to WASM binaries ------------": "",
     "wasm": "npm run wasm:pcg && npm run wasm:xoroshiro128plus && npm run wasm:xoroshiro128plus-simd && npm run wasm:xoshiro256plus && npm run wasm:xoshiro256plus-simd",
     "wasm:pcg": "asc src/assembly/prng/pcg.ts --target pcg --config asconfig.release.json",

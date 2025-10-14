@@ -58,7 +58,7 @@ const arrayStart = performance.now();
 let arraySum = 0;
 
 // 100,000 calls × 1000 results per call = 100M numbers
-// Note: Array sizes > 1000 provide convenience, but no performance benefit
+// Note: Array sizes > 1000 provide no performance benefit
 for (let i = 0; i < 100000; i++) {
     const batch = arrayGen.floatArray(); // Default size is 1000
     // summing the results consumes values without the memory overhead of

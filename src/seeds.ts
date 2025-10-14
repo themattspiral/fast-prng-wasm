@@ -1,8 +1,8 @@
-const seed32 = (): number => {
+function seed32(): number {
     return Date.now() ^ (Math.random() * 0x100000000);
-};
+}
 
-const seed64 = (): bigint => {
+function seed64(): bigint {
     return (BigInt(seed32()) << 32n) | BigInt(seed32());
 }
 
