@@ -121,10 +121,11 @@ export class RandomGenerator {
      * to make after seeding. For PCG generators, this value is used as the
      * internal stream increment for state advances.
      * 
-     * @param outputArraySize Size of the output array used when 
-     * filling WASM memory buffer using the `*Array()` methods (default: 1000).
-     * Larger sizes provide convenience but no performance benefit. PRNG generation speed
-     * is the bottleneck, rather than array access. Consider WASM memory constraints when increasing.
+     * @param outputArraySize Size of the output arrays used when filling WASM memory 
+     * buffer using the `*Array()` methods (default: 1000).
+     * 
+     * This value is immutable after construction due to intentional WASM memory constraints.
+     * Larger sizes provide no performance benefit.
      */
     constructor(
         prngType: PRNGType = PRNGType.Xoroshiro128Plus_SIMD,
@@ -178,18 +179,13 @@ export class RandomGenerator {
     }
 
     /**
-     * Gets or sets the size of the array populated by the `*Array()` methods (default: 1000).
-     * Larger sizes provide convenience but no performance benefit. PRNG generation speed
-     * is the bottleneck, rather than array access. Consider WASM memory constraints when increasing.
+     * Gets the size of the array populated by the `*Array()` methods (default: 1000).
+     * This value is immutable after construction due to intentional WASM memory constraints.
+     *
+     * To use a different array size, create a new generator instance.
      */
     get outputArraySize(): number {
         return this._outputArraySize;
-    }
-    set outputArraySize(newSize: number) {
-        this._instance.freeArray(this._arrayConfig.bigIntOutputArrayPtr);
-        this._instance.freeArray(this._arrayConfig.floatOutputArrayPtr);
-        this._outputArraySize = newSize;
-        this._arrayConfig = this._setupOutputArrays(newSize);
     }
 
     /**
@@ -268,9 +264,9 @@ export class RandomGenerator {
 
     /**
      * Fills WASM memory array with this generator's next set of unsigned 64-bit integers.
-     * 
-     * Array size is set when generator is created or by changing {@link outputArraySize}.
-     * 
+     *
+     * Array size is set when generator is created.
+     *
      * @returns View of the array in WASM memory for this generator, now refilled.
      * This output buffer is reused with each call.
      */
@@ -281,9 +277,9 @@ export class RandomGenerator {
     
     /**
      * Fills WASM memory array with this generator's next set of unsigned 53-bit integers.
-     * 
-     * Array size is set when generator is created or by changing {@link outputArraySize}.
-     * 
+     *
+     * Array size is set when generator is created.
+     *
      * @returns View of the array in WASM memory for this generator, now refilled.
      * This output buffer is reused with each call.
      */
@@ -294,9 +290,9 @@ export class RandomGenerator {
     
     /**
      * Fills WASM memory array with this generator's next set of unsigned 32-bit integers.
-     * 
-     * Array size is set when generator is created or by changing {@link outputArraySize}.
-     * 
+     *
+     * Array size is set when generator is created.
+     *
      * @returns View of the array in WASM memory for this generator, now refilled.
      * This output buffer is reused with each call.
      */
@@ -307,9 +303,9 @@ export class RandomGenerator {
 
     /**
      * Fills WASM memory array with this generator's next set of floats in range [0, 1).
-     * 
-     * Array size is set when generator is created or by changing {@link outputArraySize}.
-     * 
+     *
+     * Array size is set when generator is created.
+     *
      * @returns View of the array in WASM memory for this generator, now refilled.
      * This output buffer is reused with each call.
      */
@@ -320,12 +316,12 @@ export class RandomGenerator {
     
     /**
      * Fills WASM memory array with this generator's next set of floats in range [-1, 1).
-     * 
-     * Array size is set when generator is created or by changing {@link outputArraySize}.
-     * 
+     *
+     * Array size is set when generator is created.
+     *
      * Can be used as part of a coordinate pair in a unit square with radius 1.
      * Useful for Monte Carlo simulation.
-     * 
+     *
      * @returns View of the array in WASM memory for this generator, now refilled.
      * This output buffer is reused with each call.
      */
@@ -337,13 +333,13 @@ export class RandomGenerator {
     /**
      * Fills WASM memory array with this generator's next set of floats in range [-1, 1)
      * that have been squared.
-     * 
-     * Array size is set when generator is created or by changing {@link outputArraySize}.
-     * 
+     *
+     * Array size is set when generator is created.
+     *
      * Can be used as part of a coordinate pair in a unit square with radius 1,
      * already squared to speed up testing for unit circle inclusion.
      * Useful for Monte Carlo simulation.
-     * 
+     *
      * @returns View of the array in WASM memory for this generator, now refilled.
      * This output buffer is reused with each call.
      */
