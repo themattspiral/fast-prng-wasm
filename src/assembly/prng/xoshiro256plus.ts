@@ -21,7 +21,7 @@ import {
 } from '../common/conversion';
 
 // Expose array memory management functions for this WASM module to JS consumers
-export { allocUint64Array, allocFloat64Array, freeArray } from '../common/memory';
+export { allocUint64Array, allocFloat64Array } from '../common/memory';
 
 // Internal state
 let s0: u64 = 0;
