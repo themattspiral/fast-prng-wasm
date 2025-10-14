@@ -47,9 +47,9 @@ Creates a WASM pseudo random number generator.
 | Parameter | Type | Default value | Description |
 | ------ | ------ | ------ | ------ |
 | `prngType` | [`PRNGType`](#prngtype) | `PRNGType.Xoroshiro128Plus_SIMD` | The PRNG algorithm to use. Defaults to Xoroshiro128Plus_SIMD. |
-| `seeds` | `null` \| `bigint`[] | `null` | Collection of 64-bit integers used to initialize this generator's internal state. 1-8 seeds are required depending on generator type (see [seedCount](#seedcount) or API docs to determine the required seed count). <br><br> Auto-seeds itself if no seeds are provided. |
-| `uniqueStreamId` | `null` \| `number` \| `bigint` | `null` | Determines the unique random stream this generator will return within its period, given a particular starting state. Values <= 0, `null`, or `undefined` will select the default stream. <br><br> This optional unique identifier should be used when sharing the same seeds across parallel generator instances, so that each can provide a unique random stream. <br><br> For Xoshiro generators, this value indicates the number of state jumps to make after seeding. For PCG generators, this value is used as the internal stream increment for state advances. |
-| `outputArraySize` | `number` | `1000` | Size of the output array used when filling WASM memory buffer using the `*Array()` methods (default: 1000). Larger sizes provide convenience but no performance benefit. PRNG generation speed is the bottleneck, rather than array access. Consider WASM memory constraints when increasing. |
+| `seeds` | `bigint`[] \| `null` | `null` | Collection of 64-bit integers used to initialize this generator's internal state. 1-8 seeds are required depending on generator type (see [seedCount](#seedcount) or API docs to determine the required seed count). <br><br> Auto-seeds itself if no seeds are provided. |
+| `uniqueStreamId` | `number` \| `bigint` \| `null` | `null` | Determines the unique random stream this generator will return within its period, given a particular starting state. Values <= 0, `null`, or `undefined` will select the default stream. <br><br> This optional unique identifier should be used when sharing the same seeds across parallel generator instances, so that each can provide a unique random stream. <br><br> For Xoshiro generators, this value indicates the number of state jumps to make after seeding. For PCG generators, this value is used as the internal stream increment for state advances. |
+| `outputArraySize` | `number` | `1000` | Size of the output arrays used when filling WASM memory buffer using the `*Array()` methods (default: 1000). This value is immutable after construction due to intentional WASM memory constraints. Larger sizes provide no performance benefit. |
 
 ###### Returns
 
@@ -65,29 +65,14 @@ Creates a WASM pseudo random number generator.
 get outputArraySize(): number;
 ```
 
-Gets or sets the size of the array populated by the `*Array()` methods (default: 1000).
-Larger sizes provide convenience but no performance benefit. PRNG generation speed
-is the bottleneck, rather than array access. Consider WASM memory constraints when increasing.
+Gets the size of the array populated by the `*Array()` methods (default: 1000).
+This value is immutable after construction due to intentional WASM memory constraints.
+
+To use a different array size, create a new generator instance.
 
 ###### Returns
 
 `number`
-
-###### Set Signature
-
-```ts
-set outputArraySize(newSize): void;
-```
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `newSize` | `number` |
-
-###### Returns
-
-`void`
 
 ##### prngType
 
@@ -201,7 +186,7 @@ coordArray(): Float64Array;
 
 Fills WASM memory array with this generator's next set of floats in range [-1, 1).
 
-Array size is set when generator is created or by changing [outputArraySize](#outputarraysize).
+Array size is set when generator is created.
 
 Can be used as part of a coordinate pair in a unit square with radius 1.
 Useful for Monte Carlo simulation.
@@ -242,7 +227,7 @@ coordSquaredArray(): Float64Array;
 Fills WASM memory array with this generator's next set of floats in range [-1, 1)
 that have been squared.
 
-Array size is set when generator is created or by changing [outputArraySize](#outputarraysize).
+Array size is set when generator is created.
 
 Can be used as part of a coordinate pair in a unit square with radius 1,
 already squared to speed up testing for unit circle inclusion.
@@ -278,7 +263,7 @@ floatArray(): Float64Array;
 
 Fills WASM memory array with this generator's next set of floats in range [0, 1).
 
-Array size is set when generator is created or by changing [outputArraySize](#outputarraysize).
+Array size is set when generator is created.
 
 ###### Returns
 
@@ -309,7 +294,7 @@ int32Array(): Float64Array;
 
 Fills WASM memory array with this generator's next set of unsigned 32-bit integers.
 
-Array size is set when generator is created or by changing [outputArraySize](#outputarraysize).
+Array size is set when generator is created.
 
 ###### Returns
 
@@ -343,7 +328,7 @@ int53Array(): Float64Array;
 
 Fills WASM memory array with this generator's next set of unsigned 53-bit integers.
 
-Array size is set when generator is created or by changing [outputArraySize](#outputarraysize).
+Array size is set when generator is created.
 
 ###### Returns
 
@@ -374,7 +359,7 @@ int64Array(): BigUint64Array;
 
 Fills WASM memory array with this generator's next set of unsigned 64-bit integers.
 
-Array size is set when generator is created or by changing [outputArraySize](#outputarraysize).
+Array size is set when generator is created.
 
 ###### Returns
 
@@ -403,7 +388,7 @@ new SplitMix64(seed): SplitMix64;
 
 | Parameter | Type | Default value |
 | ------ | ------ | ------ |
-| `seed` | `null` \| `number` \| `bigint` | `null` |
+| `seed` | `number` \| `bigint` \| `null` | `null` |
 
 ###### Returns
 
@@ -443,7 +428,7 @@ the other generators in this library.
 | Parameter | Type | Default value | Description |
 | ------ | ------ | ------ | ------ |
 | `count` | `number` | `8` | Number of random seeds to generate. |
-| `seed` | `null` \| `number` \| `bigint` | `null` | Seed for SplitMix64 generator initialization. If not provided, will auto-seed using a combination of the current time and Math.random(). |
+| `seed` | `number` \| `bigint` \| `null` | `null` | Seed for SplitMix64 generator initialization. If not provided, will auto-seed using a combination of the current time and Math.random(). |
 
 #### Returns
 

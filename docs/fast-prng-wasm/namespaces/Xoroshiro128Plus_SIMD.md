@@ -313,10 +313,10 @@ Utilizes SIMD.
 
 ***
 
-### uint32x2()
+### uint32AsFloatx2()
 
 ```ts
-function uint32x2(): object;
+function uint32AsFloatx2(): object;
 ```
 
 Gets this generator's next 2 unsigned 32-bit integers.
@@ -370,10 +370,10 @@ Utilizes SIMD.
 
 ***
 
-### uint53x2()
+### uint53AsFloatx2()
 
 ```ts
-function uint53x2(): object;
+function uint53AsFloatx2(): object;
 ```
 
 Gets this generator's next 2 unsigned 53-bit integers.
