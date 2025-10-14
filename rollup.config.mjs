@@ -1,6 +1,5 @@
 import { wasm } from '@rollup/plugin-wasm';
 import typescript from '@rollup/plugin-typescript';
-import copy from 'rollup-plugin-copy';
 import del from 'rollup-plugin-delete';
 import dts from 'rollup-plugin-dts';
 
@@ -36,15 +35,6 @@ export default [
 
                 // always embed as base64 (these will always be small)
                 targetEnv: 'auto-inline'
-            }),
-
-            // make AssemblyScript sources available from the package
-            copy({
-                targets: [
-                    { src: 'src/assembly/index.ts', dest: 'dist/assembly' },
-                    { src: 'src/assembly/prng/*.ts', dest: 'dist/assembly/prng' },
-                    { src: 'src/assembly/common/*.ts', dest: 'dist/assembly/common' }
-                ]
             })
         ]
     },
