@@ -57,7 +57,7 @@ npm run test:js
 npm run test:as:coverage
 
 # Run JavaScript tests with coverage
-npm run test:as:coverage
+npm run test:js:coverage
 ```
 
 Reports will be generated in `coverage/`
