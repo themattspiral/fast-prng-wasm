@@ -24,16 +24,16 @@ jobs:
 
       - name: 📦 Install dependencies (CI)
         run: npm ci
-      
-      - name: 🏗️ Build project
-        run: npm run build
-      
+
       - name: 📝 Check docs are up to date
         run: |
           npm run docs
           git diff --exit-code --name-only
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🏗️ Build project
+        run: npm run build
 
       - name: ⬆️ Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -59,6 +59,7 @@ jobs:
           flags: assemblyscript
           name: AssemblyScript Coverage
           fail_ci_if_error: true
+          disable_search: true
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: 📊 Upload coverage to Codecov (JavaScript)
@@ -68,6 +69,7 @@ jobs:
           flags: javascript
           name: JavaScript Coverage
           fail_ci_if_error: true
+          disable_search: true
           token: ${{ secrets.CODECOV_TOKEN }}
 
   version_and_release:
