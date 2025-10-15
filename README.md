@@ -1,6 +1,7 @@
 # fast-prng-wasm
 
-[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md) [![npm package version](https://img.shields.io/npm/v/fast-prng-wasm.svg?style=flat)](https://www.npmjs.com/package/fast-prng-wasm) [![CI/CD Pipeline](https://github.com/themattspiral/fast-prng-wasm/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/themattspiral/fast-prng-wasm/actions/workflows/ci-cd.yml)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE.md) [![npm package version](https://img.shields.io/npm/v/fast-prng-wasm.svg?style=flat&logo=npm)](https://www.npmjs.com/package/fast-prng-wasm) [![CI/CD Pipeline](https://github.com/themattspiral/fast-prng-wasm/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/themattspiral/fast-prng-wasm/actions/workflows/ci-cd.yml) [![codecov](https://codecov.io/gh/themattspiral/fast-prng-wasm/branch/main/graph/badge.svg)](https://codecov.io/gh/themattspiral/fast-prng-wasm)
+
 
 High-performance, SIMD-enabled, WebAssembly pseudo random number generators (PRNGs) with a seamless TypeScript interface. Faster and better statistical quality than `Math.random()`.
 
