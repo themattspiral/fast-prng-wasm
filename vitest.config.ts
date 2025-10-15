@@ -12,6 +12,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
+      reportsDirectory: 'coverage/js',
 
       // Include source files for coverage tracking
       include: ['src/**/*.ts'],
@@ -26,12 +27,13 @@ export default defineConfig({
         'test/**'
       ],
 
-      // Coverage thresholds
+      // Coverage thresholds - lower than AS since core logic is in WASM
+      // Wrapper tests verify glue code with mocked WASM
       thresholds: {
-        statements: 95,
+        statements: 90,
         branches: 90,
-        functions: 95,
-        lines: 95
+        functions: 90,
+        lines: 90
       },
 
       // Clean coverage results before running tests

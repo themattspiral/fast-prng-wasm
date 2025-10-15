@@ -11,10 +11,10 @@ export default {
   collectCoverage: false,  // Temporarily disabled
 
   coverageLimit: {
-    statements: 90,
-    branches: 90,
-    functions: 90,
-    lines: 90
+    statements: 98,
+    branches: 100,
+    functions: 98,
+    lines: 98
   },
 
   // AssemblyScript compiler flags (enable SIMD support, strip @inline for coverage)
@@ -30,7 +30,7 @@ export default {
     };
   },
 
-  output: "coverage",
+  output: "coverage/as",
 
   mode: ["html", "json", "table"],
 
