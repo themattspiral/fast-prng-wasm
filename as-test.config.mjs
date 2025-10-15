@@ -18,7 +18,7 @@ export default {
   },
 
   // AssemblyScript compiler flags (enable SIMD support, strip @inline for coverage)
-  flags: "--exportStart _start --sourceMap --debug -O0 --enable simd --transform ./util/strip-inline-asc-transform.js",
+  flags: "--exportStart _start --sourceMap --debug -O0 --enable simd --transform ./util/strip-inline-asc-transform.mjs",
 
   imports(runtime) {
     return {
