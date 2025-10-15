@@ -7,9 +7,11 @@ import {
     binValuesInRange,
     calculateBinIndex,
     calculateBigIntBinIndex,
-    estimatePi
+    estimatePi,
+    SERIAL_CORRELATION_THRESHOLD,
+    PI_ESTIMATION_TOLERANCE
 } from '../helpers/stat-utils';
-import { createTestGenerator, getSeedsForPRNG } from '../helpers/test-utils';
+import { createTestGenerator, getSeedsForPRNG, DEFAULT_OUTPUT_ARRAY_SIZE } from '../helpers/test-utils';
 
 describe('Statistical Validation', () => {
     // Chi-square tests have ~5% false failure rate by design,
@@ -84,7 +86,7 @@ describe('Statistical Validation', () => {
             // Use array method for SIMD algorithm per documentation recommendations
             const bins = new Array(binCount).fill(0);
 
-            for (let i = 0; i < UNIFORMITY_SAMPLES / 1000; i++) {
+            for (let i = 0; i < UNIFORMITY_SAMPLES / DEFAULT_OUTPUT_ARRAY_SIZE; i++) {
                 const values = gen.int64Array();
                 for (let j = 0; j < values.length; j++) {
                     const binIndex = calculateBigIntBinIndex(values[j], binCount, min, max);
@@ -130,7 +132,7 @@ describe('Statistical Validation', () => {
             // Use array method for SIMD algorithm per documentation recommendations
             const bins = new Array(binCount).fill(0);
 
-            for (let i = 0; i < UNIFORMITY_SAMPLES / 1000; i++) {
+            for (let i = 0; i < UNIFORMITY_SAMPLES / DEFAULT_OUTPUT_ARRAY_SIZE; i++) {
                 const values = gen.int64Array();
                 for (let j = 0; j < values.length; j++) {
                     const binIndex = calculateBigIntBinIndex(values[j], binCount, min, max);
@@ -252,7 +254,7 @@ describe('Statistical Validation', () => {
                 const correlation = serialCorrelationTest(values);
 
                 // Correlation should be close to 0 (accept between -0.05 and 0.05)
-                expect(Math.abs(correlation)).toBeLessThan(0.05);
+                expect(Math.abs(correlation)).toBeLessThan(SERIAL_CORRELATION_THRESHOLD);
             });
 
             it(`${algo}: coord() values should have low serial correlation`, () => {
@@ -266,7 +268,7 @@ describe('Statistical Validation', () => {
                 const correlation = serialCorrelationTest(values);
 
                 // Correlation should be close to 0
-                expect(Math.abs(correlation)).toBeLessThan(0.05);
+                expect(Math.abs(correlation)).toBeLessThan(SERIAL_CORRELATION_THRESHOLD);
             });
 
             it(`${algo}: coordSquared() values should have low serial correlation`, () => {
@@ -280,7 +282,7 @@ describe('Statistical Validation', () => {
                 const correlation = serialCorrelationTest(values);
 
                 // Correlation should be close to 0
-                expect(Math.abs(correlation)).toBeLessThan(0.05);
+                expect(Math.abs(correlation)).toBeLessThan(SERIAL_CORRELATION_THRESHOLD);
             });
         }
     });
@@ -292,7 +294,7 @@ describe('Statistical Validation', () => {
 
                 // Stream coordinate pairs directly for π estimation without storing full array
                 let insideCircle = 0;
-                const batchCount = PI_ESTIMATION_SAMPLES * 2 / 1000;
+                const batchCount = PI_ESTIMATION_SAMPLES * 2 / DEFAULT_OUTPUT_ARRAY_SIZE;
 
                 for (let i = 0; i < batchCount; i++) {
                     const coords = gen.coordArray();
@@ -308,7 +310,7 @@ describe('Statistical Validation', () => {
                 const piEstimate = 4 * insideCircle / PI_ESTIMATION_SAMPLES;
 
                 // Should be within 0.01 of π (very high probability)
-                expect(Math.abs(piEstimate - Math.PI)).toBeLessThan(0.01);
+                expect(Math.abs(piEstimate - Math.PI)).toBeLessThan(PI_ESTIMATION_TOLERANCE);
             });
 
             it(`${algo}: should estimate π accurately using batchTestUnitCirclePoints()`, () => {
@@ -318,7 +320,7 @@ describe('Statistical Validation', () => {
                 const piEstimate = 4 * insideCircle / PI_ESTIMATION_SAMPLES;
 
                 // Should be within 0.01 of π
-                expect(Math.abs(piEstimate - Math.PI)).toBeLessThan(0.01);
+                expect(Math.abs(piEstimate - Math.PI)).toBeLessThan(PI_ESTIMATION_TOLERANCE);
             });
 
             it(`${algo}: batchTestUnitCirclePoints() should match manual calculation`, () => {
@@ -326,7 +328,7 @@ describe('Statistical Validation', () => {
                 const gen1 = new RandomGenerator(algo, seeds);
                 const gen2 = new RandomGenerator(algo, seeds);
 
-                const pointCount = 10000;
+                const pointCount = DEFAULT_OUTPUT_ARRAY_SIZE * 10;
 
                 // Method 1: Use batch test
                 const insideCircle1 = gen1.batchTestUnitCirclePoints(pointCount);
@@ -334,7 +336,7 @@ describe('Statistical Validation', () => {
                 // Method 2: Manual calculation
                 let insideCircle2 = 0;
 
-                for (let batch = 0; batch < pointCount * 2 / 1000; batch++) {
+                for (let batch = 0; batch < pointCount * 2 / DEFAULT_OUTPUT_ARRAY_SIZE; batch++) {
                     const coords = gen2.coordArray();
 
                     for (let i = 0; i < coords.length; i += 2) {

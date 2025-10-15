@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { RandomGenerator, PRNGType } from 'fast-prng-wasm';
-import { createTestGenerator, TEST_SEEDS } from '../helpers/test-utils';
+import { createTestGenerator, TEST_SEEDS, CUSTOM_ARRAY_SIZE_LARGE, MEMORY_EXCEEDING_ARRAY_SIZE } from '../helpers/test-utils';
 
 describe('Memory Management', () => {
     describe('Array Allocation', () => {
@@ -45,15 +45,15 @@ describe('Memory Management', () => {
         it('should handle reasonably sized arrays within WASM memory constraints', () => {
             // 1 WASM page = 64KB total
             // With 2 arrays (BigUint64Array + Float64Array), ~2KB is reasonable
-            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, TEST_SEEDS.double, null, 2000);
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, TEST_SEEDS.double, null, CUSTOM_ARRAY_SIZE_LARGE);
 
             const floatArray = gen.floatArray();
             const intArray = gen.int64Array();
 
-            expect(floatArray).toHaveLength(2000);
-            expect(intArray).toHaveLength(2000);
+            expect(floatArray).toHaveLength(CUSTOM_ARRAY_SIZE_LARGE);
+            expect(intArray).toHaveLength(CUSTOM_ARRAY_SIZE_LARGE);
             expect(floatArray[0]).toBeDefined();
-            expect(floatArray[1999]).toBeDefined();
+            expect(floatArray[CUSTOM_ARRAY_SIZE_LARGE - 1]).toBeDefined();
         });
 
         it('should fail when attempting to allocate arrays exceeding WASM memory', () => {
@@ -61,7 +61,7 @@ describe('Memory Management', () => {
             // Each array needs space: BigUint64Array (8 bytes/elem) + Float64Array (8 bytes/elem)
             // Plus overhead. 5000 elements = ~80KB total, exceeds 64KB limit
             expect(() => {
-                new RandomGenerator(PRNGType.Xoroshiro128Plus, TEST_SEEDS.double, null, 5000);
+                new RandomGenerator(PRNGType.Xoroshiro128Plus, TEST_SEEDS.double, null, MEMORY_EXCEEDING_ARRAY_SIZE);
             }).toThrow();
         });
     });

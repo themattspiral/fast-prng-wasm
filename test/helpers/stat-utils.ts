@@ -179,3 +179,15 @@ export function estimatePi(coordinates: number[]): number {
 
     return 4 * insideCircle / pointCount;
 }
+
+/**
+ * Serial correlation threshold for independence tests.
+ * Values with |correlation| < this threshold are considered independent.
+ */
+export const SERIAL_CORRELATION_THRESHOLD = 0.05;
+
+/**
+ * Tolerance for Monte Carlo π estimation tests.
+ * With 1M samples, estimates should be within this tolerance of π.
+ */
+export const PI_ESTIMATION_TOLERANCE = 0.01;

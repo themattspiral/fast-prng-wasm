@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { RandomGenerator, PRNGType } from 'fast-prng-wasm';
 
-import { TEST_SEEDS, createTestGenerator, generateSequence } from '../helpers/test-utils';
+import { TEST_SEEDS, createTestGenerator, generateSequence, DEFAULT_OUTPUT_ARRAY_SIZE, CUSTOM_ARRAY_SIZE_SMALL } from '../helpers/test-utils';
 
 describe('Array Methods', () => {
     describe('Buffer Reuse', () => {
@@ -47,7 +47,7 @@ describe('Array Methods', () => {
             const gen2 = new RandomGenerator(PRNGType.Xoroshiro128Plus, TEST_SEEDS.double);
 
             // Generate using single-value method
-            const singleValues = generateSequence<number>(gen1, 1000, 'float');
+            const singleValues = generateSequence<number>(gen1, DEFAULT_OUTPUT_ARRAY_SIZE, 'float');
 
             // Generate using array method
             const arrayValues = Array.from(gen2.floatArray());
@@ -60,7 +60,7 @@ describe('Array Methods', () => {
             const gen2 = new RandomGenerator(PRNGType.Xoroshiro128Plus, TEST_SEEDS.double);
 
             // Generate using single-value method
-            const singleValues = generateSequence<bigint>(gen1, 1000, 'int64');
+            const singleValues = generateSequence<bigint>(gen1, DEFAULT_OUTPUT_ARRAY_SIZE, 'int64');
 
             // Generate using array method
             const arrayValues = Array.from(gen2.int64Array());
@@ -73,7 +73,7 @@ describe('Array Methods', () => {
             const gen2 = new RandomGenerator(PRNGType.Xoroshiro128Plus, TEST_SEEDS.double);
 
             // Generate using single-value method
-            const singleValues = generateSequence<number>(gen1, 1000, 'coord');
+            const singleValues = generateSequence<number>(gen1, DEFAULT_OUTPUT_ARRAY_SIZE, 'coord');
 
             // Generate using array method
             const arrayValues = Array.from(gen2.coordArray());
@@ -86,19 +86,19 @@ describe('Array Methods', () => {
         it('should respect default array size', () => {
             const gen = createTestGenerator();
 
-            expect(gen.floatArray()).toHaveLength(1000);
-            expect(gen.int64Array()).toHaveLength(1000);
-            expect(gen.int53Array()).toHaveLength(1000);
-            expect(gen.int32Array()).toHaveLength(1000);
-            expect(gen.coordArray()).toHaveLength(1000);
-            expect(gen.coordSquaredArray()).toHaveLength(1000);
+            expect(gen.floatArray()).toHaveLength(DEFAULT_OUTPUT_ARRAY_SIZE);
+            expect(gen.int64Array()).toHaveLength(DEFAULT_OUTPUT_ARRAY_SIZE);
+            expect(gen.int53Array()).toHaveLength(DEFAULT_OUTPUT_ARRAY_SIZE);
+            expect(gen.int32Array()).toHaveLength(DEFAULT_OUTPUT_ARRAY_SIZE);
+            expect(gen.coordArray()).toHaveLength(DEFAULT_OUTPUT_ARRAY_SIZE);
+            expect(gen.coordSquaredArray()).toHaveLength(DEFAULT_OUTPUT_ARRAY_SIZE);
         });
 
         it('should respect custom array size from constructor', () => {
-            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus_SIMD, null, null, 500);
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus_SIMD, null, null, CUSTOM_ARRAY_SIZE_SMALL);
 
-            expect(gen.floatArray()).toHaveLength(500);
-            expect(gen.int64Array()).toHaveLength(500);
+            expect(gen.floatArray()).toHaveLength(CUSTOM_ARRAY_SIZE_SMALL);
+            expect(gen.int64Array()).toHaveLength(CUSTOM_ARRAY_SIZE_SMALL);
         });
 
         it('should handle very small array sizes', () => {

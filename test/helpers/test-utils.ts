@@ -115,3 +115,21 @@ export function arraysApproximatelyEqual(a: number[], b: number[], tolerance: nu
 
     return a.every((val, i) => Math.abs(val - b[i]) < tolerance);
 }
+
+/**
+ * Default output array size (matches RandomGenerator default constructor parameter).
+ */
+export const DEFAULT_OUTPUT_ARRAY_SIZE = 1000;
+
+/**
+ * Custom array sizes for testing various scenarios.
+ */
+export const CUSTOM_ARRAY_SIZE_SMALL = 500;
+export const CUSTOM_ARRAY_SIZE_LARGE = 2000;
+
+/**
+ * Array size that exceeds WASM memory limits (1 page = 64KB).
+ * With 2 arrays (BigUint64Array + Float64Array) at 8 bytes/element,
+ * 5000 elements = ~80KB total, which exceeds the 64KB limit.
+ */
+export const MEMORY_EXCEEDING_ARRAY_SIZE = 5000;
