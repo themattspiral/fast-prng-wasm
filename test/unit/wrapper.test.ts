@@ -132,6 +132,38 @@ describe('RandomGenerator Unit Tests', () => {
             }).toThrow(/requires 2 seeds/);
         });
 
+        it('should throw on zero-size arrays', () => {
+            expect(() => {
+                new RandomGenerator(PRNGType.Xoroshiro128Plus, null, null, 0);
+            }).toThrow(/must be positive/);
+        });
+
+        it('should throw on negative array sizes', () => {
+            expect(() => {
+                new RandomGenerator(PRNGType.Xoroshiro128Plus, null, null, -1);
+            }).toThrow(/must be positive/);
+        });
+
+        it('should throw on odd-size arrays for SIMD algorithms', () => {
+            const simdTypes = [
+                PRNGType.Xoroshiro128Plus_SIMD,
+                PRNGType.Xoshiro256Plus_SIMD
+            ];
+
+            for (const type of simdTypes) {
+                expect(() => {
+                    new RandomGenerator(type, null, null, 101);  // Odd size
+                }).toThrow(/requires even outputArraySize/);
+            }
+        });
+
+        it('should accept even-size arrays for SIMD algorithms', () => {
+            expect(() => {
+                const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus_SIMD, null, null, 100);  // Even size
+                expect(gen.outputArraySize).toBe(100);
+            }).not.toThrow();
+        });
+
         it('should set custom outputArraySize', () => {
             const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, SEED_XOROSHIRO128, null, 500);
             expect(gen.outputArraySize).toBe(500);

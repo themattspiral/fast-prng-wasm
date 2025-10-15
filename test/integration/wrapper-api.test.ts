@@ -53,12 +53,6 @@ describe('RandomGenerator', () => {
             expect(diff23).toBe(1000);
         });
 
-        it('should throw error when insufficient seeds provided', () => {
-            expect(() => {
-                new RandomGenerator(PRNGType.Xoshiro256Plus, [1n]); // needs 4 seeds
-            }).toThrow();
-        });
-
         it('should auto-seed when seeds not provided', () => {
             const gen1 = new RandomGenerator();
             const gen2 = new RandomGenerator();
@@ -67,31 +61,6 @@ describe('RandomGenerator', () => {
 
             // Auto-seeded generators should produce different sequences
             expect(gen1.float()).not.toBe(gen2.float());
-        });
-
-        it.skip('should throw on zero-size arrays', () => {
-            expect(() => {
-                new RandomGenerator(PRNGType.Xoroshiro128Plus, null, null, 0);
-            }).toThrow(/positive|greater|size/i);
-        });
-
-        it.skip('should throw on negative array sizes', () => {
-            expect(() => {
-                new RandomGenerator(PRNGType.Xoroshiro128Plus, null, null, -1);
-            }).toThrow(/positive|greater|size/i);
-        });
-
-        it.skip('should throw on odd-size arrays for SIMD algorithms', () => {
-            const simdTypes = [
-                PRNGType.Xoroshiro128Plus_SIMD,
-                PRNGType.Xoshiro256Plus_SIMD
-            ];
-
-            for (const type of simdTypes) {
-                expect(() => {
-                    new RandomGenerator(type, null, null, 101);  // Odd size
-                }).toThrow(/even/i);
-            }
         });
 
         it('should accept even-size arrays for SIMD algorithms', () => {

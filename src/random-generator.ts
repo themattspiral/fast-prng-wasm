@@ -136,6 +136,17 @@ export class RandomGenerator {
         this._seeds = seeds || seed64Array();
         this._outputArraySize = outputArraySize;
 
+        // Validate outputArraySize
+        if (outputArraySize <= 0) {
+            throw new Error(`outputArraySize must be positive, got ${outputArraySize}`);
+        }
+
+        // SIMD algorithms require even-sized arrays (process 2 values at a time)
+        const simdTypes = [PRNGType.Xoroshiro128Plus_SIMD, PRNGType.Xoshiro256Plus_SIMD];
+        if (simdTypes.includes(prngType) && outputArraySize % 2 !== 0) {
+            throw new Error(`${prngType} requires even outputArraySize for SIMD processing, got ${outputArraySize}`);
+        }
+
         // instantiate the WASM instance and get its exported PRNG interface
         this._instance = GENERATORS[this._prngType]().exports;
 
