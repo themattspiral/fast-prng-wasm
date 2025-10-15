@@ -46,9 +46,29 @@ jobs:
             LICENSE.md
           retention-days: 7
 
-      # TODO - testing & coverage
-      # - name: 🧪 Run tests and collect coverage
-      #   run: npm test
+      - name: 🧪 Run AssemblyScript tests with coverage
+        run: npm run test:as:coverage
+
+      - name: 🧪 Run JavaScript tests with coverage
+        run: npm run test:js:coverage
+
+      - name: 📊 Upload coverage to Codecov (AssemblyScript)
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage/as/coverage.json
+          flags: assemblyscript
+          name: AssemblyScript Coverage
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: 📊 Upload coverage to Codecov (JavaScript)
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage/js/coverage-final.json
+          flags: javascript
+          name: JavaScript Coverage
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   version_and_release:
     needs: build_and_test
