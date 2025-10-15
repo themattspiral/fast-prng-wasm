@@ -72,22 +72,21 @@ export class RandomGenerator {
         };
     }
 
-    private _setStreamId(uniqueStreamId: bigint | number | null) {
+    private _selectStream(uniqueStreamId: bigint | number | null) {
         if (uniqueStreamId !== null && uniqueStreamId > 0) {
-            // xoshiro PRNG family calls the jump function a unique number of times
-            // to "space out" the selected stream within the generator's period
+            // Xoshiro/Xoroshiro PRNG family: calls the jump function a unique number
+            // of times to "space out" the selected stream within the generator's period
             if (this._instance.jump) {
                 for (let i = 0; i < uniqueStreamId; i++) {
                     (<JumpablePRNG>this._instance).jump();
                 }
             }
-
-            // PCG PRNG family uses a unique stream increment to permutate the state
-            // within the generator's period
-            // 
+            // PCG PRNG family: uses a unique stream increment to select different
+            // streams within the generator's period
+            //
             // Note that some PCG implementations provide jump-ahead and jump-back
             // functionality as well, similar to the Xoshiro Jump function. In this
-            // library's PCG implementation, we only expose the increment as a way 
+            // library's PCG implementation, we only expose the increment as a way
             // to choose a stream, and have not implemented PCG state jumps.
             else if (this._instance.setStreamIncrement) {
                 (<IncrementablePRNG>this._instance).setStreamIncrement(BigInt(uniqueStreamId));
@@ -121,10 +120,11 @@ export class RandomGenerator {
      * to make after seeding. For PCG generators, this value is used as the
      * internal stream increment for state advances.
      * 
-     * @param outputArraySize Size of the output array used when 
-     * filling WASM memory buffer using the `*Array()` methods (default: 1000).
-     * Larger sizes provide convenience but no performance benefit. PRNG generation speed
-     * is the bottleneck, rather than array access. Consider WASM memory constraints when increasing.
+     * @param outputArraySize Size of the output arrays used when filling WASM memory 
+     * buffer using the `*Array()` methods (default: 1000).
+     * 
+     * This value is immutable after construction due to intentional WASM memory constraints.
+     * Larger sizes provide no performance benefit.
      */
     constructor(
         prngType: PRNGType = PRNGType.Xoroshiro128Plus_SIMD,
@@ -136,6 +136,17 @@ export class RandomGenerator {
         this._seeds = seeds || seed64Array();
         this._outputArraySize = outputArraySize;
 
+        // Validate outputArraySize
+        if (outputArraySize <= 0) {
+            throw new Error(`outputArraySize must be positive, got ${outputArraySize}`);
+        }
+
+        // SIMD algorithms require even-sized arrays (process 2 values at a time)
+        const simdTypes = [PRNGType.Xoroshiro128Plus_SIMD, PRNGType.Xoshiro256Plus_SIMD];
+        if (simdTypes.includes(prngType) && outputArraySize % 2 !== 0) {
+            throw new Error(`${prngType} requires even outputArraySize for SIMD processing, got ${outputArraySize}`);
+        }
+
         // instantiate the WASM instance and get its exported PRNG interface
         this._instance = GENERATORS[this._prngType]().exports;
 
@@ -145,12 +156,18 @@ export class RandomGenerator {
             throw new Error(`Generator type ${this._prngType} requires ${requiredSeedCount} seeds, got ${this._seeds.length}`);
         }
 
-        // seed the generator
-        this._instance.setSeeds(...this._seeds);
-        
-        // choose a unique random stream
-        this._setStreamId(uniqueStreamId);
-        
+        // PCG requires stream increment to be set BEFORE seeding, as the
+        // reference implementation "stirs" the seed using the current increment.
+        // See: https://github.com/imneme/pcg-c-basic/blob/master/pcg_basic.c
+        if (this._prngType === PRNGType.PCG) {
+            this._selectStream(uniqueStreamId);
+            this._instance.setSeeds(...this._seeds);
+        } else {
+            // Other generators seed first, then jump to select stream
+            this._instance.setSeeds(...this._seeds);
+            this._selectStream(uniqueStreamId);
+        }
+
         // allocate WASM memory for bulk array fills
         this._arrayConfig = this._setupOutputArrays(outputArraySize);
     }
@@ -166,30 +183,23 @@ export class RandomGenerator {
     }
 
     /**
-     * Gets the seed collection used to initialize this generator instance, or sets the 
-     * given seeds and re-initializes the internal state of this generator instance.
-     * */
+     * Gets the seed collection used to initialize this generator instance.
+     *
+     * Seeds are immutable after construction. To use different seeds,
+     * create a new generator instance.
+     */
     get seeds(): bigint[] {
         return this._seeds || [];
     }
-    set seeds(newSeeds: bigint[]) {
-        this._seeds = newSeeds;
-        this._instance.setSeeds(...newSeeds);
-    }
 
     /**
-     * Gets or sets the size of the array populated by the `*Array()` methods (default: 1000).
-     * Larger sizes provide convenience but no performance benefit. PRNG generation speed
-     * is the bottleneck, rather than array access. Consider WASM memory constraints when increasing.
+     * Gets the size of the array populated by the `*Array()` methods (default: 1000).
+     * This value is immutable after construction due to intentional WASM memory constraints.
+     *
+     * To use a different array size, create a new generator instance.
      */
     get outputArraySize(): number {
         return this._outputArraySize;
-    }
-    set outputArraySize(newSize: number) {
-        this._instance.freeArray(this._arrayConfig.bigIntOutputArrayPtr);
-        this._instance.freeArray(this._arrayConfig.floatOutputArrayPtr);
-        this._outputArraySize = newSize;
-        this._arrayConfig = this._setupOutputArrays(newSize);
     }
 
     /**
@@ -268,9 +278,9 @@ export class RandomGenerator {
 
     /**
      * Fills WASM memory array with this generator's next set of unsigned 64-bit integers.
-     * 
-     * Array size is set when generator is created or by changing {@link outputArraySize}.
-     * 
+     *
+     * Array size is set when generator is created.
+     *
      * @returns View of the array in WASM memory for this generator, now refilled.
      * This output buffer is reused with each call.
      */
@@ -281,9 +291,9 @@ export class RandomGenerator {
     
     /**
      * Fills WASM memory array with this generator's next set of unsigned 53-bit integers.
-     * 
-     * Array size is set when generator is created or by changing {@link outputArraySize}.
-     * 
+     *
+     * Array size is set when generator is created.
+     *
      * @returns View of the array in WASM memory for this generator, now refilled.
      * This output buffer is reused with each call.
      */
@@ -294,9 +304,9 @@ export class RandomGenerator {
     
     /**
      * Fills WASM memory array with this generator's next set of unsigned 32-bit integers.
-     * 
-     * Array size is set when generator is created or by changing {@link outputArraySize}.
-     * 
+     *
+     * Array size is set when generator is created.
+     *
      * @returns View of the array in WASM memory for this generator, now refilled.
      * This output buffer is reused with each call.
      */
@@ -307,9 +317,9 @@ export class RandomGenerator {
 
     /**
      * Fills WASM memory array with this generator's next set of floats in range [0, 1).
-     * 
-     * Array size is set when generator is created or by changing {@link outputArraySize}.
-     * 
+     *
+     * Array size is set when generator is created.
+     *
      * @returns View of the array in WASM memory for this generator, now refilled.
      * This output buffer is reused with each call.
      */
@@ -320,12 +330,12 @@ export class RandomGenerator {
     
     /**
      * Fills WASM memory array with this generator's next set of floats in range [-1, 1).
-     * 
-     * Array size is set when generator is created or by changing {@link outputArraySize}.
-     * 
+     *
+     * Array size is set when generator is created.
+     *
      * Can be used as part of a coordinate pair in a unit square with radius 1.
      * Useful for Monte Carlo simulation.
-     * 
+     *
      * @returns View of the array in WASM memory for this generator, now refilled.
      * This output buffer is reused with each call.
      */
@@ -337,13 +347,13 @@ export class RandomGenerator {
     /**
      * Fills WASM memory array with this generator's next set of floats in range [-1, 1)
      * that have been squared.
-     * 
-     * Array size is set when generator is created or by changing {@link outputArraySize}.
-     * 
+     *
+     * Array size is set when generator is created.
+     *
      * Can be used as part of a coordinate pair in a unit square with radius 1,
      * already squared to speed up testing for unit circle inclusion.
      * Useful for Monte Carlo simulation.
-     * 
+     *
      * @returns View of the array in WASM memory for this generator, now refilled.
      * This output buffer is reused with each call.
      */

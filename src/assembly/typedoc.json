@@ -4,8 +4,9 @@
     "index.ts"
   ],
   "exclude": [
-    "node_modules", 
-    "**/*.spec.*",
+    "**/node_modules/**",
+    "**/*.test.*",
+    "test/**/*",
 
     // Memory management functions aren't meant for public consumption,
     // as they're only used by the JS wrapper. Assume AS consumers will

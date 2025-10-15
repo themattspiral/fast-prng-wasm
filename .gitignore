@@ -10,3 +10,6 @@
 
 # npm package output
 fast-prng-wasm-*.tgz
+
+# test coverage
+/coverage

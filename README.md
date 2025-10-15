@@ -1,6 +1,7 @@
 # fast-prng-wasm
 
-[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md) [![npm package version](https://img.shields.io/npm/v/fast-prng-wasm.svg?style=flat)](https://www.npmjs.com/package/fast-prng-wasm) [![CI/CD Pipeline](https://github.com/themattspiral/fast-prng-wasm/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/themattspiral/fast-prng-wasm/actions/workflows/ci-cd.yml)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE.md) [![npm package version](https://img.shields.io/npm/v/fast-prng-wasm.svg?style=flat&logo=npm)](https://www.npmjs.com/package/fast-prng-wasm) [![CI/CD Pipeline](https://github.com/themattspiral/fast-prng-wasm/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/themattspiral/fast-prng-wasm/actions/workflows/ci-cd.yml) [![codecov](https://codecov.io/gh/themattspiral/fast-prng-wasm/branch/main/graph/badge.svg)](https://codecov.io/gh/themattspiral/fast-prng-wasm)
+
 
 High-performance, SIMD-enabled, WebAssembly pseudo random number generators (PRNGs) with a seamless TypeScript interface. Faster and better statistical quality than `Math.random()`.
 
@@ -12,6 +13,7 @@ High-performance, SIMD-enabled, WebAssembly pseudo random number generators (PRN
 - [Usage Guide](#usage-guide)
 - [API Documentation](#api-documentation)
 - [Examples & Demos](#examples--demos)
+- [Testing & Verification](#testing--verification)
 - [Performance](#performance)
 - [Compatibility](#compatibility)
 - [Contributing](#contributing)
@@ -140,7 +142,7 @@ console.log(array1[42] === array2[42]);   // true (second call refilled the same
 ```
 
 #### Set Array Output Size
-If you don't need 1000 numbers with each method call, you can specify your preferred size for the output array instead. Note that an array larger than the default of 1000 does not increase performance further in test scenarios.
+If you don't need 1000 numbers with each method call, you can specify your preferred size for the output array via the constructor. Note that an array larger than the default of 1000 does not increase performance further in test scenarios. For a detailed explanation, see: [Understanding Performance: Why Array Methods Are Faster](examples/basic-usage#understanding-performance-why-array-methods-are-faster).
 
 ```typescript
 // Set size of output buffer to 200
@@ -149,16 +151,17 @@ If you don't need 1000 numbers with each method call, you can specify your prefe
 const gen = new RandomGenerator(PRNGType.PCG, null, null, 200);
 let randomArray = gen.floatArray();       // 200 floats in [0, 1)
 
-// Resize output buffer to 42
-gen.outputArraySize = 42;                 // change output array size
-randomArray = gen.floatArray();           // 42 floats in [0, 1)
+// To use a different size, create a new generator instance
+const gen2 = new RandomGenerator(PRNGType.PCG, null, null, 42);
+randomArray = gen2.floatArray();          // 42 floats in [0, 1)
 ```
 
-> **⚙ Configuration Note:** The AssemblyScript compiler configuration in `asconfig.release.json` specifies a fixed WASM memory size of 1 page.
-> This is intentionally kept small to limit resources allocated to WASM instances, but is still enough space for the default of 1000 numbers.
+> **⚙ Memory Constraint Note:** The `outputArraySize` parameter is **immutable after construction** due to intentional memory constraints. We use AssemblyScript's stub runtime for performance, but it employs a simple bump allocator that never frees memory. `asconfig.release.json` specifies a fixed WASM memory size of 1 page (64KB) - intentionally kept small to limit resources, but enough space for the default of 1000 numbers. This allows a maximum array size of ~3000 elements, considering that we allocate 2 types for each generator.
+
+Arrays exceeding memory limits will fail at construction:
 > ```typescript
 > // exceeds the configured memory limits of WASM instances
-> gen.outputArraySize = 5000;             // Runtime Error ⚠️
+> const gen = new RandomGenerator(PRNGType.PCG, null, null, 5000);  // Runtime Error ⚠️
 > ```
 
 ### Manual Seeding
@@ -273,6 +276,33 @@ A Monte Carlo statistical estimation of π (pi) using a large quantity of random
 - Node CLI app for advanced users
 - Uses parallel generator instances in `worker_threads`
 - Shares seeds across instances, using a unique jump count / stream increment for each
+
+## Testing & Verification
+
+This library employs a dual-layer testing strategy to ensure algorithm correctness and statistical quality:
+
+**AssemblyScript Unit Tests** validate core algorithm implementations:
+- **Determinism:** 10K-sample sequences match exactly with same seeds (chance coincidence effectively zero)
+- **Uniqueness:** 10K consecutive values confirmed unique (collision probability ~10⁻¹²)
+- **Range validation:** 10K samples verify correct boundaries (high/low bit coverage >99.99%)
+- **Uniformity smoke tests:** Basic quartile distribution checks across 100K samples
+- **Monte Carlo smoke tests:** π estimation within expected tolerance across 100K samples
+
+**JavaScript Integration Tests** provide rigorous statistical validation:
+- **Chi-square uniformity:** 1M samples detect deviations as small as 0.3% (>99.9% confidence)
+- **Serial correlation:** 100K samples verify independence with standard error ~0.003 (>99.9% confidence)
+- **Monte Carlo π estimation:** 1M samples with tolerance ±0.01 (>99.9% confidence)
+- **Randomized edge case testing:** 10 iterations per test with freshly generated random seeds on each run to catch edge cases fixed seeds might miss
+
+All algorithms are tested for uniqueness, full-range output, array method consistency, and parallel stream independence. The test suite maintains >90% code coverage across both AssemblyScript and JavaScript layers.
+
+| Test Type | Sample Size | Statistical Power | Purpose |
+|-----------|-------------|-------------------|---------|
+| AS: Deterministic | 10K | N/A (deterministic) | Algorithm correctness |
+| AS: Distribution | 100K | >99% confidence | Smoke testing |
+| JS: Chi-square | 1M | >99.9% confidence | Uniformity validation |
+| JS: Correlation | 100K | >99.9% confidence | Independence validation |
+| JS: Monte Carlo | 1M | >99.9% confidence | Comprehensive validation |
 
 ## Performance
 

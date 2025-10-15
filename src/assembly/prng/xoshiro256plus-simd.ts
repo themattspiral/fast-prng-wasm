@@ -37,7 +37,7 @@ import {
 } from '../common/conversion-simd';
 
 // Expose array memory management functions for this WASM module to JS consumers
-export { allocUint64Array, allocFloat64Array, freeArray } from '../common/memory';
+export { allocUint64Array, allocFloat64Array } from '../common/memory';
 
 // Internal state
 let s0: v128 = i64x2.splat(0);

@@ -21,7 +21,7 @@ import {
 } from '../common/conversion';
 
 // Expose array memory management functions for this WASM module to JS consumers
-export { allocUint64Array, allocFloat64Array, freeArray } from '../common/memory';
+export { allocUint64Array, allocFloat64Array } from '../common/memory';
 
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
@@ -40,34 +40,58 @@ export const SEED_COUNT: i32 = 1;
 /**
  * Initializes this generator's internal state with the provided random seed.
  *
- * TODO: This seeding implementation may currently differ from the PCG 
- * reference implementation's seeding pattern.
+ * Follows the PCG reference implementation initialization pattern from
+ * https://github.com/imneme/pcg-c-basic/blob/master/pcg_basic.c
+ *
+ * The reference implementation (pcg32_srandom_r):
+ * 1. Sets state to 0
+ * 2. Advances state once (with current stream increment)
+ * 3. Adds the seed value to state
+ * 4. Advances state again
+ *
+ * This "stirs" the seed using the current stream increment to ensure
+ * proper initialization.
+ *
+ * IMPORTANT: If using a custom stream increment, call setStreamIncrement()
+ * BEFORE calling this function, as the increment must be set before the
+ * seed is mixed in.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function setSeeds(seed: u64): void {
-    state = seed;
-    uint32();
+    state = 0;
+    uint32();       // First advancement
+    state += seed;  // Mix in seed
+    uint32();       // Second advancement
 }
 
 /**
  * Optionally chooses the unique stream to be provided by this generator.
- * 
+ *
  * Two generators given the same seed value(s) will still provide a unique stream
  * of random numbers as long as they use different stream increments.
- *  
+ *
+ * IMPORTANT: Must be called BEFORE setSeeds() to take effect properly.
+ * The seed initialization process "stirs" the seed using the current stream
+ * increment. If you change the increment after seeding, the initialization
+ * will not match the PCG reference implementation behavior.
+ *
+ * See: https://github.com/imneme/pcg-c-basic/blob/master/pcg_basic.c
+ * and: https://github.com/imneme/pcg-cpp/issues/91
+ *
  * @param inc Any integer. It should be unique amongst stream increments used
  * for other parallel generator instances that have been seeded uniformly.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function setStreamIncrement(inc: u64): void {
-    // ensure the increment is odd regardless of value given, in a way
-    // that allows for consecutive integers and still acheives uniqueness
+    // Ensure the increment is odd regardless of value given, in a way
+    // that allows for consecutive integers and still achieves uniqueness.
     streamIncrement = (inc << 1) | 1;
 
-    // advance state
-    uint32();
+    // Note: Unlike previous versions, we do NOT advance state here.
+    // State advancement must only happen during setSeeds() to match
+    // the reference implementation's initialization pattern.
 }
 
 /**

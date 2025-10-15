@@ -60,7 +60,6 @@ export interface PRNG extends WebAssembly.Exports {
   // WASM instance memory management
   allocUint64Array(count: number): number;
   allocFloat64Array(count: number): number;
-  freeArray(arrPtr: number): void;
 }
 
 export interface JumpablePRNG extends PRNG {

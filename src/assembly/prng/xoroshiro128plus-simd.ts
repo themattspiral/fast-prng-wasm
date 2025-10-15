@@ -37,7 +37,7 @@ import {
 } from '../common/conversion-simd';
 
 // Expose array memory management functions for this WASM module to JS consumers
-export { allocUint64Array, allocFloat64Array, freeArray } from '../common/memory';
+export { allocUint64Array, allocFloat64Array } from '../common/memory';
 
 // Internal state
 let s0: v128 = i64x2.splat(0);
@@ -114,25 +114,25 @@ export function uint64x2(): v128 {
 
 /**
  * Gets this generator's next 2 unsigned 53-bit integers.
- * 
+ *
  * @returns 2 unsigned 53-bit integers, returned as `f64`s
  * so that the JS runtime converts them to `number`s.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function uint53x2(): v128 {
+export function uint53AsFloatx2(): v128 {
     return uint64x2_to_uint53AsFloatx2(uint64x2());
 }
 
 /**
  * Gets this generator's next 2 unsigned 32-bit integers.
- * 
+ *
  * @returns 2 unsigned 32-bit integers, returned as `f64`s
  * so that the JS runtime converts them to `number`s.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function uint32x2(): v128 {
+export function uint32AsFloatx2(): v128 {
     return uint64x2_to_uint32AsFloatx2(uint64x2());
 }
 
@@ -345,7 +345,7 @@ export function uint53AsFloatArray(arr: Float64Array): void {
     let rand: v128;
 
     for (let i: i32 = 0; i < arr.length - 1; i += 2) {
-        rand = uint53x2();
+        rand = uint53AsFloatx2();
         unchecked(arr[i] = v128.extract_lane<f64>(rand, 0));
         unchecked(arr[i + 1] = v128.extract_lane<f64>(rand, 1));
     }
@@ -365,7 +365,7 @@ export function uint32AsFloatArray(arr: Float64Array): void {
     let rand: v128;
 
     for (let i: i32 = 0; i < arr.length - 1; i += 2) {
-        rand = uint32x2();
+        rand = uint32AsFloatx2();
         unchecked(arr[i] = v128.extract_lane<f64>(rand, 0));
         unchecked(arr[i + 1] = v128.extract_lane<f64>(rand, 1));
     }
