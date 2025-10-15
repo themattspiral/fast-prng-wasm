@@ -52,10 +52,13 @@ jobs:
       - name: 🧪 Run JavaScript tests with coverage
         run: npm run test:js:coverage
 
+      - name: 🔄 Convert AS coverage to lcov format
+        run: node util/convert-as-coverage-to-lcov.mjs
+
       - name: 📊 Upload coverage to Codecov (AssemblyScript)
         uses: codecov/codecov-action@v4
         with:
-          files: ./coverage/as/coverage.json
+          files: ./coverage/as/lcov.info
           flags: assemblyscript
           name: AssemblyScript Coverage
           fail_ci_if_error: true
@@ -65,7 +68,7 @@ jobs:
       - name: 📊 Upload coverage to Codecov (JavaScript)
         uses: codecov/codecov-action@v4
         with:
-          files: ./coverage/js/coverage-final.json
+          files: ./coverage/js/lcov.info
           flags: javascript
           name: JavaScript Coverage
           fail_ci_if_error: true
