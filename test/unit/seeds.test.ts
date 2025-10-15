@@ -61,10 +61,28 @@ describe('SplitMix64', () => {
             expect(sequence1).toEqual(sequence2);
         });
 
-        it.skip('should produce known output for known seed', () => {
-            // Skip: Test has issues with state management in test environment
-            // The determinism test above adequately covers correctness
-            // TODO - fix address this
+        it('should produce known output for known seed', () => {
+            // Reference values calculated by implementing the reference algorithm from:
+            // https://xoshiro.di.unimi.it/splitmix64.c
+            // The algorithm uses uint64_t arithmetic which wraps at 64 bits.
+            // In JavaScript, we must manually mask BigInt operations with 0xFFFFFFFFFFFFFFFF
+            // to replicate this behavior. These values were verified by running a
+            // JavaScript implementation with proper masking: seed = 12345n produces:
+            const seed = 12345n;
+            const sm64 = new SplitMix64(seed);
+
+            const expected = [
+                2454886589211414944n,
+                3778200017661327597n,
+                2205171434679333405n,
+                3248800117070709450n,
+                9350289611492784363n
+            ];
+
+            for (let i = 0; i < expected.length; i++) {
+                const actual = sm64.next();
+                expect(actual).toBe(expected[i]);
+            }
         });
     });
 });

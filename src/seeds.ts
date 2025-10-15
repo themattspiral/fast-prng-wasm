@@ -13,11 +13,13 @@ function seed64(): bigint {
  * the other generators within this library.
  */
 export class SplitMix64 {
-    _state: bigint = seed64();
+    _state: bigint;
 
     constructor(seed: number | bigint | null = null) {
-        if (seed) {
+        if (seed !== null && seed !== undefined) {
             this._state = BigInt(seed);
+        } else {
+            this._state = seed64();
         }
     }
 
@@ -28,13 +30,16 @@ export class SplitMix64 {
      * This is a fixed-increment version of Java 8's SplittableRandom generator
      * See http://dx.doi.org/10.1145/2714064.2660195 and
      * http://docs.oracle.com/javase/8/docs/api/java/util/SplittableRandom.html
+     *
+     * Note: BigInt arithmetic in JS doesn't automatically wrap at 64 bits like uint64_t in C.
+     * We mask intermediate results to ensure proper 64-bit behavior.
      */
     next(): bigint {
-        this._state += BigInt(0x9e3779b97f4a7c15);
+        this._state = (this._state + 0x9e3779b97f4a7c15n) & 0xFFFFFFFFFFFFFFFFn;
         let z = this._state;
-        z = (z ^ (z >> BigInt(30))) * BigInt(0xbf58476d1ce4e5b9);
-        z = (z ^ (z >> BigInt(27))) * BigInt(0x94d049bb133111eb);
-        return z ^ (z >> BigInt(31));
+        z = ((z ^ (z >> 30n)) * 0xbf58476d1ce4e5b9n) & 0xFFFFFFFFFFFFFFFFn;
+        z = ((z ^ (z >> 27n)) * 0x94d049bb133111ebn) & 0xFFFFFFFFFFFFFFFFn;
+        return z ^ (z >> 31n);
     }
 }
 
