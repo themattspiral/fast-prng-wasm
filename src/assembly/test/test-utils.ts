@@ -90,6 +90,10 @@ export const DISTRIBUTION_SAMPLE_SIZE: i32 = 100000;
 /**
  * Minimum percentage of values that should differ between different seed sets.
  * Used in "different seeds produce different values" tests.
+ *
+ * Test Standards:
+ * - Different seeds: ≥99% different (allows tiny statistical collision chance)
+ * - Jump/stream selection: 100% different (deterministic transforms must be orthogonal)
  */
 export const DIFFERENT_SEEDS_MIN_PERCENT: f64 = 0.99;
 

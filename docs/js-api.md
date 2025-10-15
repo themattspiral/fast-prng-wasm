@@ -110,28 +110,14 @@ Gets the number of `bigint`s required to seed this generator instance.
 get seeds(): bigint[];
 ```
 
-Gets the seed collection used to initialize this generator instance, or sets the 
-given seeds and re-initializes the internal state of this generator instance.
+Gets the seed collection used to initialize this generator instance.
+
+Seeds are immutable after construction. To use different seeds,
+create a new generator instance.
 
 ###### Returns
 
 `bigint`[]
-
-###### Set Signature
-
-```ts
-set seeds(newSeeds): void;
-```
-
-###### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `newSeeds` | `bigint`[] |
-
-###### Returns
-
-`void`
 
 #### Methods
 

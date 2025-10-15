@@ -165,29 +165,6 @@ describe('RandomGenerator Unit Tests', () => {
         });
     });
 
-    describe('Seed setter', () => {
-        it('should update seeds', () => {
-            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, SEED_XOROSHIRO128);
-
-            // Verify wrapper internal state
-            expect(gen.seeds).toEqual(SEED_XOROSHIRO128);
-
-            // Verify constructor set initial seeds
-            expect((gen as any)._instance.setSeeds).toHaveBeenCalledWith(...SEED_XOROSHIRO128);
-
-            // Clear the mock from constructor call
-            vi.clearAllMocks();
-
-            gen.seeds = SEED_ALTERNATE;
-
-            // Verify wrapper internal state
-            expect(gen.seeds).toEqual(SEED_ALTERNATE);
-
-            // Verify wrapper calls setSeeds with correct arguments
-            expect((gen as any)._instance.setSeeds).toHaveBeenCalledWith(...SEED_ALTERNATE);
-        });
-    });
-
     describe('Single value methods', () => {
         it('should call int64() and return bigint', () => {
             const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, SEED_XOROSHIRO128);
@@ -440,12 +417,46 @@ describe('RandomGenerator Unit Tests', () => {
         });
 
         describe('PCG (increment-based stream selection)', () => {
-            it('should call setStreamIncrement() with positive stream ID', () => {
+            it('should call setStreamIncrement() BEFORE setSeeds() with positive stream ID', () => {
                 const streamId = 5;
                 const gen = new RandomGenerator(PRNGType.PCG, SEED_PCG, streamId);
 
+                // Get the mock call data
+                const setStreamIncrementMock = (gen as any)._instance.setStreamIncrement;
+                const setSeedsMock = (gen as any)._instance.setSeeds;
+
                 // Verify setStreamIncrement was called with bigint version of stream ID
-                expect((gen as any)._instance.setStreamIncrement).toHaveBeenCalledWith(BigInt(streamId));
+                expect(setStreamIncrementMock).toHaveBeenCalledWith(BigInt(streamId));
+
+                // Verify setSeeds was called
+                expect(setSeedsMock).toHaveBeenCalledWith(...SEED_PCG);
+
+                // CRITICAL: Verify order - setStreamIncrement must be called BEFORE setSeeds
+                // This is required by PCG's initialization algorithm
+                const setStreamIncrementOrder = setStreamIncrementMock.mock.invocationCallOrder[0];
+                const setSeedsOrder = setSeedsMock.mock.invocationCallOrder[0];
+                expect(setStreamIncrementOrder).toBeLessThan(setSeedsOrder);
+            });
+
+            it('should not call setStreamIncrement() when stream ID is null', () => {
+                const gen = new RandomGenerator(PRNGType.PCG, SEED_PCG, null);
+
+                // Verify setStreamIncrement was not called
+                expect((gen as any)._instance.setStreamIncrement).not.toHaveBeenCalled();
+            });
+
+            it('should not call setStreamIncrement() when stream ID is 0', () => {
+                const gen = new RandomGenerator(PRNGType.PCG, SEED_PCG, 0);
+
+                // Verify setStreamIncrement was not called
+                expect((gen as any)._instance.setStreamIncrement).not.toHaveBeenCalled();
+            });
+
+            it('should not call setStreamIncrement() when stream ID is negative', () => {
+                const gen = new RandomGenerator(PRNGType.PCG, SEED_PCG, -1);
+
+                // Verify setStreamIncrement was not called
+                expect((gen as any)._instance.setStreamIncrement).not.toHaveBeenCalled();
             });
         });
     });

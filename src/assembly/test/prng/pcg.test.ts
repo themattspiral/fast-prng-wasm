@@ -43,6 +43,12 @@ describe('PCG', () => {
   });
 
   describe('Determinism', () => {
+    // NOTE: PCG tests both uint32 (native) and uint64 (derived) in Determinism and Quality
+    // sections because PCG's uint64 is non-trivial - it chains two uint32 calls and advances
+    // state twice. This complexity warrants thorough testing. In contrast, Xoroshiro/Xoshiro
+    // generators only test their native uint64 output here because their uint32 is trivially
+    // derived via a simple bit shift (uint64() >>> 32).
+
     test('uint32 produces identical sequence with same seed', () => {
       const seq1: u32[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
@@ -125,6 +131,12 @@ describe('PCG', () => {
   });
 
   describe('Quality', () => {
+    // NOTE: PCG tests both uint32 (native) and uint64 (derived) in Determinism and Quality
+    // sections because PCG's uint64 is non-trivial - it chains two uint32 calls and advances
+    // state twice. This complexity warrants thorough testing. In contrast, Xoroshiro/Xoshiro
+    // generators only test their native uint64 output here because their uint32 is trivially
+    // derived via a simple bit shift (uint64() >>> 32).
+
     test('uint32 should produce unique values', () => {
       const values = new Set<u32>();
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
@@ -398,17 +410,74 @@ describe('PCG', () => {
     });
   });
 
-  // TODO: Stream Increment tests are currently skipped because the PCG implementation
-  // has a known issue with seeding and stream increment setting (see TODO in pcg.ts).
-  // Both setSeeds() and setStreamIncrement() currently advance state, which causes
-  // test isolation issues. These tests should be re-enabled once the PCG implementation
-  // is corrected to match the reference implementation's seeding pattern.
-  //
-  // describe('Stream Increment', () => {
-  //   test('setStreamIncrement advances state deterministically', () => { ... });
-  //   test('setStreamIncrement produces different sequence', () => { ... });
-  //   test('different stream increments produce different sequences', () => { ... });
-  // });
+  describe('Stream Increment', () => {
+    test('setStreamIncrement with setSeeds produces deterministic sequence', () => {
+      setStreamIncrement(5);
+      setSeeds(TEST_SEEDS.SINGLE);
+      const val1 = uint32();
+
+      setStreamIncrement(5);
+      setSeeds(TEST_SEEDS.SINGLE);
+      const val2 = uint32();
+
+      expect(val1).equal(val2); // Same seed and increment produce same value
+    });
+
+    test('setStreamIncrement produces different sequence from default', () => {
+      // Default stream (no setStreamIncrement call)
+      setSeeds(TEST_SEEDS.SINGLE);
+      const defaultSeq: u32[] = [];
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        defaultSeq.push(uint32());
+      }
+
+      // Custom stream increment
+      setStreamIncrement(2);
+      setSeeds(TEST_SEEDS.SINGLE);
+      const customSeq: u32[] = [];
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        customSeq.push(uint32());
+      }
+
+      // All values should differ (100% different per test standard for stream selection)
+      let differentCount = 0;
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        if (defaultSeq[i] != customSeq[i]) {
+          differentCount++;
+        }
+      }
+
+      expect(differentCount).equal(DETERMINISTIC_SAMPLE_SIZE); // All values differ with different stream increment
+    });
+
+    test('different stream increments produce completely different sequences', () => {
+      // Stream increment 1
+      setStreamIncrement(1);
+      setSeeds(TEST_SEEDS.SINGLE);
+      const seq1: u32[] = [];
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        seq1.push(uint32());
+      }
+
+      // Stream increment 2
+      setStreamIncrement(2);
+      setSeeds(TEST_SEEDS.SINGLE);
+      const seq2: u32[] = [];
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        seq2.push(uint32());
+      }
+
+      // All values should differ (100% different per test standard for stream selection)
+      let differentCount = 0;
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        if (seq1[i] != seq2[i]) {
+          differentCount++;
+        }
+      }
+
+      expect(differentCount).equal(DETERMINISTIC_SAMPLE_SIZE); // All values differ with different stream increments
+    });
+  });
 
   describe('Statistical Smoke Tests', () => {
     test('uint32: basic distribution check (100K samples)', () => {

@@ -114,7 +114,7 @@ describe('RandomGenerator', () => {
         });
     });
 
-    describe('seeds getter/setter', () => {
+    describe('seeds getter', () => {
         it('should get seeds', () => {
             const seeds = TEST_SEEDS.double;
             const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, seeds);
@@ -122,19 +122,14 @@ describe('RandomGenerator', () => {
             expect(gen.seeds).toEqual(seeds);
         });
 
-        it('should reset generator state when seeds are set', () => {
-            const gen1 = new RandomGenerator(PRNGType.Xoroshiro128Plus, TEST_SEEDS.double);
-            const gen2 = new RandomGenerator(PRNGType.Xoroshiro128Plus, TEST_SEEDS.double);
+        it('should be immutable after construction', () => {
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, TEST_SEEDS.double);
 
-            // Generate some values
-            gen1.float();
-            gen1.float();
+            expect(gen.seeds).toEqual(TEST_SEEDS.double);
 
-            // Reset to same seeds
-            gen1.seeds = TEST_SEEDS.double;
-
-            // Should now produce same sequence as gen2
-            expect(gen1.float()).toBe(gen2.float());
+            // Verify no setter exists
+            const descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(gen), 'seeds');
+            expect(descriptor?.set).toBeUndefined();
         });
     });
 

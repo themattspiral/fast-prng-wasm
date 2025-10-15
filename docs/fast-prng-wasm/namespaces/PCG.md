@@ -170,8 +170,21 @@ function setSeeds(seed): void;
 
 Initializes this generator's internal state with the provided random seed.
 
-TODO: This seeding implementation may currently differ from the PCG 
-reference implementation's seeding pattern.
+Follows the PCG reference implementation initialization pattern from
+https://github.com/imneme/pcg-c-basic/blob/master/pcg_basic.c
+
+The reference implementation (pcg32_srandom_r):
+1. Sets state to 0
+2. Advances state once (with current stream increment)
+3. Adds the seed value to state
+4. Advances state again
+
+This "stirs" the seed using the current stream increment to ensure
+proper initialization.
+
+IMPORTANT: If using a custom stream increment, call setStreamIncrement()
+BEFORE calling this function, as the increment must be set before the
+seed is mixed in.
 
 #### Parameters
 
@@ -195,6 +208,14 @@ Optionally chooses the unique stream to be provided by this generator.
 
 Two generators given the same seed value(s) will still provide a unique stream
 of random numbers as long as they use different stream increments.
+
+IMPORTANT: Must be called BEFORE setSeeds() to take effect properly.
+The seed initialization process "stirs" the seed using the current stream
+increment. If you change the increment after seeding, the initialization
+will not match the PCG reference implementation behavior.
+
+See: https://github.com/imneme/pcg-c-basic/blob/master/pcg_basic.c
+and: https://github.com/imneme/pcg-cpp/issues/91
 
 #### Parameters
 

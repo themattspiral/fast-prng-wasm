@@ -72,22 +72,21 @@ export class RandomGenerator {
         };
     }
 
-    private _setStreamId(uniqueStreamId: bigint | number | null) {
+    private _selectStream(uniqueStreamId: bigint | number | null) {
         if (uniqueStreamId !== null && uniqueStreamId > 0) {
-            // xoshiro PRNG family calls the jump function a unique number of times
-            // to "space out" the selected stream within the generator's period
+            // Xoshiro/Xoroshiro PRNG family: calls the jump function a unique number
+            // of times to "space out" the selected stream within the generator's period
             if (this._instance.jump) {
                 for (let i = 0; i < uniqueStreamId; i++) {
                     (<JumpablePRNG>this._instance).jump();
                 }
             }
-
-            // PCG PRNG family uses a unique stream increment to permutate the state
-            // within the generator's period
-            // 
+            // PCG PRNG family: uses a unique stream increment to select different
+            // streams within the generator's period
+            //
             // Note that some PCG implementations provide jump-ahead and jump-back
             // functionality as well, similar to the Xoshiro Jump function. In this
-            // library's PCG implementation, we only expose the increment as a way 
+            // library's PCG implementation, we only expose the increment as a way
             // to choose a stream, and have not implemented PCG state jumps.
             else if (this._instance.setStreamIncrement) {
                 (<IncrementablePRNG>this._instance).setStreamIncrement(BigInt(uniqueStreamId));
@@ -146,12 +145,18 @@ export class RandomGenerator {
             throw new Error(`Generator type ${this._prngType} requires ${requiredSeedCount} seeds, got ${this._seeds.length}`);
         }
 
-        // seed the generator
-        this._instance.setSeeds(...this._seeds);
-        
-        // choose a unique random stream
-        this._setStreamId(uniqueStreamId);
-        
+        // PCG requires stream increment to be set BEFORE seeding, as the
+        // reference implementation "stirs" the seed using the current increment.
+        // See: https://github.com/imneme/pcg-c-basic/blob/master/pcg_basic.c
+        if (this._prngType === PRNGType.PCG) {
+            this._selectStream(uniqueStreamId);
+            this._instance.setSeeds(...this._seeds);
+        } else {
+            // Other generators seed first, then jump to select stream
+            this._instance.setSeeds(...this._seeds);
+            this._selectStream(uniqueStreamId);
+        }
+
         // allocate WASM memory for bulk array fills
         this._arrayConfig = this._setupOutputArrays(outputArraySize);
     }
@@ -167,15 +172,13 @@ export class RandomGenerator {
     }
 
     /**
-     * Gets the seed collection used to initialize this generator instance, or sets the 
-     * given seeds and re-initializes the internal state of this generator instance.
-     * */
+     * Gets the seed collection used to initialize this generator instance.
+     *
+     * Seeds are immutable after construction. To use different seeds,
+     * create a new generator instance.
+     */
     get seeds(): bigint[] {
         return this._seeds || [];
-    }
-    set seeds(newSeeds: bigint[]) {
-        this._seeds = newSeeds;
-        this._instance.setSeeds(...newSeeds);
     }
 
     /**
