@@ -77,7 +77,7 @@ export function jump(): void {
     for (let i: i32 = 0; i < JUMP_256.length; i++) {
         // loop through each bit of the jump value, and if bit is 1, compute a new jump state
         for (let b: i32 = 0; b < 64; b++) {
-            if ((JUMP_256[i] & (1 << b)) != 0) {
+            if ((JUMP_256[i] & ((<u64>1) << b)) != 0) {
                 jump_s0 = v128.xor(jump_s0, s0);
                 jump_s1 = v128.xor(jump_s1, s1);
                 jump_s2 = v128.xor(jump_s2, s2);

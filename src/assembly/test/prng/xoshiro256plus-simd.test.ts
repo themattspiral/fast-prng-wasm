@@ -45,7 +45,8 @@ import {
   U64_Q2_MAX,
   U64_Q3_MAX,
   MAX_SAFE_INTEGER,
-  MAX_UINT32
+  MAX_UINT32,
+  JUMP_REFERENCE
 } from '../test-utils';
 
 describe('Xoshiro256PlusSIMD', () => {
@@ -404,6 +405,85 @@ describe('Xoshiro256PlusSIMD', () => {
 
       expect(differentCount).equal(DETERMINISTIC_SAMPLE_SIZE); // All 10000 values differ after jump
     });
+
+    test('multiple jumps produce non-overlapping sequences', () => {
+      // Create 3 streams with 0, 1, and 2 jumps to validate the parallel computation guarantee
+      const stream0: u64[] = [];
+      setSeeds(TEST_SEEDS.OCTET_0, TEST_SEEDS.OCTET_1, TEST_SEEDS.OCTET_2, TEST_SEEDS.OCTET_3, TEST_SEEDS.OCTET_4, TEST_SEEDS.OCTET_5, TEST_SEEDS.OCTET_6, TEST_SEEDS.OCTET_7);
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        stream0.push(uint64());
+      }
+
+      const stream1: u64[] = [];
+      setSeeds(TEST_SEEDS.OCTET_0, TEST_SEEDS.OCTET_1, TEST_SEEDS.OCTET_2, TEST_SEEDS.OCTET_3, TEST_SEEDS.OCTET_4, TEST_SEEDS.OCTET_5, TEST_SEEDS.OCTET_6, TEST_SEEDS.OCTET_7);
+      jump();
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        stream1.push(uint64());
+      }
+
+      const stream2: u64[] = [];
+      setSeeds(TEST_SEEDS.OCTET_0, TEST_SEEDS.OCTET_1, TEST_SEEDS.OCTET_2, TEST_SEEDS.OCTET_3, TEST_SEEDS.OCTET_4, TEST_SEEDS.OCTET_5, TEST_SEEDS.OCTET_6, TEST_SEEDS.OCTET_7);
+      jump();
+      jump();
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        stream2.push(uint64());
+      }
+
+      const set0 = new Set<u64>();
+      const set1 = new Set<u64>();
+      const set2 = new Set<u64>();
+
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        set0.add(stream0[i]);
+        set1.add(stream1[i]);
+        set2.add(stream2[i]);
+      }
+
+      // Count overlaps by checking if values from one stream exist in another stream's set
+      let overlap_0_1 = 0;
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        if (set1.has(stream0[i])) {
+          overlap_0_1++;
+        }
+      }
+
+      let overlap_1_2 = 0;
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        if (set2.has(stream1[i])) {
+          overlap_1_2++;
+        }
+      }
+
+      let overlap_0_2 = 0;
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        if (set2.has(stream0[i])) {
+          overlap_0_2++;
+        }
+      }
+
+      // With proper jump, there should be no overlaps (or extremely rare collisions)
+      // Allow up to 1 collision due to birthday paradox (very generous)
+      expect(overlap_0_1 <= 1).equal(true); // Stream 0 and 1 should not overlap
+      expect(overlap_1_2 <= 1).equal(true); // Stream 1 and 2 should not overlap
+      expect(overlap_0_2 <= 1).equal(true); // Stream 0 and 2 should not overlap
+    });
+
+    test('jump matches C reference implementation', () => {
+      // Reference value from the official C implementation at:
+      // https://prng.di.unimi.it/xoshiro256plus.c
+      //
+      // With TEST_SEEDS.QUAD_0, TEST_SEEDS.QUAD_1, TEST_SEEDS.QUAD_2, TEST_SEEDS.QUAD_3, after calling jump(),
+      // the first call to next() should return the reference value.
+      //
+      // This value is verified by src/assembly/test/c-reference/validate-jump.c
+      // to ensure our implementation matches the official reference exactly.
+
+      setSeeds(TEST_SEEDS.QUAD_0, TEST_SEEDS.QUAD_1, TEST_SEEDS.QUAD_2, TEST_SEEDS.QUAD_3, TEST_SEEDS.QUAD_0, TEST_SEEDS.QUAD_1, TEST_SEEDS.QUAD_2, TEST_SEEDS.QUAD_3);
+      jump();
+      const result = uint64();
+
+      expect(result).equal(JUMP_REFERENCE.XOSHIRO256PLUS); // Must match C reference implementation
+    });
   });
 
   describe('Statistical Smoke Tests', () => {
@@ -451,7 +531,8 @@ describe('Xoshiro256PlusSIMD', () => {
 
   describe('SIMD-Specific Tests', () => {
     test('uint64x2 produces independent non-zero values in both lanes', () => {
-      let sameCount = 0;
+      const lane0_values: u64[] = [];
+      const lane1_values: u64[] = [];
       let zeroCountLane0 = 0;
       let zeroCountLane1 = 0;
 
@@ -460,14 +541,91 @@ describe('Xoshiro256PlusSIMD', () => {
         const lane0 = v128.extract_lane<u64>(vec, 0);
         const lane1 = v128.extract_lane<u64>(vec, 1);
 
-        if (lane0 == lane1) sameCount++;
+        lane0_values.push(lane0);
+        lane1_values.push(lane1);
+
         if (lane0 == 0) zeroCountLane0++;
         if (lane1 == 0) zeroCountLane1++;
       }
 
-      expect(sameCount).equal(0); // All 10000 SIMD pairs have different lane values
+      // Check for sequence-level overlap between lanes
+      const set_lane0 = new Set<u64>();
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        set_lane0.add(lane0_values[i]);
+      }
+
+      let overlap_count = 0;
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        if (set_lane0.has(lane1_values[i])) {
+          overlap_count++;
+        }
+      }
+
+      expect(overlap_count <= 1).equal(true); // Lanes should have negligible overlap across full sequences
       expect(zeroCountLane0).equal(0); // Lane 0: no zero values in 10000 samples
       expect(zeroCountLane1).equal(0); // Lane 1: no zero values in 10000 samples
+    });
+
+    test('SIMD lanes remain non-overlapping after jump()', () => {
+      // Test that after jumping, the two lanes still don't overlap with each other
+      const lane0_jump: u64[] = [];
+      const lane1_jump: u64[] = [];
+
+      setSeeds(TEST_SEEDS.OCTET_0, TEST_SEEDS.OCTET_1, TEST_SEEDS.OCTET_2, TEST_SEEDS.OCTET_3, TEST_SEEDS.OCTET_4, TEST_SEEDS.OCTET_5, TEST_SEEDS.OCTET_6, TEST_SEEDS.OCTET_7);
+      jump();
+
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        const vec = uint64x2();
+        lane0_jump.push(v128.extract_lane<u64>(vec, 0));
+        lane1_jump.push(v128.extract_lane<u64>(vec, 1));
+      }
+
+      const set_lane0 = new Set<u64>();
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        set_lane0.add(lane0_jump[i]);
+      }
+
+      let overlap_count = 0;
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        if (set_lane0.has(lane1_jump[i])) {
+          overlap_count++;
+        }
+      }
+
+      expect(overlap_count <= 1).equal(true); // Lanes should remain non-overlapping after jump
+    });
+
+    test('SIMD lanes with different jump counts remain non-overlapping', () => {
+      // Cross-lane, cross-jump test: Lane 0 with 0 jumps vs Lane 1 with 1 jump
+      const lane0_no_jump: u64[] = [];
+      const lane1_one_jump: u64[] = [];
+
+      // Get Lane 0 with no jumps
+      setSeeds(TEST_SEEDS.OCTET_0, TEST_SEEDS.OCTET_1, TEST_SEEDS.OCTET_2, TEST_SEEDS.OCTET_3, TEST_SEEDS.OCTET_4, TEST_SEEDS.OCTET_5, TEST_SEEDS.OCTET_6, TEST_SEEDS.OCTET_7);
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        lane0_no_jump.push(v128.extract_lane<u64>(uint64x2(), 0));
+      }
+
+      // Get Lane 1 with one jump
+      setSeeds(TEST_SEEDS.OCTET_0, TEST_SEEDS.OCTET_1, TEST_SEEDS.OCTET_2, TEST_SEEDS.OCTET_3, TEST_SEEDS.OCTET_4, TEST_SEEDS.OCTET_5, TEST_SEEDS.OCTET_6, TEST_SEEDS.OCTET_7);
+      jump();
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        lane1_one_jump.push(v128.extract_lane<u64>(uint64x2(), 1));
+      }
+
+      const set_lane0 = new Set<u64>();
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        set_lane0.add(lane0_no_jump[i]);
+      }
+
+      let overlap_count = 0;
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        if (set_lane0.has(lane1_one_jump[i])) {
+          overlap_count++;
+        }
+      }
+
+      expect(overlap_count <= 1).equal(true); // Cross-lane, cross-jump sequences should not overlap
     });
 
     test('uint53AsFloatx2 produces valid values', () => {

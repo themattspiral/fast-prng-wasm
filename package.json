@@ -82,6 +82,7 @@
     "test:js:ui": "(node util/check-build.mjs || npm run build) && vitest --ui",
     "test:js:coverage": "(node util/check-build.mjs || npm run build) && vitest run --coverage",
     "test:js:watch": "vitest watch",
+    "test:c-ref": "cd src/assembly/test/c-reference && bash build-and-run.sh",
     " // WASM Release: Compiles AssemblyScript to WASM binaries ------------": "",
     "wasm": "npm run wasm:pcg && npm run wasm:xoroshiro128plus && npm run wasm:xoroshiro128plus-simd && npm run wasm:xoshiro256plus && npm run wasm:xoshiro256plus-simd",
     "wasm:pcg": "asc src/assembly/prng/pcg.ts --target pcg --config asconfig.release.json",

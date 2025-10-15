@@ -32,7 +32,8 @@ import {
   U64_Q2_MAX,
   U64_Q3_MAX,
   MAX_SAFE_INTEGER,
-  MAX_UINT32
+  MAX_UINT32,
+  JUMP_REFERENCE
 } from '../test-utils';
 
 describe('Xoshiro256Plus', () => {
@@ -362,6 +363,85 @@ describe('Xoshiro256Plus', () => {
       }
 
       expect(differentCount).equal(DETERMINISTIC_SAMPLE_SIZE); // All values differ after jump
+    });
+
+    test('multiple jumps produce non-overlapping sequences', () => {
+      // Create 3 streams with 0, 1, and 2 jumps
+      const stream0: u64[] = [];
+      setSeeds(TEST_SEEDS.QUAD_0, TEST_SEEDS.QUAD_1, TEST_SEEDS.QUAD_2, TEST_SEEDS.QUAD_3);
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        stream0.push(uint64());
+      }
+
+      const stream1: u64[] = [];
+      setSeeds(TEST_SEEDS.QUAD_0, TEST_SEEDS.QUAD_1, TEST_SEEDS.QUAD_2, TEST_SEEDS.QUAD_3);
+      jump();
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        stream1.push(uint64());
+      }
+
+      const stream2: u64[] = [];
+      setSeeds(TEST_SEEDS.QUAD_0, TEST_SEEDS.QUAD_1, TEST_SEEDS.QUAD_2, TEST_SEEDS.QUAD_3);
+      jump();
+      jump();
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        stream2.push(uint64());
+      }
+
+      const set0 = new Set<u64>();
+      const set1 = new Set<u64>();
+      const set2 = new Set<u64>();
+
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        set0.add(stream0[i]);
+        set1.add(stream1[i]);
+        set2.add(stream2[i]);
+      }
+
+      // Count overlaps by checking if values from one stream exist in another stream's set
+      let overlap_0_1 = 0;
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        if (set1.has(stream0[i])) {
+          overlap_0_1++;
+        }
+      }
+
+      let overlap_1_2 = 0;
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        if (set2.has(stream1[i])) {
+          overlap_1_2++;
+        }
+      }
+
+      let overlap_0_2 = 0;
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        if (set2.has(stream0[i])) {
+          overlap_0_2++;
+        }
+      }
+
+      // With proper jump, there should be no overlaps (or extremely rare collisions)
+      // Allow up to 1 collision due to birthday paradox (very generous)
+      expect(overlap_0_1 <= 1).equal(true); // Stream 0 and 1 should not overlap
+      expect(overlap_1_2 <= 1).equal(true); // Stream 1 and 2 should not overlap
+      expect(overlap_0_2 <= 1).equal(true); // Stream 0 and 2 should not overlap
+    });
+
+    test('jump matches C reference implementation', () => {
+      // Reference value from the official C implementation at:
+      // https://prng.di.unimi.it/xoshiro256plus.c
+      //
+      // With TEST_SEEDS.QUAD_0, TEST_SEEDS.QUAD_1, TEST_SEEDS.QUAD_2, TEST_SEEDS.QUAD_3, after calling jump(),
+      // the first call to next() should return the reference value.
+      //
+      // This value is verified by src/assembly/test/c-reference/validate-jump.c
+      // to ensure our implementation matches the official reference exactly.
+
+      setSeeds(TEST_SEEDS.QUAD_0, TEST_SEEDS.QUAD_1, TEST_SEEDS.QUAD_2, TEST_SEEDS.QUAD_3);
+      jump();
+      const result = uint64();
+
+      expect(result).equal(JUMP_REFERENCE.XOSHIRO256PLUS); // Must match C reference implementation
     });
   });
 

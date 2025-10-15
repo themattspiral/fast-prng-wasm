@@ -25,7 +25,7 @@ describe('RandomGenerator', () => {
             expect(gen.seeds).toEqual(seeds);
         });
 
-        it('should create generators with unique stream IDs that produce independent sequences', () => {
+        it('should create generators with unique stream IDs that produce non-overlapping sequences', () => {
             const [gen1, gen2, gen3] = createParallelGenerators(3, PRNGType.Xoroshiro128Plus, TEST_SEEDS.double);
 
             // Generate 1000 values from each stream to verify independence
@@ -39,7 +39,7 @@ describe('RandomGenerator', () => {
                 seq3.push(gen3.float());
             }
 
-            // Count how many values differ between streams
+            // Point-level check: values at same position should differ (100% different per stream selection standard)
             let diff12 = 0, diff13 = 0, diff23 = 0;
             for (let i = 0; i < 1000; i++) {
                 if (seq1[i] !== seq2[i]) diff12++;
@@ -47,10 +47,73 @@ describe('RandomGenerator', () => {
                 if (seq2[i] !== seq3[i]) diff23++;
             }
 
-            // Different stream IDs produce completely independent sequences - ALL values must differ
-            expect(diff12).toBe(1000);
+            expect(diff12).toBe(1000); // All values at corresponding positions differ
             expect(diff13).toBe(1000);
             expect(diff23).toBe(1000);
+
+            // Sequence-level check: no value from seq1 should appear anywhere in seq2 or seq3
+            const set1 = new Set(seq1);
+            const set2 = new Set(seq2);
+            const set3 = new Set(seq3);
+
+            let overlap_1_2 = 0;
+            let overlap_1_3 = 0;
+            let overlap_2_3 = 0;
+
+            for (let i = 0; i < 1000; i++) {
+                if (set2.has(seq1[i])) overlap_1_2++;
+                if (set3.has(seq1[i])) overlap_1_3++;
+                if (set3.has(seq2[i])) overlap_2_3++;
+            }
+
+            // Allow up to 1 collision due to birthday paradox (very generous)
+            expect(overlap_1_2).toBeLessThanOrEqual(1); // Streams should not overlap
+            expect(overlap_1_3).toBeLessThanOrEqual(1);
+            expect(overlap_2_3).toBeLessThanOrEqual(1);
+        });
+
+        it('should create SIMD generators with unique stream IDs that produce non-overlapping sequences across both lanes', () => {
+            // SIMD generators have 2 lanes. Array methods use both lanes (interleaved).
+            // This test verifies jump() correctly advances both lanes without creating
+            // cross-stream, cross-lane overlaps (similar to AS SIMD jump tests).
+            const [gen1, gen2, gen3] = createParallelGenerators(3, PRNGType.Xoroshiro128Plus_SIMD, TEST_SEEDS.quad);
+
+            // Use array methods which exercise both lanes (values interleaved: lane0, lane1, lane0, lane1, ...)
+            const arr1 = Array.from(gen1.floatArray()); // 1000 values using both lanes
+            const arr2 = Array.from(gen2.floatArray());
+            const arr3 = Array.from(gen3.floatArray());
+
+            // Point-level check: values at same position should differ
+            let diff12 = 0, diff13 = 0, diff23 = 0;
+            for (let i = 0; i < arr1.length; i++) {
+                if (arr1[i] !== arr2[i]) diff12++;
+                if (arr1[i] !== arr3[i]) diff13++;
+                if (arr2[i] !== arr3[i]) diff23++;
+            }
+
+            expect(diff12).toBe(arr1.length); // All values at corresponding positions differ
+            expect(diff13).toBe(arr1.length);
+            expect(diff23).toBe(arr1.length);
+
+            // Sequence-level check: no value from arr1 should appear anywhere in arr2 or arr3
+            const set1 = new Set(arr1);
+            const set2 = new Set(arr2);
+            const set3 = new Set(arr3);
+
+            let overlap_1_2 = 0;
+            let overlap_1_3 = 0;
+            let overlap_2_3 = 0;
+
+            for (let i = 0; i < arr1.length; i++) {
+                if (set2.has(arr1[i])) overlap_1_2++;
+                if (set3.has(arr1[i])) overlap_1_3++;
+                if (set3.has(arr2[i])) overlap_2_3++;
+            }
+
+            // Allow up to 1 collision due to birthday paradox
+            expect(overlap_1_2).toBeLessThanOrEqual(1); // SIMD streams (both lanes) should not overlap
+            expect(overlap_1_3).toBeLessThanOrEqual(1);
+            expect(overlap_2_3).toBeLessThanOrEqual(1);
         });
 
         it('should auto-seed when seeds not provided', () => {

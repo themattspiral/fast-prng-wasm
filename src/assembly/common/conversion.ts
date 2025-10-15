@@ -5,7 +5,7 @@ export const BIT_53: f64 = 9007199254740992.0;
 // used to jump xoshiro / xoroshiro state
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export const JUMP_128: StaticArray<u64> = [0x2bd7a6a6e99c2ddc, 0x0992ccaf6a6fca05];
+export const JUMP_128: StaticArray<u64> = [0xdf900294d8f554a5, 0x170865df4b3201fc];
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export const JUMP_256: StaticArray<u64> = [0x180ec6d33cfd0aba, 0xd5a61266f0c9392c, 0xa9582618e03fc9aa, 0x39abdc4529b1661c];

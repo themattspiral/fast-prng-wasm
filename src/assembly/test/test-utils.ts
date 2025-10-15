@@ -152,3 +152,43 @@ export const MAX_SAFE_INTEGER: f64 = 9007199254740991;
  * Maximum uint32 value (2^32-1) for uint32 range validation.
  */
 export const MAX_UINT32: f64 = 4294967295;
+
+// ============================================================================
+// Jump Function Reference Values
+// ============================================================================
+
+/**
+ * Reference jump values from official C implementations.
+ * Used to validate jump() correctness against authoritative sources.
+ *
+ * Validation methodology:
+ * - Initialize with TEST_SEEDS (complex 64-bit values)
+ * - Call jump() once
+ * - Call next() once
+ * - Compare result to C reference implementation
+ *
+ * These values are generated and verified by src/assembly/test/c-reference/validate-jump.c
+ * which implements the official reference code from https://prng.di.unimi.it/
+ *
+ * To regenerate/verify these values:
+ *   npm run test:c-ref
+ */
+export namespace JUMP_REFERENCE {
+  /**
+   * Xoroshiro128+ reference from https://prng.di.unimi.it/xoroshiro128plus.c
+   * Test seeds: TEST_SEEDS.DOUBLE_0, TEST_SEEDS.DOUBLE_1
+   * Result after jump() then next(): 17359279474558191039
+   *
+   * Verified by: src/assembly/test/c-reference/validate-jump.c
+   */
+  export const XOROSHIRO128PLUS: u64 = 17359279474558191039;
+
+  /**
+   * Xoshiro256+ reference from https://prng.di.unimi.it/xoshiro256plus.c
+   * Test seeds: TEST_SEEDS.QUAD_0, TEST_SEEDS.QUAD_1, TEST_SEEDS.QUAD_2, TEST_SEEDS.QUAD_3
+   * Result after jump() then next(): 1569848409778915303
+   *
+   * Verified by: src/assembly/test/c-reference/validate-jump.c
+   */
+  export const XOSHIRO256PLUS: u64 = 1569848409778915303;
+}
