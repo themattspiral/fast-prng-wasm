@@ -1,3 +1,19 @@
+/**
+ * Scalar Conversion Function Tests
+ *
+ * Tests for uint64 to integer and float conversion functions (non-SIMD).
+ * Converts raw uint64 values to bit-shifted integers (as floats) and actual
+ * floating-point values in various ranges.
+ *
+ * Test Strategy:
+ * - Verify correct output ranges for all conversion types
+ * - Test edge cases (min, max, mid-range, zero)
+ * - Validate bit manipulation (precision, rounding, shifting)
+ *
+ * Contrast: These test scalar conversion functions (single values), while
+ * conversion-simd.test.ts tests SIMD conversions (dual-lane processing).
+ */
+
 import { describe, test, expect } from 'assemblyscript-unittest-framework/assembly';
 import {
   uint64_to_uint53AsFloat,

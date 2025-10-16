@@ -1,9 +1,28 @@
+/**
+ * Memory Management Tests
+ *
+ * Tests for WASM memory allocation and array buffer management.
+ *
+ * Test Strategy:
+ * - Verify arrays are allocated on construction
+ * - Validate separate buffer allocation for float and int arrays
+ * - Test multiple independent generator allocations
+ * - Verify reasonable array sizes work within WASM memory constraints
+ * - Confirm oversized arrays fail gracefully
+ *
+ * Contrast: This file tests memory infrastructure handling/logic through the JS wrapper
+ * (allocation requests, limits, buffer independence), while src/assembly/test/memory.test.ts 
+ * tests the underlying WASM allocation functions we have exposed directly in AssemblyScript,
+ * and array-behavior.test.ts tests array-fill-specific logic correctness (stream consistency
+ * vs single, SIMD interleaving, correct value ranges, and correct array return types). 
+ */
+
 import { describe, it, expect } from 'vitest';
 import { RandomGenerator, PRNGType } from 'fast-prng-wasm';
 import { createTestGenerator, TEST_SEEDS, CUSTOM_ARRAY_SIZE_LARGE, MEMORY_EXCEEDING_ARRAY_SIZE } from '../helpers/test-utils';
 
 describe('Memory Management', () => {
-    describe('Array Allocation', () => {
+    describe('Array Memory Allocation', () => {
         it('should allocate arrays on construction', () => {
             const gen = createTestGenerator();
 

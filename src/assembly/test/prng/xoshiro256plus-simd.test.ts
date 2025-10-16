@@ -1,3 +1,22 @@
+/**
+ * Xoshiro256Plus SIMD PRNG Tests
+ *
+ * Tests for Xoshiro256+ SIMD (dual-lane parallel 256-bit state) PRNG implementation.
+ *
+ * Test Strategy:
+ * - Verify determinism with larger sample sequences (vs integration's smaller samples)
+ * - Test quality metrics (uniqueness, full range usage) on larger samples
+ * - Validate all output formats (uint64, floats, coords) at WASM level for both lanes
+ * - Verify SIMD-specific behavior: dual-lane independence and interleaving
+ * - Test jump() for parallel stream generation with C reference validation
+ * - Validate array methods interleave dual-lane output correctly
+ * - Statistical smoke tests (quartile distribution, Monte Carlo π)
+ *
+ * Contrast: These are deep WASM-level SIMD tests with larger sample sizes testing the raw
+ * PRNG exports directly. Integration tests use smaller samples and test through the JS wrapper
+ * to verify end-to-end wiring across all 5 generator types.
+ */
+
 import { describe, test, expect, beforeEach } from 'assemblyscript-unittest-framework/assembly';
 import {
   setSeeds,

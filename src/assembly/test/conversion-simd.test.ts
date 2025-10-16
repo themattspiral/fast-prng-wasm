@@ -1,3 +1,20 @@
+/**
+ * SIMD Conversion Function Tests
+ *
+ * Tests for uint64x2 to integer and float conversion functions (dual-lane SIMD).
+ * Converts v128 vectors containing two uint64 values to bit-shifted integers
+ * (as floats) and actual floating-point values in various ranges.
+ *
+ * Test Strategy:
+ * - Verify SIMD results match scalar conversions for both lanes
+ * - Test correct lane extraction and independence
+ * - Validate output ranges for all conversion types
+ * - Test edge cases (min, max, mid-range, zero)
+ *
+ * Contrast: These test SIMD conversion functions (dual-lane v128 processing),
+ * while conversion.test.ts tests scalar conversions (single values).
+ */
+
 import { describe, test, expect } from 'assemblyscript-unittest-framework/assembly';
 import {
   uint64_to_uint53AsFloat,

@@ -1,3 +1,25 @@
+/**
+ * PCG PRNG Tests
+ *
+ * Tests for PCG (Permuted Congruential Generator) PRNG implementation.
+ *
+ * Test Strategy:
+ * - Verify determinism with larger sample sequences (vs integration's smaller samples)
+ * - Test quality metrics (uniqueness, full range usage) on larger samples
+ * - Validate all output formats (uint32, uint64, floats, coords) at WASM level
+ * - Verify array methods match single-value sequences (stream consistency)
+ * - Test stream selection via setStreamIncrement (PCG-specific feature)
+ * - Statistical smoke tests (quartile distribution, Monte Carlo π)
+ *
+ * Note: PCG tests both uint32 (native) and uint64 (derived) comprehensively because
+ * PCG's uint64 implementation chains two uint32 calls - this complexity warrants
+ * thorough testing. Other generators only test their native output format.
+ *
+ * Contrast: These are deep WASM-level tests with larger sample sizes testing the raw
+ * PRNG exports directly. Integration tests use smaller samples and test through the JS
+ * wrapper to verify end-to-end wiring across all 5 generator types.
+ */
+
 import { describe, test, expect, beforeEach } from 'assemblyscript-unittest-framework/assembly';
 import {
   setSeeds,

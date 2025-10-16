@@ -18,7 +18,7 @@ import { describe, it, expect } from 'vitest';
 import { RandomGenerator, PRNGType } from 'fast-prng-wasm';
 import { createTestGenerator, TEST_SEEDS, SEED_COUNTS, getSeedsForPRNG, DEFAULT_OUTPUT_ARRAY_SIZE, CUSTOM_ARRAY_SIZE_LARGE } from '../helpers/test-utils';
 
-describe('RandomGenerator', () => {
+describe('RandomGenerator Basic Contruction and Access', () => {
     describe('Constructor', () => {
         it('should create a generator with default settings', () => {
             const gen = new RandomGenerator();
