@@ -173,3 +173,18 @@ export const TEST_STREAM_IDS = {
  * Sample size for integration tests (matches AS DETERMINISTIC_SAMPLE_SIZE).
  */
 export const INTEGRATION_SAMPLE_SIZE = 1000;
+
+/**
+ * Number of parallel generators for multi-generator tests.
+ */
+export const PARALLEL_GENERATOR_COUNT = 3;
+
+/**
+ * Number of times to advance generator state in instance tests.
+ */
+export const INSTANCE_TEST_ADVANCE_COUNT = 10;
+
+/**
+ * Number of samples to compare in instance sequence tests.
+ */
+export const INSTANCE_TEST_SAMPLE_COUNT = 5;
