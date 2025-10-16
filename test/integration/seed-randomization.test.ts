@@ -3,7 +3,7 @@ import { RandomGenerator, PRNGType, seed64Array } from 'fast-prng-wasm';
 import { getSeedsForPRNG, SEED_COUNTS, runRandomizedIteration } from '../helpers/test-utils';
 
 /**
- * Randomized Testing
+ * Randomized Seed Testing
  *
  * This suite runs with different random seeds on each test run to catch
  * potential edge cases that fixed seeds might miss. Each test runs multiple
@@ -11,7 +11,7 @@ import { getSeedsForPRNG, SEED_COUNTS, runRandomizedIteration } from '../helpers
  *
  * These tests complement (not replace) the deterministic test suite.
  */
-describe('Randomized Edge Case Testing', () => {
+describe('Seed Randomization Testing', () => {
     const ITERATION_COUNT = 10; // Run each test 10 times with different seeds
     const TEST_SAMPLE_SIZE = 1000; // Smaller than main tests for speed
 
