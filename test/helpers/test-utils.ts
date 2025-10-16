@@ -4,7 +4,7 @@
  * Shared constants, test seeds, and helper functions for JS integration tests.
  */
 
-import { RandomGenerator, PRNGType } from 'fast-prng-wasm';
+import { RandomGenerator, PRNGType, seed64Array } from 'fast-prng-wasm';
 
 // ============================================================================
 // Test Seeds (Complex 64-bit values)
@@ -234,4 +234,45 @@ export function arraysApproximatelyEqual(a: number[], b: number[], tolerance: nu
     if (a.length !== b.length) return false;
 
     return a.every((val, i) => Math.abs(val - b[i]) < tolerance);
+}
+
+// ============================================================================
+// Randomized Test Helpers
+// ============================================================================
+
+/**
+ * Runs a single iteration of a randomized test with automatic seed logging on failure.
+ *
+ * When randomized tests fail in CI, the generated seeds are lost, making it impossible
+ * to reproduce failures locally. This helper logs seeds on failure to enable debugging.
+ *
+ * @param algo The PRNG algorithm to test
+ * @param iteration Current iteration number (for logging)
+ * @param testFn Test function that receives the generator and seeds
+ *
+ * @example
+ * for (let iteration = 0; iteration < ITERATION_COUNT; iteration++) {
+ *     runRandomizedIteration(algo, iteration, (gen, seeds) => {
+ *         const seq1 = generateSequence(gen, 100, 'float');
+ *         expect(seq1).toHaveLength(100);
+ *     });
+ * }
+ */
+export function runRandomizedIteration(
+    algo: PRNGType,
+    iteration: number,
+    testFn: (gen: RandomGenerator, seeds: bigint[]) => void
+): void {
+    const seedCount = SEED_COUNTS[algo];
+    const seeds = seed64Array(seedCount);
+
+    try {
+        const gen = new RandomGenerator(algo, seeds);
+        testFn(gen, seeds);
+    } catch (error) {
+        console.error(`\n❌ Test failed on iteration ${iteration} (${algo})`);
+        console.error(`   Seeds: [${seeds.join(', ')}]`);
+        console.error(`   To reproduce: const seeds = [${seeds.join('n, ')}n];`);
+        throw error;
+    }
 }
