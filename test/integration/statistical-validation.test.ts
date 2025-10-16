@@ -9,9 +9,15 @@ import {
     calculateBigIntBinIndex,
     estimatePi,
     SERIAL_CORRELATION_THRESHOLD,
-    PI_ESTIMATION_TOLERANCE
+    PI_ESTIMATION_TOLERANCE,
+    CHI_SQUARE_BIN_COUNT_DEFAULT,
+    CHI_SQUARE_BIN_COUNT_COORD,
+    CHI_SQUARE_DF_10_BINS,
+    CHI_SQUARE_DF_20_BINS,
+    COORDS_PER_POINT,
+    PI_ESTIMATION_MULTIPLIER
 } from '../helpers/stat-utils';
-import { createTestGenerator, getSeedsForPRNG, DEFAULT_OUTPUT_ARRAY_SIZE } from '../helpers/test-utils';
+import { createTestGenerator, getSeedsForPRNG, DEFAULT_OUTPUT_ARRAY_SIZE, TWO_POW_32, TWO_POW_53, TWO_POW_64 } from '../helpers/test-utils';
 
 /**
  * Statistical Validation Tests
@@ -47,9 +53,9 @@ describe('Statistical Validation', () => {
 
         it('PCG: int32() should produce uniform distribution', { retry: UNIFORMITY_RETRY_COUNT }, () => {
             const gen = new RandomGenerator(PRNGType.PCG);
-            const binCount = 10;
+            const binCount = CHI_SQUARE_BIN_COUNT_DEFAULT;
             const min = 0;
-            const max = 4294967296; // 2^32
+            const max = TWO_POW_32;
 
             // Stream values directly into bins without storing array
             const bins = new Array(binCount).fill(0);
@@ -63,14 +69,14 @@ describe('Statistical Validation', () => {
             const chiSquare = chiSquareTest(bins, expected);
 
             // 95% confidence for 9 degrees of freedom
-            expect(chiSquare).toBeLessThan(CHI_SQUARE_CRITICAL_VALUES[9]);
+            expect(chiSquare).toBeLessThan(CHI_SQUARE_CRITICAL_VALUES[CHI_SQUARE_DF_10_BINS]);
         });
 
         it('Xoroshiro128Plus: int64() should produce uniform distribution', { retry: UNIFORMITY_RETRY_COUNT }, () => {
             const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus);
-            const binCount = 10;
+            const binCount = CHI_SQUARE_BIN_COUNT_DEFAULT;
             const min = 0n;
-            const max = 2n ** 64n;
+            const max = TWO_POW_64;
 
             // Stream values directly into bins without storing array
             const bins = new Array(binCount).fill(0);
@@ -84,14 +90,14 @@ describe('Statistical Validation', () => {
             const chiSquare = chiSquareTest(bins, expected);
 
             // 95% confidence for 9 degrees of freedom
-            expect(chiSquare).toBeLessThan(CHI_SQUARE_CRITICAL_VALUES[9]);
+            expect(chiSquare).toBeLessThan(CHI_SQUARE_CRITICAL_VALUES[CHI_SQUARE_DF_10_BINS]);
         });
 
         it('Xoroshiro128Plus_SIMD: int64() should produce uniform distribution', { retry: UNIFORMITY_RETRY_COUNT }, () => {
             const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus_SIMD);
-            const binCount = 10;
+            const binCount = CHI_SQUARE_BIN_COUNT_DEFAULT;
             const min = 0n;
-            const max = 2n ** 64n;
+            const max = TWO_POW_64;
 
             // Stream values directly into bins without storing array
             // Use array method for SIMD algorithm per documentation recommendations
@@ -109,14 +115,14 @@ describe('Statistical Validation', () => {
             const chiSquare = chiSquareTest(bins, expected);
 
             // 95% confidence for 9 degrees of freedom
-            expect(chiSquare).toBeLessThan(CHI_SQUARE_CRITICAL_VALUES[9]);
+            expect(chiSquare).toBeLessThan(CHI_SQUARE_CRITICAL_VALUES[CHI_SQUARE_DF_10_BINS]);
         });
 
         it('Xoshiro256Plus: int64() should produce uniform distribution', { retry: UNIFORMITY_RETRY_COUNT }, () => {
             const gen = new RandomGenerator(PRNGType.Xoshiro256Plus);
-            const binCount = 10;
+            const binCount = CHI_SQUARE_BIN_COUNT_DEFAULT;
             const min = 0n;
-            const max = 2n ** 64n;
+            const max = TWO_POW_64;
 
             // Stream values directly into bins without storing array
             const bins = new Array(binCount).fill(0);
@@ -130,14 +136,14 @@ describe('Statistical Validation', () => {
             const chiSquare = chiSquareTest(bins, expected);
 
             // 95% confidence for 9 degrees of freedom
-            expect(chiSquare).toBeLessThan(CHI_SQUARE_CRITICAL_VALUES[9]);
+            expect(chiSquare).toBeLessThan(CHI_SQUARE_CRITICAL_VALUES[CHI_SQUARE_DF_10_BINS]);
         });
 
         it('Xoshiro256Plus_SIMD: int64() should produce uniform distribution', { retry: UNIFORMITY_RETRY_COUNT }, () => {
             const gen = new RandomGenerator(PRNGType.Xoshiro256Plus_SIMD);
-            const binCount = 10;
+            const binCount = CHI_SQUARE_BIN_COUNT_DEFAULT;
             const min = 0n;
-            const max = 2n ** 64n;
+            const max = TWO_POW_64;
 
             // Stream values directly into bins without storing array
             // Use array method for SIMD algorithm per documentation recommendations
@@ -155,7 +161,7 @@ describe('Statistical Validation', () => {
             const chiSquare = chiSquareTest(bins, expected);
 
             // 95% confidence for 9 degrees of freedom
-            expect(chiSquare).toBeLessThan(CHI_SQUARE_CRITICAL_VALUES[9]);
+            expect(chiSquare).toBeLessThan(CHI_SQUARE_CRITICAL_VALUES[CHI_SQUARE_DF_10_BINS]);
         });
     });
 
@@ -169,7 +175,7 @@ describe('Statistical Validation', () => {
 
         it('float() should produce uniform distribution', { retry: UNIFORMITY_RETRY_COUNT }, () => {
             const gen = createTestGenerator();
-            const binCount = 10;
+            const binCount = CHI_SQUARE_BIN_COUNT_DEFAULT;
             const min = 0;
             const max = 1;
 
@@ -185,7 +191,7 @@ describe('Statistical Validation', () => {
             const chiSquare = chiSquareTest(bins, expected);
 
             // 95% confidence for 9 degrees of freedom
-            expect(chiSquare).toBeLessThan(CHI_SQUARE_CRITICAL_VALUES[9]);
+            expect(chiSquare).toBeLessThan(CHI_SQUARE_CRITICAL_VALUES[CHI_SQUARE_DF_10_BINS]);
         });
     });
 
@@ -201,7 +207,7 @@ describe('Statistical Validation', () => {
 
         it('coord() should produce uniform distribution in [-1, 1)', { retry: UNIFORMITY_RETRY_COUNT }, () => {
             const gen = createTestGenerator();
-            const binCount = 20;
+            const binCount = CHI_SQUARE_BIN_COUNT_COORD;
             const min = -1;
             const max = 1;
 
@@ -217,7 +223,7 @@ describe('Statistical Validation', () => {
             const chiSquare = chiSquareTest(bins, expected);
 
             // 95% confidence for 19 degrees of freedom
-            expect(chiSquare).toBeLessThan(CHI_SQUARE_CRITICAL_VALUES[19]);
+            expect(chiSquare).toBeLessThan(CHI_SQUARE_CRITICAL_VALUES[CHI_SQUARE_DF_20_BINS]);
         });
     });
 
@@ -231,9 +237,9 @@ describe('Statistical Validation', () => {
 
         it('int53() should produce uniform distribution', { retry: UNIFORMITY_RETRY_COUNT }, () => {
             const gen = createTestGenerator();
-            const binCount = 10;
+            const binCount = CHI_SQUARE_BIN_COUNT_DEFAULT;
             const min = 0;
-            const max = Math.pow(2, 53); // 2^53
+            const max = TWO_POW_53;
 
             // Stream values directly into bins without storing array
             const bins = new Array(binCount).fill(0);
@@ -247,7 +253,7 @@ describe('Statistical Validation', () => {
             const chiSquare = chiSquareTest(bins, expected);
 
             // 95% confidence for 9 degrees of freedom
-            expect(chiSquare).toBeLessThan(CHI_SQUARE_CRITICAL_VALUES[9]);
+            expect(chiSquare).toBeLessThan(CHI_SQUARE_CRITICAL_VALUES[CHI_SQUARE_DF_10_BINS]);
         });
     });
 
@@ -305,20 +311,20 @@ describe('Statistical Validation', () => {
 
                 // Stream coordinate pairs directly for π estimation without storing full array
                 let insideCircle = 0;
-                const batchCount = PI_ESTIMATION_SAMPLES * 2 / DEFAULT_OUTPUT_ARRAY_SIZE;
+                const batchCount = PI_ESTIMATION_SAMPLES * COORDS_PER_POINT / DEFAULT_OUTPUT_ARRAY_SIZE;
 
                 for (let i = 0; i < batchCount; i++) {
                     const coords = gen.coordArray();
-                    for (let j = 0; j < coords.length; j += 2) {
+                    for (let j = 0; j < coords.length; j += COORDS_PER_POINT) {
                         const x = coords[j];
                         const y = coords[j + 1];
-                        if (x * x + y * y <= 1.0) {
+                        if (x * x + y * y <= 1) {
                             insideCircle++;
                         }
                     }
                 }
 
-                const piEstimate = 4 * insideCircle / PI_ESTIMATION_SAMPLES;
+                const piEstimate = PI_ESTIMATION_MULTIPLIER * insideCircle / PI_ESTIMATION_SAMPLES;
 
                 // Should be within 0.01 of π (very high probability)
                 expect(Math.abs(piEstimate - Math.PI)).toBeLessThan(PI_ESTIMATION_TOLERANCE);
@@ -328,7 +334,7 @@ describe('Statistical Validation', () => {
                 const gen = new RandomGenerator(algo);
 
                 const insideCircle = gen.batchTestUnitCirclePoints(PI_ESTIMATION_SAMPLES);
-                const piEstimate = 4 * insideCircle / PI_ESTIMATION_SAMPLES;
+                const piEstimate = PI_ESTIMATION_MULTIPLIER * insideCircle / PI_ESTIMATION_SAMPLES;
 
                 // Should be within 0.01 of π
                 expect(Math.abs(piEstimate - Math.PI)).toBeLessThan(PI_ESTIMATION_TOLERANCE);
@@ -347,14 +353,14 @@ describe('Statistical Validation', () => {
                 // Method 2: Manual calculation
                 let insideCircle2 = 0;
 
-                for (let batch = 0; batch < pointCount * 2 / DEFAULT_OUTPUT_ARRAY_SIZE; batch++) {
+                for (let batch = 0; batch < pointCount * COORDS_PER_POINT / DEFAULT_OUTPUT_ARRAY_SIZE; batch++) {
                     const coords = gen2.coordArray();
 
-                    for (let i = 0; i < coords.length; i += 2) {
+                    for (let i = 0; i < coords.length; i += COORDS_PER_POINT) {
                         const x = coords[i];
                         const y = coords[i + 1];
 
-                        if (x * x + y * y <= 1.0) {
+                        if (x * x + y * y <= 1) {
                             insideCircle2++;
                         }
                     }

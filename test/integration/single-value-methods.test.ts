@@ -17,7 +17,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { RandomGenerator, PRNGType } from 'fast-prng-wasm';
-import { ALL_PRNG_TYPES, INTEGRATION_SAMPLE_SIZE } from '../helpers/test-utils';
+import { ALL_PRNG_TYPES, INTEGRATION_SAMPLE_SIZE, UINT32_MAX, UINT64_MAX } from '../helpers/test-utils';
 
 describe('RandomGenerator Single-Value Methods', () => {
     ALL_PRNG_TYPES.forEach(prngType => {
@@ -29,7 +29,7 @@ describe('RandomGenerator Single-Value Methods', () => {
 
                     expect(typeof value).toBe('bigint');
                     expect(value).toBeGreaterThanOrEqual(0n);
-                    expect(value).toBeLessThanOrEqual(0xFFFFFFFFFFFFFFFFn);
+                    expect(value).toBeLessThanOrEqual(UINT64_MAX);
                 });
 
                 it('should generate unique values', () => {
@@ -75,7 +75,7 @@ describe('RandomGenerator Single-Value Methods', () => {
                     expect(typeof value).toBe('number');
                     expect(Number.isInteger(value)).toBe(true);
                     expect(value).toBeGreaterThanOrEqual(0);
-                    expect(value).toBeLessThanOrEqual(0xFFFFFFFF);
+                    expect(value).toBeLessThanOrEqual(UINT32_MAX);
                 });
 
                 it('should generate unique values', () => {

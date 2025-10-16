@@ -2,6 +2,68 @@
  * Statistical test utilities for validating PRNG quality
  */
 
+// ============================================================================
+// Chi-Square Test Constants
+// ============================================================================
+
+/**
+ * Default bin count for chi-square uniformity tests.
+ * Using 10 bins provides good balance between granularity and statistical power.
+ */
+export const CHI_SQUARE_BIN_COUNT_DEFAULT = 10;
+
+/**
+ * Bin count for coordinate uniformity tests (range [-1, 1)).
+ * Using 20 bins for the larger coordinate range provides better resolution.
+ */
+export const CHI_SQUARE_BIN_COUNT_COORD = 20;
+
+/**
+ * Degrees of freedom for chi-square test with 10 bins (10 - 1 = 9).
+ * Used to look up critical values for hypothesis testing.
+ */
+export const CHI_SQUARE_DF_10_BINS = 9;
+
+/**
+ * Degrees of freedom for chi-square test with 20 bins (20 - 1 = 19).
+ * Used to look up critical values for hypothesis testing.
+ */
+export const CHI_SQUARE_DF_20_BINS = 19;
+
+// ============================================================================
+// Quartile Test Constants
+// ============================================================================
+
+/**
+ * Quartile boundaries for dividing samples into four equal parts.
+ */
+export const QUARTILE_1_BOUNDARY = 0.25;
+export const QUARTILE_2_BOUNDARY = 0.5;
+export const QUARTILE_3_BOUNDARY = 0.75;
+
+/**
+ * Tolerance bounds for loose quartile distribution tests.
+ * With 1000 samples, expect ~250 per quartile.
+ * Using 40% tolerance (150-350) provides >95% confidence for randomized tests.
+ */
+export const QUARTILE_LOOSE_LOWER_BOUND = 150;
+export const QUARTILE_LOOSE_UPPER_BOUND = 350;
+
+// ============================================================================
+// Monte Carlo Constants
+// ============================================================================
+
+/**
+ * Number of coordinates per point for Monte Carlo tests (x, y pairs).
+ */
+export const COORDS_PER_POINT = 2;
+
+/**
+ * Multiplier for estimating π from circle test ratio.
+ * π ≈ 4 × (points inside circle / total points)
+ */
+export const PI_ESTIMATION_MULTIPLIER = 4;
+
 /**
  * Performs a chi-square test for uniformity on a set of bins.
  *

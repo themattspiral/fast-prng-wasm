@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { RandomGenerator, PRNGType } from 'fast-prng-wasm';
 
-import { TEST_SEEDS, TEST_SEEDS_ALT, createTestGenerator, generateSequence, DEFAULT_OUTPUT_ARRAY_SIZE, CUSTOM_ARRAY_SIZE_SMALL, getSeedsForPRNG, ALL_PRNG_TYPES, NON_SIMD_PRNG_TYPES, INTEGRATION_SAMPLE_SIZE } from '../helpers/test-utils';
+import { TEST_SEEDS, TEST_SEEDS_ALT, createTestGenerator, generateSequence, DEFAULT_OUTPUT_ARRAY_SIZE, CUSTOM_ARRAY_SIZE_SMALL, getSeedsForPRNG, ALL_PRNG_TYPES, NON_SIMD_PRNG_TYPES, INTEGRATION_SAMPLE_SIZE, UINT32_MAX, UINT64_MAX, SIMD_LANE_COUNT } from '../helpers/test-utils';
 
 /**
  * Array Behavior Tests
@@ -151,13 +151,13 @@ describe('Array Behavior', () => {
 
                 // Even indices (lane 0) should differ from odd indices (lane 1)
                 let differences = 0;
-                for (let i = 0; i < DEFAULT_OUTPUT_ARRAY_SIZE / 2; i++) {
-                    if (interleavedArray[i * 2] !== interleavedArray[i * 2 + 1]) {
+                for (let i = 0; i < DEFAULT_OUTPUT_ARRAY_SIZE / SIMD_LANE_COUNT; i++) {
+                    if (interleavedArray[i * SIMD_LANE_COUNT] !== interleavedArray[i * SIMD_LANE_COUNT + 1]) {
                         differences++;
                     }
                 }
                 // All lane0/lane1 pairs should differ
-                expect(differences).toBe(DEFAULT_OUTPUT_ARRAY_SIZE / 2);
+                expect(differences).toBe(DEFAULT_OUTPUT_ARRAY_SIZE / SIMD_LANE_COUNT);
             });
 
             it('should interleave matching streams from both lanes', () => {
@@ -168,15 +168,15 @@ describe('Array Behavior', () => {
                 const lane1Gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, [seeds[2], seeds[3]]);
 
                 const interleavedArray = Array.from(simdGen.floatArray());
-                const lane0Array = generateSequence<number>(lane0Gen, DEFAULT_OUTPUT_ARRAY_SIZE / 2, 'float');
-                const lane1Array = generateSequence<number>(lane1Gen, DEFAULT_OUTPUT_ARRAY_SIZE / 2, 'float');
+                const lane0Array = generateSequence<number>(lane0Gen, DEFAULT_OUTPUT_ARRAY_SIZE / SIMD_LANE_COUNT, 'float');
+                const lane1Array = generateSequence<number>(lane1Gen, DEFAULT_OUTPUT_ARRAY_SIZE / SIMD_LANE_COUNT, 'float');
 
                 // Even indices should match lane 0, odd indices should match lane 1
                 for (let i = 0; i < DEFAULT_OUTPUT_ARRAY_SIZE; i++) {
-                    if (i % 2 === 0) {
-                        expect(interleavedArray[i]).toBe(lane0Array[i / 2]);
+                    if (i % SIMD_LANE_COUNT === 0) {
+                        expect(interleavedArray[i]).toBe(lane0Array[i / SIMD_LANE_COUNT]);
                     } else {
-                        expect(interleavedArray[i]).toBe(lane1Array[(i - 1) / 2]);
+                        expect(interleavedArray[i]).toBe(lane1Array[(i - 1) / SIMD_LANE_COUNT]);
                     }
                 }
             });
@@ -205,13 +205,13 @@ describe('Array Behavior', () => {
 
                 // Even indices (lane 0) should differ from odd indices (lane 1)
                 let differences = 0;
-                for (let i = 0; i < DEFAULT_OUTPUT_ARRAY_SIZE / 2; i++) {
-                    if (interleavedArray[i * 2] !== interleavedArray[i * 2 + 1]) {
+                for (let i = 0; i < DEFAULT_OUTPUT_ARRAY_SIZE / SIMD_LANE_COUNT; i++) {
+                    if (interleavedArray[i * SIMD_LANE_COUNT] !== interleavedArray[i * SIMD_LANE_COUNT + 1]) {
                         differences++;
                     }
                 }
                 // All lane0/lane1 pairs should differ
-                expect(differences).toBe(DEFAULT_OUTPUT_ARRAY_SIZE / 2);
+                expect(differences).toBe(DEFAULT_OUTPUT_ARRAY_SIZE / SIMD_LANE_COUNT);
             });
 
             it('should interleave matching streams from both lanes', () => {
@@ -222,15 +222,15 @@ describe('Array Behavior', () => {
                 const lane1Gen = new RandomGenerator(PRNGType.Xoshiro256Plus, [seeds[4], seeds[5], seeds[6], seeds[7]]);
 
                 const interleavedArray = Array.from(simdGen.floatArray());
-                const lane0Array = generateSequence<number>(lane0Gen, DEFAULT_OUTPUT_ARRAY_SIZE / 2, 'float');
-                const lane1Array = generateSequence<number>(lane1Gen, DEFAULT_OUTPUT_ARRAY_SIZE / 2, 'float');
+                const lane0Array = generateSequence<number>(lane0Gen, DEFAULT_OUTPUT_ARRAY_SIZE / SIMD_LANE_COUNT, 'float');
+                const lane1Array = generateSequence<number>(lane1Gen, DEFAULT_OUTPUT_ARRAY_SIZE / SIMD_LANE_COUNT, 'float');
 
                 // Even indices should match lane 0, odd indices should match lane 1
                 for (let i = 0; i < DEFAULT_OUTPUT_ARRAY_SIZE; i++) {
-                    if (i % 2 === 0) {
-                        expect(interleavedArray[i]).toBe(lane0Array[i / 2]);
+                    if (i % SIMD_LANE_COUNT === 0) {
+                        expect(interleavedArray[i]).toBe(lane0Array[i / SIMD_LANE_COUNT]);
                     } else {
-                        expect(interleavedArray[i]).toBe(lane1Array[(i - 1) / 2]);
+                        expect(interleavedArray[i]).toBe(lane1Array[(i - 1) / SIMD_LANE_COUNT]);
                     }
                 }
             });
@@ -284,7 +284,7 @@ describe('Array Behavior', () => {
 
                     for (const value of array) {
                         expect(value).toBeGreaterThanOrEqual(0n);
-                        expect(value).toBeLessThanOrEqual(0xFFFFFFFFFFFFFFFFn);
+                        expect(value).toBeLessThanOrEqual(UINT64_MAX);
                     }
                 });
 
@@ -306,7 +306,7 @@ describe('Array Behavior', () => {
                     for (const value of array) {
                         expect(Number.isInteger(value)).toBe(true);
                         expect(value).toBeGreaterThanOrEqual(0);
-                        expect(value).toBeLessThanOrEqual(0xFFFFFFFF);
+                        expect(value).toBeLessThanOrEqual(UINT32_MAX);
                     }
                 });
 

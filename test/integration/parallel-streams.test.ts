@@ -20,12 +20,11 @@
 
 import { describe, it, expect } from 'vitest';
 import { RandomGenerator, PRNGType } from 'fast-prng-wasm';
-import { createParallelGenerators, TEST_SEEDS, JUMP_REFERENCE, INTEGRATION_SAMPLE_SIZE } from '../helpers/test-utils';
+import { createParallelGenerators, TEST_SEEDS, JUMP_REFERENCE, INTEGRATION_SAMPLE_SIZE, PARALLEL_GENERATOR_COUNT } from '../helpers/test-utils';
 
 describe('RandomGenerator Parallel Generator Stream Selection', () => {
     it('should create Xoroshiro128Plus generators with unique stream IDs that produce non-overlapping sequences', () => {
-        const numGenerators = 3;
-        const [gen1, gen2, gen3] = createParallelGenerators(numGenerators, PRNGType.Xoroshiro128Plus, TEST_SEEDS.double);
+        const [gen1, gen2, gen3] = createParallelGenerators(PARALLEL_GENERATOR_COUNT, PRNGType.Xoroshiro128Plus, TEST_SEEDS.double);
 
         // Validate first value from gen1 (uniqueStreamId=1) matches C reference
         const firstValue = gen1.float();
@@ -76,8 +75,7 @@ describe('RandomGenerator Parallel Generator Stream Selection', () => {
     });
 
     it('should create Xoshiro256Plus generators with unique stream IDs that produce non-overlapping sequences', () => {
-        const numGenerators = 3;
-        const [gen1, gen2, gen3] = createParallelGenerators(numGenerators, PRNGType.Xoshiro256Plus, TEST_SEEDS.quad);
+        const [gen1, gen2, gen3] = createParallelGenerators(PARALLEL_GENERATOR_COUNT, PRNGType.Xoshiro256Plus, TEST_SEEDS.quad);
 
         // Validate first value from gen1 (uniqueStreamId=1) matches C reference
         const firstValue = gen1.float();
@@ -131,8 +129,7 @@ describe('RandomGenerator Parallel Generator Stream Selection', () => {
         // SIMD generators have 2 lanes. Array methods use both lanes (interleaved).
         // This test verifies jump() correctly advances both lanes without creating
         // cross-stream, cross-lane overlaps (similar to AS SIMD jump tests).
-        const numGenerators = 3;
-        const [gen1, gen2, gen3] = createParallelGenerators(numGenerators, PRNGType.Xoroshiro128Plus_SIMD, TEST_SEEDS.quad);
+        const [gen1, gen2, gen3] = createParallelGenerators(PARALLEL_GENERATOR_COUNT, PRNGType.Xoroshiro128Plus_SIMD, TEST_SEEDS.quad);
 
         // Use array methods which exercise both lanes (values interleaved: lane0, lane1, lane0, lane1, ...)
         const arr1 = Array.from(gen1.floatArray());
@@ -180,8 +177,7 @@ describe('RandomGenerator Parallel Generator Stream Selection', () => {
         // SIMD generators have 2 lanes. Array methods use both lanes (interleaved).
         // This test verifies jump() correctly advances both lanes without creating
         // cross-stream, cross-lane overlaps (similar to AS SIMD jump tests).
-        const numGenerators = 3;
-        const [gen1, gen2, gen3] = createParallelGenerators(numGenerators, PRNGType.Xoshiro256Plus_SIMD, TEST_SEEDS.octet);
+        const [gen1, gen2, gen3] = createParallelGenerators(PARALLEL_GENERATOR_COUNT, PRNGType.Xoshiro256Plus_SIMD, TEST_SEEDS.octet);
 
         // Use array methods which exercise both lanes (values interleaved: lane0, lane1, lane0, lane1, ...)
         const arr1 = Array.from(gen1.floatArray());
@@ -227,8 +223,7 @@ describe('RandomGenerator Parallel Generator Stream Selection', () => {
 
     it('should create PCG generators with different stream increments that produce non-overlapping sequences', () => {
         // PCG uses setStreamIncrement instead of jump() for stream selection
-        const numGenerators = 3;
-        const [gen1, gen2, gen3] = createParallelGenerators(numGenerators, PRNGType.PCG, TEST_SEEDS.single);
+        const [gen1, gen2, gen3] = createParallelGenerators(PARALLEL_GENERATOR_COUNT, PRNGType.PCG, TEST_SEEDS.single);
 
         // Generate sequences from each stream to verify independence
         const seq1: number[] = [];

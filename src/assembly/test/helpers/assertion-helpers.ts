@@ -83,6 +83,28 @@ export function assertGreaterThanOrEqual<T extends number>(value: T, min: T, mes
 }
 
 /**
+ * Asserts that a value is greater than a minimum (exclusive lower bound).
+ *
+ * @param value The value to check
+ * @param min The minimum bound (exclusive)
+ * @param message Optional label describing what's being tested
+ *
+ * @example
+ * assertGreaterThan(result, 0.999, "Near-one threshold");
+ * // On failure: value: 0.998  expect: Near-one threshold: > 0.999
+ */
+export function assertGreaterThan<T extends number>(value: T, min: T, message: string = ""): void {
+  const prefix = message ? `${message}: ` : "";
+
+  assertResult.collectCheckResult(
+    value > min,
+    EXPECT_MAX_INDEX,
+    value.toString(),
+    `${prefix}> ${min.toString()}`
+  );
+}
+
+/**
  * Asserts that a value is less than a maximum (exclusive upper bound).
  *
  * @param value The value to check

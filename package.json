@@ -79,7 +79,6 @@
     "test:as": "as-test --config as-test.config.mjs --collectCoverage false",
     "test:as:coverage": "as-test --config as-test.config.mjs --collectCoverage true",
     "test:js": "(node util/check-build.mjs || npm run build) && vitest run",
-    "test:js:ui": "(node util/check-build.mjs || npm run build) && vitest --ui",
     "test:js:coverage": "(node util/check-build.mjs || npm run build) && vitest run --coverage",
     "test:js:watch": "vitest watch",
     "test:c-ref": "cd src/assembly/test/c-reference && bash build-and-run.sh",

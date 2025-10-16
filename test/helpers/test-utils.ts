@@ -74,6 +74,43 @@ export const NON_SIMD_PRNG_TYPES = [
 ] as const;
 
 // ============================================================================
+// Integer Range and Mathematical Constants
+// ============================================================================
+
+/**
+ * Maximum value for 32-bit unsigned integers.
+ */
+export const UINT32_MAX = 0xFFFFFFFF;
+
+/**
+ * Maximum value for 64-bit unsigned integers (bigint).
+ */
+export const UINT64_MAX = 0xFFFFFFFFFFFFFFFFn;
+
+/**
+ * 2^32 as a number (range of 32-bit unsigned integers).
+ */
+export const TWO_POW_32 = 0x100000000;
+
+/**
+ * 2^53 as a number (maximum safe integer + 1).
+ * Used for int53 range calculations.
+ */
+export const TWO_POW_53 = 9007199254740992;
+
+/**
+ * 2^64 as a bigint (range of 64-bit unsigned integers).
+ * Used for uint64 range calculations.
+ */
+export const TWO_POW_64 = 2n ** 64n;
+
+/**
+ * Number of parallel lanes in SIMD generators.
+ * SIMD generators process two independent streams simultaneously.
+ */
+export const SIMD_LANE_COUNT = 2;
+
+// ============================================================================
 // Test Sample Sizes
 // ============================================================================
 

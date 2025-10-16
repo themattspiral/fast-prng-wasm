@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { RandomGenerator, PRNGType, seed64Array } from 'fast-prng-wasm';
-import { getSeedsForPRNG, SEED_COUNTS, runRandomizedIteration } from '../helpers/test-utils';
+import { getSeedsForPRNG, SEED_COUNTS, runRandomizedIteration, UINT64_MAX } from '../helpers/test-utils';
+import { QUARTILE_1_BOUNDARY, QUARTILE_2_BOUNDARY, QUARTILE_3_BOUNDARY, QUARTILE_LOOSE_LOWER_BOUND, QUARTILE_LOOSE_UPPER_BOUND } from '../helpers/stat-utils';
 
 /**
  * Seed Randomization Chaos Tests
@@ -78,7 +79,7 @@ describe('Seed Randomization Chaos', () => {
                     for (let i = 0; i < TEST_SAMPLE_SIZE; i++) {
                         const value = gen.int64();
                         expect(value).toBeGreaterThanOrEqual(0n);
-                        expect(value).toBeLessThanOrEqual(0xFFFFFFFFFFFFFFFFn);
+                        expect(value).toBeLessThanOrEqual(UINT64_MAX);
                     }
                 });
             }
@@ -110,22 +111,22 @@ describe('Seed Randomization Chaos', () => {
                     let q1 = 0, q2 = 0, q3 = 0, q4 = 0;
                     for (let i = 0; i < TEST_SAMPLE_SIZE; i++) {
                         const val = gen.float();
-                        if (val < 0.25) q1++;
-                        else if (val < 0.5) q2++;
-                        else if (val < 0.75) q3++;
+                        if (val < QUARTILE_1_BOUNDARY) q1++;
+                        else if (val < QUARTILE_2_BOUNDARY) q2++;
+                        else if (val < QUARTILE_3_BOUNDARY) q3++;
                         else q4++;
                     }
 
                     // Very loose bounds - just checking it's not completely broken
                     // Expect ~250 per quartile, allow 150-350 range (40% tolerance)
-                    expect(q1).toBeGreaterThan(150);
-                    expect(q1).toBeLessThan(350);
-                    expect(q2).toBeGreaterThan(150);
-                    expect(q2).toBeLessThan(350);
-                    expect(q3).toBeGreaterThan(150);
-                    expect(q3).toBeLessThan(350);
-                    expect(q4).toBeGreaterThan(150);
-                    expect(q4).toBeLessThan(350);
+                    expect(q1).toBeGreaterThan(QUARTILE_LOOSE_LOWER_BOUND);
+                    expect(q1).toBeLessThan(QUARTILE_LOOSE_UPPER_BOUND);
+                    expect(q2).toBeGreaterThan(QUARTILE_LOOSE_LOWER_BOUND);
+                    expect(q2).toBeLessThan(QUARTILE_LOOSE_UPPER_BOUND);
+                    expect(q3).toBeGreaterThan(QUARTILE_LOOSE_LOWER_BOUND);
+                    expect(q3).toBeLessThan(QUARTILE_LOOSE_UPPER_BOUND);
+                    expect(q4).toBeGreaterThan(QUARTILE_LOOSE_LOWER_BOUND);
+                    expect(q4).toBeLessThan(QUARTILE_LOOSE_UPPER_BOUND);
                 });
             }
         });

@@ -25,13 +25,14 @@ import {
   allocUint64Array,
   allocFloat64Array
 } from '../common/memory';
+import { assertGreaterThan } from './helpers/assertion-helpers';
 
 describe('Memory Management', () => {
   describe('allocUint64Array', () => {
     test('should return non-zero pointer', () => {
       const ptr = allocUint64Array(10);
 
-      expect(ptr > 0).equal(true); // Pointer is non-zero
+      assertGreaterThan(ptr, 0, "Pointer is non-zero");
     });
 
     test('should allocate array with correct length', () => {
@@ -58,7 +59,7 @@ describe('Memory Management', () => {
     test('should return non-zero pointer', () => {
       const ptr = allocFloat64Array(10);
 
-      expect(ptr > 0).equal(true); // Pointer is non-zero
+      assertGreaterThan(ptr, 0, "Pointer is non-zero");
     });
 
     test('should allocate array with correct length', () => {

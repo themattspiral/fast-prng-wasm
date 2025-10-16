@@ -158,6 +158,39 @@ export const MAX_SAFE_INTEGER: f64 = 9007199254740991;
 export const MAX_UINT32: f64 = 4294967295;
 
 // ============================================================================
+// Precision and Tolerance Constants
+// ============================================================================
+
+/**
+ * High-precision floating-point tolerance for validating conversion accuracy.
+ * Used to verify that computed values match expected values within numerical precision limits.
+ */
+export const HIGH_PRECISION_TOLERANCE: f64 = 1e-15;
+
+/**
+ * Expected lower bound for max uint64 when converted to float53.
+ * The conversion (0xFFFFFFFFFFFFFFFF >>> 11) / 2^53 produces exactly 0.9999999999999998889...
+ * This is a deterministic mathematical property, not a statistical threshold.
+ */
+export const MAX_UINT64_TO_FLOAT_LOWER_BOUND: f64 = 0.999999;
+
+// ============================================================================
+// SIMD Constants
+// ============================================================================
+
+/**
+ * SIMD lane indices for v128 extraction.
+ */
+export const SIMD_LANE_0: i32 = 0;
+export const SIMD_LANE_1: i32 = 1;
+
+/**
+ * Divisor for computing half-sample sizes in SIMD interleaving tests.
+ * SIMD generators produce interleaved dual-lane output, so samples are split evenly.
+ */
+export const SIMD_INTERLEAVE_DIVISOR: i32 = 2;
+
+// ============================================================================
 // Jump Function Reference Values
 // ============================================================================
 
