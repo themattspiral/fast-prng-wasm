@@ -26,24 +26,26 @@ describe('Seed Randomization Chaos', () => {
 
     describe('Determinism with Random Seeds', () => {
         for (const algo of ALL_ALGORITHMS) {
-            it(`${algo}: should maintain determinism across random seed values`, () => {
-                for (let iteration = 0; iteration < ITERATION_COUNT; iteration++) {
-                    runRandomizedIteration(algo, iteration, (gen1, seeds) => {
-                        const gen2 = new RandomGenerator(algo, seeds);
+            describe(algo, () => {
+                it('should maintain determinism across random seed values', () => {
+                    for (let iteration = 0; iteration < ITERATION_COUNT; iteration++) {
+                        runRandomizedIteration(algo, iteration, (gen1, seeds) => {
+                            const gen2 = new RandomGenerator(algo, seeds);
 
-                        // Generate sequences from both generators
-                        const seq1: number[] = [];
-                        const seq2: number[] = [];
+                            // Generate sequences from both generators
+                            const seq1: number[] = [];
+                            const seq2: number[] = [];
 
-                        for (let i = 0; i < TEST_SAMPLE_SIZE; i++) {
-                            seq1.push(gen1.float());
-                            seq2.push(gen2.float());
-                        }
+                            for (let i = 0; i < TEST_SAMPLE_SIZE; i++) {
+                                seq1.push(gen1.float());
+                                seq2.push(gen2.float());
+                            }
 
-                        // All values must match exactly
-                        expect(seq1).toEqual(seq2);
-                    });
-                }
+                            // All values must match exactly
+                            expect(seq1).toEqual(seq2);
+                        });
+                    }
+                });
             });
         }
     });
@@ -88,18 +90,20 @@ describe('Seed Randomization Chaos', () => {
 
     describe('Uniqueness with Random Seeds', () => {
         for (const algo of ALL_ALGORITHMS) {
-            it(`${algo}: should produce unique values with random seeds`, () => {
-                for (let iteration = 0; iteration < ITERATION_COUNT; iteration++) {
-                    runRandomizedIteration(algo, iteration, (gen) => {
-                        const values = new Set<bigint>();
-                        for (let i = 0; i < TEST_SAMPLE_SIZE; i++) {
-                            values.add(gen.int64());
-                        }
+            describe(algo, () => {
+                it('should produce unique values with random seeds', () => {
+                    for (let iteration = 0; iteration < ITERATION_COUNT; iteration++) {
+                        runRandomizedIteration(algo, iteration, (gen) => {
+                            const values = new Set<bigint>();
+                            for (let i = 0; i < TEST_SAMPLE_SIZE; i++) {
+                                values.add(gen.int64());
+                            }
 
-                        // All values should be unique (collision probability ~10^-12)
-                        expect(values.size).toBe(TEST_SAMPLE_SIZE);
-                    });
-                }
+                            // All values should be unique (collision probability ~10^-12)
+                            expect(values.size).toBe(TEST_SAMPLE_SIZE);
+                        });
+                    }
+                });
             });
         }
     });

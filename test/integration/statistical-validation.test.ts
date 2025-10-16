@@ -260,114 +260,118 @@ describe('Statistical Validation', () => {
     describe('Independence Tests - All Algorithms', () => {
         // Test independence for all algorithms since correlation issues could be algorithm-specific
         for (const algo of ALL_ALGORITHMS) {
-            it(`${algo}: float() values should have low serial correlation`, () => {
-                const gen = new RandomGenerator(algo);
+            describe(algo, () => {
+                it('float() values should have low serial correlation', () => {
+                    const gen = new RandomGenerator(algo);
 
-                const values = [];
-                for (let i = 0; i < INDEPENDENCE_SAMPLES; i++) {
-                    values.push(gen.float());
-                }
+                    const values = [];
+                    for (let i = 0; i < INDEPENDENCE_SAMPLES; i++) {
+                        values.push(gen.float());
+                    }
 
-                const correlation = serialCorrelationTest(values);
+                    const correlation = serialCorrelationTest(values);
 
-                // Correlation should be close to 0 (accept between -0.05 and 0.05)
-                expect(Math.abs(correlation)).toBeLessThan(SERIAL_CORRELATION_THRESHOLD);
-            });
+                    // Correlation should be close to 0 (accept between -0.05 and 0.05)
+                    expect(Math.abs(correlation)).toBeLessThan(SERIAL_CORRELATION_THRESHOLD);
+                });
 
-            it(`${algo}: coord() values should have low serial correlation`, () => {
-                const gen = new RandomGenerator(algo);
+                it('coord() values should have low serial correlation', () => {
+                    const gen = new RandomGenerator(algo);
 
-                const values = [];
-                for (let i = 0; i < INDEPENDENCE_SAMPLES; i++) {
-                    values.push(gen.coord());
-                }
+                    const values = [];
+                    for (let i = 0; i < INDEPENDENCE_SAMPLES; i++) {
+                        values.push(gen.coord());
+                    }
 
-                const correlation = serialCorrelationTest(values);
+                    const correlation = serialCorrelationTest(values);
 
-                // Correlation should be close to 0
-                expect(Math.abs(correlation)).toBeLessThan(SERIAL_CORRELATION_THRESHOLD);
-            });
+                    // Correlation should be close to 0
+                    expect(Math.abs(correlation)).toBeLessThan(SERIAL_CORRELATION_THRESHOLD);
+                });
 
-            it(`${algo}: coordSquared() values should have low serial correlation`, () => {
-                const gen = new RandomGenerator(algo);
+                it('coordSquared() values should have low serial correlation', () => {
+                    const gen = new RandomGenerator(algo);
 
-                const values = [];
-                for (let i = 0; i < INDEPENDENCE_SAMPLES; i++) {
-                    values.push(gen.coordSquared());
-                }
+                    const values = [];
+                    for (let i = 0; i < INDEPENDENCE_SAMPLES; i++) {
+                        values.push(gen.coordSquared());
+                    }
 
-                const correlation = serialCorrelationTest(values);
+                    const correlation = serialCorrelationTest(values);
 
-                // Correlation should be close to 0
-                expect(Math.abs(correlation)).toBeLessThan(SERIAL_CORRELATION_THRESHOLD);
+                    // Correlation should be close to 0
+                    expect(Math.abs(correlation)).toBeLessThan(SERIAL_CORRELATION_THRESHOLD);
+                });
             });
         }
     });
 
     describe('Monte Carlo π Estimation - All Algorithms', () => {
         for (const algo of ALL_ALGORITHMS) {
-            it(`${algo}: should estimate π accurately using coordArray()`, () => {
-                const gen = new RandomGenerator(algo);
+            describe(algo, () => {
+                it('should estimate π accurately using coordArray()', () => {
+                    const gen = new RandomGenerator(algo);
 
-                // Stream coordinate pairs directly for π estimation without storing full array
-                let insideCircle = 0;
-                const batchCount = PI_ESTIMATION_SAMPLES * COORDS_PER_POINT / DEFAULT_OUTPUT_ARRAY_SIZE;
+                    // Stream coordinate pairs directly for π estimation without storing full array
+                    let insideCircle = 0;
+                    const batchCount = PI_ESTIMATION_SAMPLES * COORDS_PER_POINT / DEFAULT_OUTPUT_ARRAY_SIZE;
 
-                for (let i = 0; i < batchCount; i++) {
-                    const coords = gen.coordArray();
-                    for (let j = 0; j < coords.length; j += COORDS_PER_POINT) {
-                        const x = coords[j];
-                        const y = coords[j + 1];
-                        if (x * x + y * y <= 1) {
-                            insideCircle++;
+                    for (let i = 0; i < batchCount; i++) {
+                        const coords = gen.coordArray();
+                        for (let j = 0; j < coords.length; j += COORDS_PER_POINT) {
+                            const x = coords[j];
+                            const y = coords[j + 1];
+                            if (x * x + y * y <= 1) {
+                                insideCircle++;
+                            }
                         }
                     }
-                }
 
-                const piEstimate = PI_ESTIMATION_MULTIPLIER * insideCircle / PI_ESTIMATION_SAMPLES;
+                    const piEstimate = PI_ESTIMATION_MULTIPLIER * insideCircle / PI_ESTIMATION_SAMPLES;
 
-                // Should be within 0.01 of π (very high probability)
-                expect(Math.abs(piEstimate - Math.PI)).toBeLessThan(PI_ESTIMATION_TOLERANCE);
-            });
+                    // Should be within 0.01 of π (very high probability)
+                    expect(Math.abs(piEstimate - Math.PI)).toBeLessThan(PI_ESTIMATION_TOLERANCE);
+                });
 
-            it(`${algo}: should estimate π accurately using batchTestUnitCirclePoints()`, () => {
-                const gen = new RandomGenerator(algo);
+                it('should estimate π accurately using batchTestUnitCirclePoints()', () => {
+                    const gen = new RandomGenerator(algo);
 
-                const insideCircle = gen.batchTestUnitCirclePoints(PI_ESTIMATION_SAMPLES);
-                const piEstimate = PI_ESTIMATION_MULTIPLIER * insideCircle / PI_ESTIMATION_SAMPLES;
+                    const insideCircle = gen.batchTestUnitCirclePoints(PI_ESTIMATION_SAMPLES);
+                    const piEstimate = PI_ESTIMATION_MULTIPLIER * insideCircle / PI_ESTIMATION_SAMPLES;
 
-                // Should be within 0.01 of π
-                expect(Math.abs(piEstimate - Math.PI)).toBeLessThan(PI_ESTIMATION_TOLERANCE);
-            });
+                    // Should be within 0.01 of π
+                    expect(Math.abs(piEstimate - Math.PI)).toBeLessThan(PI_ESTIMATION_TOLERANCE);
+                });
 
-            it(`${algo}: batchTestUnitCirclePoints() should match manual calculation`, () => {
-                const seeds = getSeedsForPRNG(algo);
-                const gen1 = new RandomGenerator(algo, seeds);
-                const gen2 = new RandomGenerator(algo, seeds);
+                it('batchTestUnitCirclePoints() should match manual calculation', () => {
+                    const seeds = getSeedsForPRNG(algo);
+                    const gen1 = new RandomGenerator(algo, seeds);
+                    const gen2 = new RandomGenerator(algo, seeds);
 
-                const pointCount = DEFAULT_OUTPUT_ARRAY_SIZE * 10;
+                    const pointCount = DEFAULT_OUTPUT_ARRAY_SIZE * 10;
 
-                // Method 1: Use batch test
-                const insideCircle1 = gen1.batchTestUnitCirclePoints(pointCount);
+                    // Method 1: Use batch test
+                    const insideCircle1 = gen1.batchTestUnitCirclePoints(pointCount);
 
-                // Method 2: Manual calculation
-                let insideCircle2 = 0;
+                    // Method 2: Manual calculation
+                    let insideCircle2 = 0;
 
-                for (let batch = 0; batch < pointCount * COORDS_PER_POINT / DEFAULT_OUTPUT_ARRAY_SIZE; batch++) {
-                    const coords = gen2.coordArray();
+                    for (let batch = 0; batch < pointCount * COORDS_PER_POINT / DEFAULT_OUTPUT_ARRAY_SIZE; batch++) {
+                        const coords = gen2.coordArray();
 
-                    for (let i = 0; i < coords.length; i += COORDS_PER_POINT) {
-                        const x = coords[i];
-                        const y = coords[i + 1];
+                        for (let i = 0; i < coords.length; i += COORDS_PER_POINT) {
+                            const x = coords[i];
+                            const y = coords[i + 1];
 
-                        if (x * x + y * y <= 1) {
-                            insideCircle2++;
+                            if (x * x + y * y <= 1) {
+                                insideCircle2++;
+                            }
                         }
                     }
-                }
 
-                // Both methods should give same result
-                expect(insideCircle1).toBe(insideCircle2);
+                    // Both methods should give same result
+                    expect(insideCircle1).toBe(insideCircle2);
+                });
             });
         }
     });

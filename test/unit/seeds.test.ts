@@ -16,7 +16,7 @@
 import { describe, it, expect } from 'vitest';
 import { SplitMix64, seed64Array } from 'fast-prng-wasm';
 
-describe('SplitMix64', () => {
+describe('SplitMix64 Random Seed Generator', () => {
     describe('Constructor', () => {
         it('should create instance with auto-seed', () => {
             const sm64 = new SplitMix64();
