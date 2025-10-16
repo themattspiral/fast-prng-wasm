@@ -45,7 +45,8 @@ import {
   MAX_SAFE_INTEGER,
   MAX_UINT32,
   JUMP_REFERENCE
-} from '../test-utils';
+} from '../helpers/test-utils';
+import { assertInRange, assertLessThan } from '../helpers/assertion-helpers';
 
 describe('Xoshiro256PlusSIMD', () => {
   beforeEach(() => {
@@ -314,7 +315,7 @@ describe('Xoshiro256PlusSIMD', () => {
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         uniqueValues.add(arr[i]);
       }
-      expect(uniqueValues.size == DETERMINISTIC_SAMPLE_SIZE).equal(true); // All 10000 values are unique
+      expect(uniqueValues.size).equal(DETERMINISTIC_SAMPLE_SIZE); // All 10000 values are unique
     });
 
     test('coord53Array values are in correct range', () => {
@@ -496,24 +497,23 @@ describe('Xoshiro256PlusSIMD', () => {
       }
 
       // Expect roughly 25K in each quartile (allow 24K-26K)
-      expect(q1 >= QUARTILE_MIN && q1 <= QUARTILE_MAX).equal(true); // Q1 has ~25K values
-      expect(q2 >= QUARTILE_MIN && q2 <= QUARTILE_MAX).equal(true); // Q2 has ~25K values
-      expect(q3 >= QUARTILE_MIN && q3 <= QUARTILE_MAX).equal(true); // Q3 has ~25K values
-      expect(q4 >= QUARTILE_MIN && q4 <= QUARTILE_MAX).equal(true); // Q4 has ~25K values
+      assertInRange(q1, QUARTILE_MIN, QUARTILE_MAX, "Q1 quartile"); // Q1 has ~25K values
+      assertInRange(q2, QUARTILE_MIN, QUARTILE_MAX, "Q2 quartile"); // Q2 has ~25K values
+      assertInRange(q3, QUARTILE_MIN, QUARTILE_MAX, "Q3 quartile"); // Q3 has ~25K values
+      assertInRange(q4, QUARTILE_MIN, QUARTILE_MAX, "Q4 quartile"); // Q4 has ~25K values
     });
 
     test('Monte Carlo π estimation (100K samples)', () => {
       const inside = batchTestUnitCirclePoints(DISTRIBUTION_SAMPLE_SIZE);
 
-      expect(inside >= 0).equal(true); // Count should be >= 0
-      expect(inside <= DISTRIBUTION_SAMPLE_SIZE).equal(true); // Count should be <= total
+      assertInRange(inside, 0, DISTRIBUTION_SAMPLE_SIZE, "Points inside circle"); // Count should be in valid range
 
       const piEstimate = (4.0 * <f64>inside) / <f64>DISTRIBUTION_SAMPLE_SIZE;
       const diff = piEstimate > PI
         ? piEstimate - PI
         : PI - piEstimate;
 
-      expect(diff < PI_ESTIMATE_TOLERANCE).equal(true); // π estimate within 0.02 of actual value
+      assertLessThan(diff, PI_ESTIMATE_TOLERANCE, "π estimation error"); // π estimate within 0.02 of actual value
     });
 
     test('batchTestUnitCirclePoints: determinism', () => {

@@ -58,8 +58,8 @@ describe('Randomized Edge Case Testing', () => {
 
                 for (let i = 0; i < TEST_SAMPLE_SIZE; i++) {
                     const value = gen.float();
-                    expect(value >= 0).toBe(true);
-                    expect(value < 1).toBe(true);
+                    expect(value).toBeGreaterThanOrEqual(0);
+                    expect(value).toBeLessThan(1);
                 }
             }
         });
@@ -71,8 +71,8 @@ describe('Randomized Edge Case Testing', () => {
 
                 for (let i = 0; i < TEST_SAMPLE_SIZE; i++) {
                     const value = gen.coord();
-                    expect(value >= -1).toBe(true);
-                    expect(value < 1).toBe(true);
+                    expect(value).toBeGreaterThanOrEqual(-1);
+                    expect(value).toBeLessThan(1);
                 }
             }
         });
@@ -84,8 +84,8 @@ describe('Randomized Edge Case Testing', () => {
 
                 for (let i = 0; i < TEST_SAMPLE_SIZE; i++) {
                     const value = gen.int64();
-                    expect(value >= 0n).toBe(true);
-                    expect(value <= 0xFFFFFFFFFFFFFFFFn).toBe(true);
+                    expect(value).toBeGreaterThanOrEqual(0n);
+                    expect(value).toBeLessThanOrEqual(0xFFFFFFFFFFFFFFFFn);
                 }
             }
         });

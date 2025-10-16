@@ -11,7 +11,10 @@ export default {
   ],
 
   // Exclude test utilities from coverage (has higher priority than include)
-  exclude: ["src/assembly/test/test-utils.ts"],
+  exclude: [
+    "src/assembly/test/helpers/test-utils.ts",
+    "src/assembly/test/helpers/assertion-helpers.ts"
+  ],
 
   // Disable by default, enable via CLI
   collectCoverage: false,
@@ -38,6 +41,7 @@ export default {
 
   output: "coverage/as",
 
+  // custom script util/convert-as-coverage-to-lcov.mjs generates lcov output
   mode: ["html", "json", "table"],
 
   // Isolated test execution

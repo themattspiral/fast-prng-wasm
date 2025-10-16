@@ -273,8 +273,8 @@ describe('Array Behavior', () => {
                     const array = gen.floatArray();
 
                     for (const value of array) {
-                        expect(value >= 0).toBe(true);
-                        expect(value < 1).toBe(true);
+                        expect(value).toBeGreaterThanOrEqual(0);
+                        expect(value).toBeLessThan(1);
                     }
                 });
 
@@ -283,8 +283,8 @@ describe('Array Behavior', () => {
                     const array = gen.int64Array();
 
                     for (const value of array) {
-                        expect(value >= 0n).toBe(true);
-                        expect(value <= 0xFFFFFFFFFFFFFFFFn).toBe(true);
+                        expect(value).toBeGreaterThanOrEqual(0n);
+                        expect(value).toBeLessThanOrEqual(0xFFFFFFFFFFFFFFFFn);
                     }
                 });
 
@@ -294,8 +294,8 @@ describe('Array Behavior', () => {
 
                     for (const value of array) {
                         expect(Number.isSafeInteger(value)).toBe(true);
-                        expect(value >= 0).toBe(true);
-                        expect(value <= Number.MAX_SAFE_INTEGER).toBe(true);
+                        expect(value).toBeGreaterThanOrEqual(0);
+                        expect(value).toBeLessThanOrEqual(Number.MAX_SAFE_INTEGER);
                     }
                 });
 
@@ -305,8 +305,8 @@ describe('Array Behavior', () => {
 
                     for (const value of array) {
                         expect(Number.isInteger(value)).toBe(true);
-                        expect(value >= 0).toBe(true);
-                        expect(value <= 0xFFFFFFFF).toBe(true);
+                        expect(value).toBeGreaterThanOrEqual(0);
+                        expect(value).toBeLessThanOrEqual(0xFFFFFFFF);
                     }
                 });
 
@@ -315,8 +315,8 @@ describe('Array Behavior', () => {
                     const array = gen.coordArray();
 
                     for (const value of array) {
-                        expect(value >= -1).toBe(true);
-                        expect(value < 1).toBe(true);
+                        expect(value).toBeGreaterThanOrEqual(-1);
+                        expect(value).toBeLessThan(1);
                     }
                 });
 
@@ -325,8 +325,8 @@ describe('Array Behavior', () => {
                     const array = gen.coordSquaredArray();
 
                     for (const value of array) {
-                        expect(value >= 0).toBe(true);
-                        expect(value < 1).toBe(true);
+                        expect(value).toBeGreaterThanOrEqual(0);
+                        expect(value).toBeLessThan(1);
                     }
                 });
             });

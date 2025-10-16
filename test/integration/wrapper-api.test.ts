@@ -355,8 +355,8 @@ describe('RandomGenerator', () => {
                         const value = gen.int64();
 
                         expect(typeof value).toBe('bigint');
-                        expect(value >= 0n).toBe(true);
-                        expect(value <= 0xFFFFFFFFFFFFFFFFn).toBe(true);
+                        expect(value).toBeGreaterThanOrEqual(0n);
+                        expect(value).toBeLessThanOrEqual(0xFFFFFFFFFFFFFFFFn);
                     });
 
                     it('should generate unique values', () => {
@@ -378,8 +378,8 @@ describe('RandomGenerator', () => {
 
                         expect(typeof value).toBe('number');
                         expect(Number.isInteger(value)).toBe(true);
-                        expect(value >= 0).toBe(true);
-                        expect(value <= Number.MAX_SAFE_INTEGER).toBe(true);
+                        expect(value).toBeGreaterThanOrEqual(0);
+                        expect(value).toBeLessThanOrEqual(Number.MAX_SAFE_INTEGER);
                     });
 
                     it('should generate unique values', () => {
@@ -401,8 +401,8 @@ describe('RandomGenerator', () => {
 
                         expect(typeof value).toBe('number');
                         expect(Number.isInteger(value)).toBe(true);
-                        expect(value >= 0).toBe(true);
-                        expect(value <= 0xFFFFFFFF).toBe(true);
+                        expect(value).toBeGreaterThanOrEqual(0);
+                        expect(value).toBeLessThanOrEqual(0xFFFFFFFF);
                     });
 
                     it('should generate unique values', () => {
@@ -425,8 +425,8 @@ describe('RandomGenerator', () => {
                             const value = gen.float();
 
                             expect(typeof value).toBe('number');
-                            expect(value >= 0).toBe(true);
-                            expect(value < 1).toBe(true);
+                            expect(value).toBeGreaterThanOrEqual(0);
+                            expect(value).toBeLessThan(1);
                         }
                     });
 
@@ -450,8 +450,8 @@ describe('RandomGenerator', () => {
                             const value = gen.coord();
 
                             expect(typeof value).toBe('number');
-                            expect(value >= -1).toBe(true);
-                            expect(value < 1).toBe(true);
+                            expect(value).toBeGreaterThanOrEqual(-1);
+                            expect(value).toBeLessThan(1);
                         }
                     });
 
@@ -475,8 +475,8 @@ describe('RandomGenerator', () => {
                             const value = gen.coordSquared();
 
                             expect(typeof value).toBe('number');
-                            expect(value >= 0).toBe(true);
-                            expect(value < 1).toBe(true);
+                            expect(value).toBeGreaterThanOrEqual(0);
+                            expect(value).toBeLessThan(1);
                         }
                     });
 
