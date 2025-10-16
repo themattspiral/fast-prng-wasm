@@ -20,8 +20,7 @@ import {
   coord53Array,
   coord53SquaredArray,
   batchTestUnitCirclePoints,
-  jump,
-  SEED_COUNT
+  jump
 } from '../../prng/xoshiro256plus-simd';
 
 // Import non-SIMD functions for comparison tests
@@ -35,7 +34,6 @@ import {
   TEST_SEEDS_ALT,
   DETERMINISTIC_SAMPLE_SIZE,
   DISTRIBUTION_SAMPLE_SIZE,
-  DIFFERENT_SEEDS_MIN_PERCENT,
   QUARTILE_MIN,
   QUARTILE_MAX,
   PI_ESTIMATE_TOLERANCE,
@@ -84,7 +82,7 @@ describe('Xoshiro256PlusSIMD', () => {
         values2.push(uint64());
       }
 
-      // At least 99% should differ
+      // All values should differ
       let differentCount = 0;
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         if (values1[i] != values2[i]) {
@@ -92,7 +90,7 @@ describe('Xoshiro256PlusSIMD', () => {
         }
       }
 
-      expect(differentCount >= <i32>(DETERMINISTIC_SAMPLE_SIZE * DIFFERENT_SEEDS_MIN_PERCENT)).equal(true); // At least 9900 of 10000 values differ with different seeds
+      expect(differentCount).equal(DETERMINISTIC_SAMPLE_SIZE); // All values differ with different seeds
     });
   });
 
@@ -461,11 +459,10 @@ describe('Xoshiro256PlusSIMD', () => {
         }
       }
 
-      // With proper jump, there should be no overlaps (or extremely rare collisions)
-      // Allow up to 1 collision due to birthday paradox (very generous)
-      expect(overlap_0_1 <= 1).equal(true); // Stream 0 and 1 should not overlap
-      expect(overlap_1_2 <= 1).equal(true); // Stream 1 and 2 should not overlap
-      expect(overlap_0_2 <= 1).equal(true); // Stream 0 and 2 should not overlap
+      // With proper jump, there should be no overlaps
+      expect(overlap_0_1).equal(0); // Stream 0 and 1 should not overlap
+      expect(overlap_1_2).equal(0); // Stream 1 and 2 should not overlap
+      expect(overlap_0_2).equal(0); // Stream 0 and 2 should not overlap
     });
 
     test('jump matches C reference implementation', () => {
@@ -561,7 +558,7 @@ describe('Xoshiro256PlusSIMD', () => {
         }
       }
 
-      expect(overlap_count <= 1).equal(true); // Lanes should have negligible overlap across full sequences
+      expect(overlap_count).equal(0); // Lanes should have no overlap across full sequences
       expect(zeroCountLane0).equal(0); // Lane 0: no zero values in 10000 samples
       expect(zeroCountLane1).equal(0); // Lane 1: no zero values in 10000 samples
     });
@@ -592,7 +589,7 @@ describe('Xoshiro256PlusSIMD', () => {
         }
       }
 
-      expect(overlap_count <= 1).equal(true); // Lanes should remain non-overlapping after jump
+      expect(overlap_count).equal(0); // Lanes should remain non-overlapping after jump
     });
 
     test('SIMD lanes with different jump counts remain non-overlapping', () => {
@@ -625,7 +622,7 @@ describe('Xoshiro256PlusSIMD', () => {
         }
       }
 
-      expect(overlap_count <= 1).equal(true); // Cross-lane, cross-jump sequences should not overlap
+      expect(overlap_count).equal(0); // Cross-lane, cross-jump sequences should not overlap
     });
 
     test('uint53AsFloatx2 produces valid values', () => {
@@ -777,18 +774,37 @@ describe('Xoshiro256PlusSIMD', () => {
       expect(mismatchCount).equal(0); // All 5000 pairs match when seeds are duplicated
     });
 
+    test('interleaved different streams when lanes have different seeds', () => {
+      // Lane 0: TEST_SEEDS.QUAD_0-3, Lane 1: TEST_SEEDS_ALT.QUAD_0-3
+      // This tests that when using different seeds for each lane, lane0 differs from lane1
+      setSeeds(TEST_SEEDS.QUAD_0, TEST_SEEDS.QUAD_1, TEST_SEEDS.QUAD_2, TEST_SEEDS.QUAD_3, TEST_SEEDS_ALT.QUAD_0, TEST_SEEDS_ALT.QUAD_1, TEST_SEEDS_ALT.QUAD_2, TEST_SEEDS_ALT.QUAD_3);
+      const arr = new Float64Array(DETERMINISTIC_SAMPLE_SIZE);
+      float53Array(arr);
+
+      // Even indices (lane 0) should differ from odd indices (lane 1)
+      let differentCount = 0;
+      for (let i = 0; i < <i32>(DETERMINISTIC_SAMPLE_SIZE / 2); i++) {
+        if (arr[i * 2] != arr[i * 2 + 1]) {
+          differentCount++;
+        }
+      }
+
+      // All lane0/lane1 pairs should differ
+      expect(differentCount).equal(<i32>(DETERMINISTIC_SAMPLE_SIZE / 2)); // All pairs differ when lanes have different seeds
+    });
+
     test('interleaved matching streams: both lanes match their own non-SIMD sequences', () => {
-      // Generate non-SIMD sequence for lane 0 with seeds [12345, 67890, 11111, 22222]
+      // Generate non-SIMD sequence for lane 0 with TEST_SEEDS
       setSeedsNonSIMD(TEST_SEEDS.QUAD_0, TEST_SEEDS.QUAD_1, TEST_SEEDS.QUAD_2, TEST_SEEDS.QUAD_3);
       const nonSIMDArr0 = new Float64Array(<i32>(DETERMINISTIC_SAMPLE_SIZE / 2));
       float53ArrayNonSIMD(nonSIMDArr0);
 
-      // Generate non-SIMD sequence for lane 1 with seeds [99999, 88888, 77777, 66666]
+      // Generate non-SIMD sequence for lane 1 with TEST_SEEDS_ALT
       setSeedsNonSIMD(TEST_SEEDS_ALT.QUAD_0, TEST_SEEDS_ALT.QUAD_1, TEST_SEEDS_ALT.QUAD_2, TEST_SEEDS_ALT.QUAD_3);
       const nonSIMDArr1 = new Float64Array(<i32>(DETERMINISTIC_SAMPLE_SIZE / 2));
       float53ArrayNonSIMD(nonSIMDArr1);
 
-      // Generate SIMD sequence with lane 0 = [12345, 67890, 11111, 22222], lane 1 = [99999, 88888, 77777, 66666]
+      // Generate SIMD sequence with lane 0 = TEST_SEEDS, lane 1 = TEST_SEEDS_ALT
       setSeeds(TEST_SEEDS.QUAD_0, TEST_SEEDS.QUAD_1, TEST_SEEDS.QUAD_2, TEST_SEEDS.QUAD_3, TEST_SEEDS_ALT.QUAD_0, TEST_SEEDS_ALT.QUAD_1, TEST_SEEDS_ALT.QUAD_2, TEST_SEEDS_ALT.QUAD_3);
       const simdArr = new Float64Array(DETERMINISTIC_SAMPLE_SIZE);
       float53Array(simdArr);
@@ -811,8 +827,8 @@ describe('Xoshiro256PlusSIMD', () => {
         }
       }
 
-      expect(lane0MismatchCount).equal(0); // All 5000 lane 0 values match non-SIMD [12345, 67890, 11111, 22222] sequence
-      expect(lane1MismatchCount).equal(0); // All 5000 lane 1 values match non-SIMD [99999, 88888, 77777, 66666] sequence
+      expect(lane0MismatchCount).equal(0); // All lane 0 values match non-SIMD TEST_SEEDS sequence
+      expect(lane1MismatchCount).equal(0); // All lane 1 values match non-SIMD TEST_SEEDS_ALT sequence
     });
   });
 });

@@ -15,15 +15,13 @@ import {
   float53Array,
   coord53Array,
   coord53SquaredArray,
-  batchTestUnitCirclePoints,
-  SEED_COUNT
+  batchTestUnitCirclePoints
 } from '../../prng/pcg';
 import {
   TEST_SEEDS,
   TEST_SEEDS_ALT,
   DETERMINISTIC_SAMPLE_SIZE,
   DISTRIBUTION_SAMPLE_SIZE,
-  DIFFERENT_SEEDS_MIN_PERCENT,
   QUARTILE_MIN,
   QUARTILE_MAX,
   PI_ESTIMATE_TOLERANCE,
@@ -78,7 +76,7 @@ describe('PCG', () => {
         values2.push(uint32());
       }
 
-      // At least 99% should differ
+      // All values should differ
       let differentCount = 0;
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         if (values1[i] != values2[i]) {
@@ -86,7 +84,7 @@ describe('PCG', () => {
         }
       }
 
-      expect(differentCount >= <i32>(DETERMINISTIC_SAMPLE_SIZE * DIFFERENT_SEEDS_MIN_PERCENT)).equal(true); // At least 9900 of 10000 values differ with different seed
+      expect(differentCount).equal(DETERMINISTIC_SAMPLE_SIZE); // All values differ with different seed
     });
 
     test('uint64 produces identical sequence with same seed', () => {
@@ -118,7 +116,7 @@ describe('PCG', () => {
         values2.push(uint64());
       }
 
-      // At least 99% should differ
+      // All values should differ
       let differentCount = 0;
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         if (values1[i] != values2[i]) {
@@ -126,7 +124,7 @@ describe('PCG', () => {
         }
       }
 
-      expect(differentCount >= <i32>(DETERMINISTIC_SAMPLE_SIZE * DIFFERENT_SEEDS_MIN_PERCENT)).equal(true); // At least 9900 of 10000 values differ with different seed
+      expect(differentCount).equal(DETERMINISTIC_SAMPLE_SIZE); // All values differ with different seed
     });
   });
 

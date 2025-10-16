@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { RandomGenerator, PRNGType } from 'fast-prng-wasm';
-import { createTestGenerator, createParallelGenerators, TEST_SEEDS, SEED_COUNTS, getSeedsForPRNG, DEFAULT_OUTPUT_ARRAY_SIZE, CUSTOM_ARRAY_SIZE_LARGE, JUMP_REFERENCE, TEST_STREAM_IDS, INTEGRATION_SAMPLE_SIZE, INSTANCE_TEST_ADVANCE_COUNT, INSTANCE_TEST_SAMPLE_COUNT } from '../helpers/test-utils';
+import { createTestGenerator, createParallelGenerators, TEST_SEEDS, SEED_COUNTS, getSeedsForPRNG, DEFAULT_OUTPUT_ARRAY_SIZE, CUSTOM_ARRAY_SIZE_LARGE, JUMP_REFERENCE, INTEGRATION_SAMPLE_SIZE, INSTANCE_TEST_ADVANCE_COUNT, INSTANCE_TEST_SAMPLE_COUNT, ALL_PRNG_TYPES } from '../helpers/test-utils';
 
 describe('RandomGenerator', () => {
     describe('Constructor', () => {
@@ -83,10 +83,10 @@ describe('RandomGenerator', () => {
                 if (set3.has(seq2[i])) overlap_2_3++;
             }
 
-            // Allow up to 1 collision due to birthday paradox (very generous)
-            expect(overlap_1_2).toBeLessThanOrEqual(1); // Streams should not overlap
-            expect(overlap_1_3).toBeLessThanOrEqual(1);
-            expect(overlap_2_3).toBeLessThanOrEqual(1);
+            // With proper stream selection, there should be no overlaps
+            expect(overlap_1_2).toBe(0); // Streams should not overlap
+            expect(overlap_1_3).toBe(0);
+            expect(overlap_2_3).toBe(0);
         });
 
         it('should create Xoshiro256Plus generators with unique stream IDs that produce non-overlapping sequences', () => {
@@ -135,10 +135,10 @@ describe('RandomGenerator', () => {
                 if (set3.has(seq2[i])) overlap_2_3++;
             }
 
-            // Allow up to 1 collision due to birthday paradox (very generous)
-            expect(overlap_1_2).toBeLessThanOrEqual(1); // Streams should not overlap
-            expect(overlap_1_3).toBeLessThanOrEqual(1);
-            expect(overlap_2_3).toBeLessThanOrEqual(1);
+            // With proper stream selection, there should be no overlaps
+            expect(overlap_1_2).toBe(0); // Streams should not overlap
+            expect(overlap_1_3).toBe(0);
+            expect(overlap_2_3).toBe(0);
         });
 
         it('should create Xoroshiro128Plus_SIMD generators with unique stream IDs that produce non-overlapping sequences across both lanes', () => {
@@ -184,10 +184,10 @@ describe('RandomGenerator', () => {
                 if (set3.has(arr2[i])) overlap_2_3++;
             }
 
-            // Allow up to 1 collision due to birthday paradox
-            expect(overlap_1_2).toBeLessThanOrEqual(1); // SIMD streams (both lanes) should not overlap
-            expect(overlap_1_3).toBeLessThanOrEqual(1);
-            expect(overlap_2_3).toBeLessThanOrEqual(1);
+            // With proper stream selection, there should be no overlaps
+            expect(overlap_1_2).toBe(0); // SIMD streams (both lanes) should not overlap
+            expect(overlap_1_3).toBe(0);
+            expect(overlap_2_3).toBe(0);
         });
 
         it('should create Xoshiro256Plus_SIMD generators with unique stream IDs that produce non-overlapping sequences across both lanes', () => {
@@ -233,10 +233,10 @@ describe('RandomGenerator', () => {
                 if (set3.has(arr2[i])) overlap_2_3++;
             }
 
-            // Allow up to 1 collision due to birthday paradox
-            expect(overlap_1_2).toBeLessThanOrEqual(1); // SIMD streams (both lanes) should not overlap
-            expect(overlap_1_3).toBeLessThanOrEqual(1);
-            expect(overlap_2_3).toBeLessThanOrEqual(1);
+            // With proper stream selection, there should be no overlaps
+            expect(overlap_1_2).toBe(0); // SIMD streams (both lanes) should not overlap
+            expect(overlap_1_3).toBe(0);
+            expect(overlap_2_3).toBe(0);
         });
 
         it('should create PCG generators with different stream increments that produce non-overlapping sequences', () => {
@@ -282,10 +282,10 @@ describe('RandomGenerator', () => {
                 if (set3.has(seq2[i])) overlap_2_3++;
             }
 
-            // Allow up to 1 collision due to birthday paradox (very generous)
-            expect(overlap_1_2).toBeLessThanOrEqual(1); // Streams should not overlap
-            expect(overlap_1_3).toBeLessThanOrEqual(1);
-            expect(overlap_2_3).toBeLessThanOrEqual(1);
+            // With proper stream selection, there should be no overlaps
+            expect(overlap_1_2).toBe(0); // Streams should not overlap
+            expect(overlap_1_3).toBe(0);
+            expect(overlap_2_3).toBe(0);
         });
     });
 
@@ -338,225 +338,158 @@ describe('RandomGenerator', () => {
         });
     });
 
-    // Single-value methods: Integration tests validate end-to-end paths through real WASM
-    // for ALL methods (native + derived types), not just native output. These tests focus
-    // on type validation, range validation, and basic uniqueness to catch wiring issues.
+    // Single-value methods: Validates that each generator correctly applies conversion functions
+    // by testing range and uniqueness across all 5 generator types. Though conversion logic is
+    // shared (conversion.ts), each generator must wire it up correctly - testing all generators
+    // catches wiring errors, missing exports, or wrong conversion function calls.
+    //
+    // Contrast with statistical-validation.test.ts (larger sample size, chi-square) and
+    // array-behavior.test.ts (array-specific stream consistency, tested separately due to
+    // duplicated AS fill loops).
     describe('Single-Value Methods', () => {
-        describe('int64()', () => {
-            it('should generate 64-bit integers', () => {
-                const gen = createTestGenerator();
-                const value = gen.int64();
-
-                expect(typeof value).toBe('bigint');
-                expect(value >= 0n).toBe(true);
-                expect(value <= 0xFFFFFFFFFFFFFFFFn).toBe(true);
-            });
-
-            it('should generate different values on consecutive calls', () => {
-                const gen = createTestGenerator();
-                const values = new Set<bigint>();
-
-                for (let i = 0; i < INTEGRATION_SAMPLE_SIZE; i++) {
-                    values.add(gen.int64());
-                }
-
-                // All values should be unique (statistically very likely)
-                expect(values.size).toBe(INTEGRATION_SAMPLE_SIZE);
-            });
-        });
-
-        describe('int53()', () => {
-            it('should generate 53-bit integers as numbers', () => {
-                const gen = createTestGenerator();
-                const value = gen.int53();
-
-                expect(typeof value).toBe('number');
-                expect(Number.isInteger(value)).toBe(true);
-                expect(value >= 0).toBe(true);
-                expect(value <= Number.MAX_SAFE_INTEGER).toBe(true);
-            });
-
-            it('should generate different values on consecutive calls', () => {
-                const gen = createTestGenerator();
-                const values = new Set<number>();
-
-                for (let i = 0; i < INTEGRATION_SAMPLE_SIZE; i++) {
-                    values.add(gen.int53());
-                }
-
-                // All values should be unique (statistically very likely)
-                expect(values.size).toBe(INTEGRATION_SAMPLE_SIZE);
-            });
-        });
-
-        describe('int32()', () => {
-            it('should generate 32-bit integers as numbers', () => {
-                const gen = createTestGenerator();
-                const value = gen.int32();
-
-                expect(typeof value).toBe('number');
-                expect(Number.isInteger(value)).toBe(true);
-                expect(value >= 0).toBe(true);
-                expect(value <= 0xFFFFFFFF).toBe(true);
-            });
-
-            it('should generate different values on consecutive calls', () => {
-                const gen = createTestGenerator();
-                const values = new Set<number>();
-
-                for (let i = 0; i < INTEGRATION_SAMPLE_SIZE; i++) {
-                    values.add(gen.int32());
-                }
-
-                // All values should be unique (statistically very likely)
-                expect(values.size).toBe(INTEGRATION_SAMPLE_SIZE);
-            });
-        });
-
-        describe('float()', () => {
-            it('should generate floats in [0, 1)', () => {
-                const gen = createTestGenerator();
-
-                for (let i = 0; i < INTEGRATION_SAMPLE_SIZE; i++) {
-                    const value = gen.float();
-
-                    expect(typeof value).toBe('number');
-                    expect(value >= 0).toBe(true);
-                    expect(value < 1).toBe(true);
-                }
-            });
-
-            it('should generate different values on consecutive calls', () => {
-                const gen = createTestGenerator();
-                const values = new Set<number>();
-
-                for (let i = 0; i < INTEGRATION_SAMPLE_SIZE; i++) {
-                    values.add(gen.float());
-                }
-
-                // All values should be unique (statistically very likely)
-                expect(values.size).toBe(INTEGRATION_SAMPLE_SIZE);
-            });
-        });
-
-        describe('coord()', () => {
-            it('should generate coordinates in [-1, 1)', () => {
-                const gen = createTestGenerator();
-
-                for (let i = 0; i < INTEGRATION_SAMPLE_SIZE; i++) {
-                    const value = gen.coord();
-
-                    expect(typeof value).toBe('number');
-                    expect(value >= -1).toBe(true);
-                    expect(value < 1).toBe(true);
-                }
-            });
-
-            it('should generate different values on consecutive calls', () => {
-                const gen = createTestGenerator();
-                const values = new Set<number>();
-
-                for (let i = 0; i < INTEGRATION_SAMPLE_SIZE; i++) {
-                    values.add(gen.coord());
-                }
-
-                // All values should be unique (statistically very likely)
-                expect(values.size).toBe(INTEGRATION_SAMPLE_SIZE);
-            });
-        });
-
-        describe('coordSquared()', () => {
-            it('should generate squared coordinates in [0, 1)', () => {
-                const gen = createTestGenerator();
-
-                for (let i = 0; i < INTEGRATION_SAMPLE_SIZE; i++) {
-                    const value = gen.coordSquared();
-
-                    expect(typeof value).toBe('number');
-                    expect(value >= 0).toBe(true);
-                    expect(value < 1).toBe(true);
-                }
-            });
-
-            it('should generate different values on consecutive calls', () => {
-                const gen = createTestGenerator();
-                const values = new Set<number>();
-
-                for (let i = 0; i < INTEGRATION_SAMPLE_SIZE; i++) {
-                    values.add(gen.coordSquared());
-                }
-
-                // All values should be unique (statistically very likely)
-                expect(values.size).toBe(INTEGRATION_SAMPLE_SIZE);
-            });
-        });
-    });
-
-    // Multi-algorithm smoke tests: Verify all generators can call all methods successfully.
-    // This provides breadth coverage across the packaging/export surface for all 5 generator types.
-    describe('Multi-Algorithm Smoke Tests', () => {
-        const allPRNGTypes = [
-            PRNGType.PCG,
-            PRNGType.Xoroshiro128Plus,
-            PRNGType.Xoroshiro128Plus_SIMD,
-            PRNGType.Xoshiro256Plus,
-            PRNGType.Xoshiro256Plus_SIMD
-        ];
-
-        allPRNGTypes.forEach(prngType => {
+        ALL_PRNG_TYPES.forEach(prngType => {
             describe(`${PRNGType[prngType]}`, () => {
-                it('should successfully call all single-value methods', () => {
-                    const gen = new RandomGenerator(prngType);
+                describe('int64()', () => {
+                    it('should generate values in valid range', () => {
+                        const gen = new RandomGenerator(prngType);
+                        const value = gen.int64();
 
-                    // Just verify methods execute without error and return expected types
-                    const int64Val = gen.int64();
-                    expect(typeof int64Val).toBe('bigint');
+                        expect(typeof value).toBe('bigint');
+                        expect(value >= 0n).toBe(true);
+                        expect(value <= 0xFFFFFFFFFFFFFFFFn).toBe(true);
+                    });
 
-                    const int53Val = gen.int53();
-                    expect(typeof int53Val).toBe('number');
-                    expect(Number.isInteger(int53Val)).toBe(true);
+                    it('should generate unique values', () => {
+                        const gen = new RandomGenerator(prngType);
+                        const values = new Set<bigint>();
 
-                    const int32Val = gen.int32();
-                    expect(typeof int32Val).toBe('number');
-                    expect(Number.isInteger(int32Val)).toBe(true);
+                        for (let i = 0; i < INTEGRATION_SAMPLE_SIZE; i++) {
+                            values.add(gen.int64());
+                        }
 
-                    const floatVal = gen.float();
-                    expect(typeof floatVal).toBe('number');
-
-                    const coordVal = gen.coord();
-                    expect(typeof coordVal).toBe('number');
-
-                    const coordSquaredVal = gen.coordSquared();
-                    expect(typeof coordSquaredVal).toBe('number');
+                        expect(values.size).toBe(INTEGRATION_SAMPLE_SIZE);
+                    });
                 });
 
-                it('should successfully call all array methods', () => {
-                    const gen = new RandomGenerator(prngType);
+                describe('int53()', () => {
+                    it('should generate values in valid range', () => {
+                        const gen = new RandomGenerator(prngType);
+                        const value = gen.int53();
 
-                    // Just verify array methods execute without error and return expected types
-                    const int64Arr = gen.int64Array();
-                    expect(int64Arr).toBeInstanceOf(BigUint64Array);
-                    expect(int64Arr.length).toBeGreaterThan(0);
+                        expect(typeof value).toBe('number');
+                        expect(Number.isInteger(value)).toBe(true);
+                        expect(value >= 0).toBe(true);
+                        expect(value <= Number.MAX_SAFE_INTEGER).toBe(true);
+                    });
 
-                    const int53Arr = gen.int53Array();
-                    expect(int53Arr).toBeInstanceOf(Float64Array);
-                    expect(int53Arr.length).toBeGreaterThan(0);
+                    it('should generate unique values', () => {
+                        const gen = new RandomGenerator(prngType);
+                        const values = new Set<number>();
 
-                    const int32Arr = gen.int32Array();
-                    expect(int32Arr).toBeInstanceOf(Uint32Array);
-                    expect(int32Arr.length).toBeGreaterThan(0);
+                        for (let i = 0; i < INTEGRATION_SAMPLE_SIZE; i++) {
+                            values.add(gen.int53());
+                        }
 
-                    const floatArr = gen.floatArray();
-                    expect(floatArr).toBeInstanceOf(Float64Array);
-                    expect(floatArr.length).toBeGreaterThan(0);
+                        expect(values.size).toBe(INTEGRATION_SAMPLE_SIZE);
+                    });
+                });
 
-                    const coordArr = gen.coordArray();
-                    expect(coordArr).toBeInstanceOf(Float64Array);
-                    expect(coordArr.length).toBeGreaterThan(0);
+                describe('int32()', () => {
+                    it('should generate values in valid range', () => {
+                        const gen = new RandomGenerator(prngType);
+                        const value = gen.int32();
 
-                    const coordSquaredArr = gen.coordSquaredArray();
-                    expect(coordSquaredArr).toBeInstanceOf(Float64Array);
-                    expect(coordSquaredArr.length).toBeGreaterThan(0);
+                        expect(typeof value).toBe('number');
+                        expect(Number.isInteger(value)).toBe(true);
+                        expect(value >= 0).toBe(true);
+                        expect(value <= 0xFFFFFFFF).toBe(true);
+                    });
+
+                    it('should generate unique values', () => {
+                        const gen = new RandomGenerator(prngType);
+                        const values = new Set<number>();
+
+                        for (let i = 0; i < INTEGRATION_SAMPLE_SIZE; i++) {
+                            values.add(gen.int32());
+                        }
+
+                        expect(values.size).toBe(INTEGRATION_SAMPLE_SIZE);
+                    });
+                });
+
+                describe('float()', () => {
+                    it('should generate values in valid range', () => {
+                        const gen = new RandomGenerator(prngType);
+
+                        for (let i = 0; i < INTEGRATION_SAMPLE_SIZE; i++) {
+                            const value = gen.float();
+
+                            expect(typeof value).toBe('number');
+                            expect(value >= 0).toBe(true);
+                            expect(value < 1).toBe(true);
+                        }
+                    });
+
+                    it('should generate unique values', () => {
+                        const gen = new RandomGenerator(prngType);
+                        const values = new Set<number>();
+
+                        for (let i = 0; i < INTEGRATION_SAMPLE_SIZE; i++) {
+                            values.add(gen.float());
+                        }
+
+                        expect(values.size).toBe(INTEGRATION_SAMPLE_SIZE);
+                    });
+                });
+
+                describe('coord()', () => {
+                    it('should generate values in valid range', () => {
+                        const gen = new RandomGenerator(prngType);
+
+                        for (let i = 0; i < INTEGRATION_SAMPLE_SIZE; i++) {
+                            const value = gen.coord();
+
+                            expect(typeof value).toBe('number');
+                            expect(value >= -1).toBe(true);
+                            expect(value < 1).toBe(true);
+                        }
+                    });
+
+                    it('should generate unique values', () => {
+                        const gen = new RandomGenerator(prngType);
+                        const values = new Set<number>();
+
+                        for (let i = 0; i < INTEGRATION_SAMPLE_SIZE; i++) {
+                            values.add(gen.coord());
+                        }
+
+                        expect(values.size).toBe(INTEGRATION_SAMPLE_SIZE);
+                    });
+                });
+
+                describe('coordSquared()', () => {
+                    it('should generate values in valid range', () => {
+                        const gen = new RandomGenerator(prngType);
+
+                        for (let i = 0; i < INTEGRATION_SAMPLE_SIZE; i++) {
+                            const value = gen.coordSquared();
+
+                            expect(typeof value).toBe('number');
+                            expect(value >= 0).toBe(true);
+                            expect(value < 1).toBe(true);
+                        }
+                    });
+
+                    it('should generate unique values', () => {
+                        const gen = new RandomGenerator(prngType);
+                        const values = new Set<number>();
+
+                        for (let i = 0; i < INTEGRATION_SAMPLE_SIZE; i++) {
+                            values.add(gen.coordSquared());
+                        }
+
+                        expect(values.size).toBe(INTEGRATION_SAMPLE_SIZE);
+                    });
                 });
             });
         });

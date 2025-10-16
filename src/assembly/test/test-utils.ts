@@ -2,7 +2,6 @@
  * AssemblyScript Test Utilities
  *
  * Shared constants and test seeds for AS PRNG unit tests.
- * These values match the complexity of JS test seeds.
  */
 
 // ============================================================================
@@ -88,14 +87,19 @@ export const DISTRIBUTION_SAMPLE_SIZE: i32 = 100000;
 // ============================================================================
 
 /**
- * Minimum percentage of values that should differ between different seed sets.
- * Used in "different seeds produce different values" tests.
+ * Note on 100% threshold expectations in deterministic tests:
  *
- * Test Standards:
- * - Different seeds: ≥99% different (allows tiny statistical collision chance)
- * - Jump/stream selection: 100% different (deterministic transforms must be orthogonal)
+ * Throughout the test suite, we use 100% thresholds (exact equality) for all deterministic
+ * comparisons including:
+ * - Different seeds producing different sequences
+ * - Stream selection (jump-based or increment-based) producing non-overlapping sequences
+ * - Same seeds producing identical sequences
+ * - SIMD lane independence when seeded differently
+ *
+ * Rationale: With proper PRNGs and typical test sample sizes from 2^64 space, expected
+ * positional matches between different seeds is ~10^-16 to 10^-6 (essentially zero).
+ * Any match indicates a serious implementation bug, not a statistical edge case.
  */
-export const DIFFERENT_SEEDS_MIN_PERCENT: f64 = 0.99;
 
 /**
  * Quartile bounds for distribution tests (100K samples).
@@ -172,6 +176,9 @@ export const MAX_UINT32: f64 = 4294967295;
  *
  * To regenerate/verify these values:
  *   npm run test:c-ref
+ *
+ * When updating these values, also update the corresponding JS values in
+ * test/helpers/test-utils.ts (JUMP_REFERENCE constant).
  */
 export namespace JUMP_REFERENCE {
   /**

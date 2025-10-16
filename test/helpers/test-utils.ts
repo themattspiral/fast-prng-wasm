@@ -1,8 +1,167 @@
 /**
- * Common test utilities and helper functions
+ * JavaScript Test Utilities
+ *
+ * Shared constants, test seeds, and helper functions for JS integration tests.
  */
 
 import { RandomGenerator, PRNGType } from 'fast-prng-wasm';
+
+// ============================================================================
+// Test Seeds (Complex 64-bit values)
+// ============================================================================
+
+/**
+ * Test seeds for deterministic testing (known 64-bit values).
+ * Using large, non-trivial values to exercise all bit patterns.
+ */
+export const TEST_SEEDS = {
+    single: [0x9E3779B97F4A7C15n],
+    double: [0x9E3779B97F4A7C15n, 0x6C078965D5B2A5D3n],
+    quad: [0x9E3779B97F4A7C15n, 0x6C078965D5B2A5D3n, 0xBF58476D1CE4E5B9n, 0x94D049BB133111EBn],
+    octet: [0x9E3779B97F4A7C15n, 0x6C078965D5B2A5D3n, 0xBF58476D1CE4E5B9n, 0x94D049BB133111EBn,
+            0x8C6D2D3A5F9A4B1Cn, 0xD3C5E8B2F7A16E4An, 0xA7B9C1D3E5F70829n, 0xF1E2D3C4B5A69788n]
+};
+
+/**
+ * Alternate test seeds for "different seeds" tests.
+ * These values are intentionally different from primary seeds.
+ * Matches AS TEST_SEEDS_ALT.
+ */
+export const TEST_SEEDS_ALT = {
+    single: [0xD2B74407B1CE4E93n],
+    double: [0xD2B74407B1CE4E93n, 0x82F63B78EB765817n],
+    quad: [0xD2B74407B1CE4E93n, 0x82F63B78EB765817n, 0xC5A2E9BD4F8A7320n, 0x9F4D3E7C2A1B6854n],
+    octet: [0xD2B74407B1CE4E93n, 0x82F63B78EB765817n, 0xC5A2E9BD4F8A7320n, 0x9F4D3E7C2A1B6854n,
+            0xE8B3C4D5A6F71928n, 0xB7A98C6D5E4F3210n, 0xF4E3D2C1B0A98877n, 0xA1B2C3D4E5F60789n]
+};
+
+// ============================================================================
+// PRNG Type Configurations
+// ============================================================================
+
+/**
+ * Expected seed counts for each PRNG type.
+ * Note: SIMD versions require double the seeds (2 parallel streams).
+ */
+export const SEED_COUNTS: Record<PRNGType, number> = {
+    [PRNGType.PCG]: 1,
+    [PRNGType.Xoroshiro128Plus]: 2,
+    [PRNGType.Xoroshiro128Plus_SIMD]: 4,
+    [PRNGType.Xoshiro256Plus]: 4,
+    [PRNGType.Xoshiro256Plus_SIMD]: 8
+};
+
+/**
+ * All PRNG types for multi-algorithm testing.
+ */
+export const ALL_PRNG_TYPES = [
+    PRNGType.PCG,
+    PRNGType.Xoroshiro128Plus,
+    PRNGType.Xoroshiro128Plus_SIMD,
+    PRNGType.Xoshiro256Plus,
+    PRNGType.Xoshiro256Plus_SIMD
+] as const;
+
+/**
+ * Non-SIMD PRNG types (single-lane generators).
+ * SIMD generators interleave dual-lane output in array methods, so they have different
+ * stream consistency behavior than non-SIMD generators.
+ */
+export const NON_SIMD_PRNG_TYPES = [
+    PRNGType.PCG,
+    PRNGType.Xoroshiro128Plus,
+    PRNGType.Xoshiro256Plus
+] as const;
+
+// ============================================================================
+// Test Sample Sizes
+// ============================================================================
+
+/**
+ * Sample size for integration tests (matches AS DETERMINISTIC_SAMPLE_SIZE).
+ */
+export const INTEGRATION_SAMPLE_SIZE = 1000;
+
+/**
+ * Default output array size (matches RandomGenerator default constructor parameter).
+ */
+export const DEFAULT_OUTPUT_ARRAY_SIZE = 1000;
+
+/**
+ * Custom array sizes for testing various scenarios.
+ */
+export const CUSTOM_ARRAY_SIZE_SMALL = 500;
+export const CUSTOM_ARRAY_SIZE_LARGE = 2000;
+
+/**
+ * Array size that exceeds WASM memory limits (1 page = 64KB).
+ * With 2 arrays (BigUint64Array + Float64Array) at 8 bytes/element,
+ * 5000 elements = ~80KB total, which exceeds the 64KB limit.
+ */
+export const MEMORY_EXCEEDING_ARRAY_SIZE = 5000;
+
+/**
+ * Number of parallel generators for multi-generator tests.
+ */
+export const PARALLEL_GENERATOR_COUNT = 3;
+
+/**
+ * Number of times to advance generator state in instance tests.
+ */
+export const INSTANCE_TEST_ADVANCE_COUNT = 10;
+
+/**
+ * Number of samples to compare in instance sequence tests.
+ */
+export const INSTANCE_TEST_SAMPLE_COUNT = 5;
+
+// ============================================================================
+// Jump Function Reference Values
+// ============================================================================
+
+/**
+ * Reference values for jump() validation.
+ * These are the expected first float values after calling jump() once with TEST_SEEDS,
+ * then generating the next value (via float(), floatArray()[0], etc.).
+ *
+ * Generated and verified by: src/assembly/test/c-reference/validate-jump.c
+ * To regenerate: npm run test:c-ref
+ *
+ * When updating these values, also update the corresponding AS values in
+ * src/assembly/test/test-utils.ts (JUMP_REFERENCE namespace)
+ */
+export const JUMP_REFERENCE = {
+    /** Xoroshiro128Plus with TEST_SEEDS.double, first value after jump() */
+    XOROSHIRO128PLUS: 0.94104842595495075,
+
+    /** Xoroshiro128Plus SIMD Lane 1 with TEST_SEEDS.quad[2,3], first value after jump() */
+    XOROSHIRO128PLUS_SIMD_LANE1: 0.56262870976309654,
+
+    /** Xoshiro256Plus with TEST_SEEDS.quad, first value after jump() */
+    XOSHIRO256PLUS: 0.085101652817760609,
+
+    /** Xoshiro256Plus SIMD Lane 1 with TEST_SEEDS.octet[4,5,6,7], first value after jump() */
+    XOSHIRO256PLUS_SIMD_LANE1: 0.55326868388004757
+};
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+/**
+ * Gets the appropriate test seeds for a given PRNG type.
+ */
+export function getSeedsForPRNG(prngType: PRNGType): bigint[] {
+    const count = SEED_COUNTS[prngType];
+
+    switch (count) {
+        case 1: return TEST_SEEDS.single;
+        case 2: return TEST_SEEDS.double;
+        case 4: return TEST_SEEDS.quad;
+        case 8: return TEST_SEEDS.octet;
+        default: throw new Error(`Unknown seed count: ${count}`);
+    }
+}
 
 /**
  * Creates a test generator with default settings for quick testing.
@@ -55,45 +214,6 @@ export function generateSequence<T>(
 }
 
 /**
- * Test seeds for deterministic testing (known 64-bit values).
- * Using large, non-trivial values to exercise all bit patterns.
- */
-export const TEST_SEEDS = {
-    single: [0x9E3779B97F4A7C15n],
-    double: [0x9E3779B97F4A7C15n, 0x6C078965D5B2A5D3n],
-    quad: [0x9E3779B97F4A7C15n, 0x6C078965D5B2A5D3n, 0xBF58476D1CE4E5B9n, 0x94D049BB133111EBn],
-    octet: [0x9E3779B97F4A7C15n, 0x6C078965D5B2A5D3n, 0xBF58476D1CE4E5B9n, 0x94D049BB133111EBn,
-            0x8C6D2D3A5F9A4B1Cn, 0xD3C5E8B2F7A16E4An, 0xA7B9C1D3E5F70829n, 0xF1E2D3C4B5A69788n]
-};
-
-/**
- * Expected seed counts for each PRNG type.
- * Note: SIMD versions require double the seeds (2 parallel streams).
- */
-export const SEED_COUNTS: Record<PRNGType, number> = {
-    [PRNGType.PCG]: 1,
-    [PRNGType.Xoroshiro128Plus]: 2,
-    [PRNGType.Xoroshiro128Plus_SIMD]: 4,
-    [PRNGType.Xoshiro256Plus]: 4,
-    [PRNGType.Xoshiro256Plus_SIMD]: 8
-};
-
-/**
- * Gets the appropriate test seeds for a given PRNG type.
- */
-export function getSeedsForPRNG(prngType: PRNGType): bigint[] {
-    const count = SEED_COUNTS[prngType];
-
-    switch (count) {
-        case 1: return TEST_SEEDS.single;
-        case 2: return TEST_SEEDS.double;
-        case 4: return TEST_SEEDS.quad;
-        case 8: return TEST_SEEDS.octet;
-        default: throw new Error(`Unknown seed count: ${count}`);
-    }
-}
-
-/**
  * Checks if a value is within an expected range.
  */
 export function isInRange(value: number, min: number, max: number): boolean {
@@ -115,76 +235,3 @@ export function arraysApproximatelyEqual(a: number[], b: number[], tolerance: nu
 
     return a.every((val, i) => Math.abs(val - b[i]) < tolerance);
 }
-
-/**
- * Default output array size (matches RandomGenerator default constructor parameter).
- */
-export const DEFAULT_OUTPUT_ARRAY_SIZE = 1000;
-
-/**
- * Custom array sizes for testing various scenarios.
- */
-export const CUSTOM_ARRAY_SIZE_SMALL = 500;
-export const CUSTOM_ARRAY_SIZE_LARGE = 2000;
-
-/**
- * Array size that exceeds WASM memory limits (1 page = 64KB).
- * With 2 arrays (BigUint64Array + Float64Array) at 8 bytes/element,
- * 5000 elements = ~80KB total, which exceeds the 64KB limit.
- */
-export const MEMORY_EXCEEDING_ARRAY_SIZE = 5000;
-
-/**
- * Reference values for jump() validation.
- * These are the expected first float values after calling jump() once with TEST_SEEDS,
- * then generating the next value (via float(), floatArray()[0], etc.).
- *
- * Generated and verified by: src/assembly/test/c-reference/validate-jump.c
- * To regenerate: npm run test:c-ref
- */
-export const JUMP_REFERENCE = {
-    /** Xoroshiro128Plus with TEST_SEEDS.double, first value after jump() */
-    XOROSHIRO128PLUS: 0.94104842595495075,
-
-    /** Xoroshiro128Plus SIMD Lane 1 with TEST_SEEDS.quad[2,3], first value after jump() */
-    XOROSHIRO128PLUS_SIMD_LANE1: 0.56262870976309654,
-
-    /** Xoshiro256Plus with TEST_SEEDS.quad, first value after jump() */
-    XOSHIRO256PLUS: 0.085101652817760609,
-
-    /** Xoshiro256Plus SIMD Lane 1 with TEST_SEEDS.octet[4,5,6,7], first value after jump() */
-    XOSHIRO256PLUS_SIMD_LANE1: 0.55326868388004757
-};
-
-/**
- * Stream IDs for testing jump functionality.
- * These values test different bit positions in the jump polynomial to catch mask regressions.
- */
-export const TEST_STREAM_IDS = {
-    /** Low stream ID for basic testing */
-    LOW: 1n,
-    /** Mid-range stream ID (requires bit 5 in upper 32 bits) */
-    MID: 40n,
-    /** High stream ID (requires bit 6 in upper 32 bits) */
-    HIGH: 65n
-};
-
-/**
- * Sample size for integration tests (matches AS DETERMINISTIC_SAMPLE_SIZE).
- */
-export const INTEGRATION_SAMPLE_SIZE = 1000;
-
-/**
- * Number of parallel generators for multi-generator tests.
- */
-export const PARALLEL_GENERATOR_COUNT = 3;
-
-/**
- * Number of times to advance generator state in instance tests.
- */
-export const INSTANCE_TEST_ADVANCE_COUNT = 10;
-
-/**
- * Number of samples to compare in instance sequence tests.
- */
-export const INSTANCE_TEST_SAMPLE_COUNT = 5;

@@ -13,6 +13,17 @@ import {
 } from '../helpers/stat-utils';
 import { createTestGenerator, getSeedsForPRNG, DEFAULT_OUTPUT_ARRAY_SIZE } from '../helpers/test-utils';
 
+/**
+ * Statistical Validation Tests
+ *
+ * Comprehensive statistical quality validation using larger sample size with chi-square tests,
+ * serial correlation analysis, and Monte Carlo simulation. Tests native output for all
+ * algorithms plus derived outputs (conversions tested on one algorithm since logic is shared)
+ * and conversions are explicitly tested separately.
+ *
+ * Contrast with wrapper-api.test.ts (basic smoke tests verifying methods execute) and
+ * array-behavior.test.ts (deep array behavior validation across all generators).
+ */
 describe('Statistical Validation', () => {
     // Chi-square tests have ~5% false failure rate by design,
     // retries + large count reduce this to ~0.0003%

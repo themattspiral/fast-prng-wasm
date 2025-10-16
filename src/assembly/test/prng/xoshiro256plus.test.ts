@@ -14,15 +14,13 @@ import {
   coord53Array,
   coord53SquaredArray,
   batchTestUnitCirclePoints,
-  jump,
-  SEED_COUNT
+  jump
 } from '../../prng/xoshiro256plus';
 import {
   TEST_SEEDS,
   TEST_SEEDS_ALT,
   DETERMINISTIC_SAMPLE_SIZE,
   DISTRIBUTION_SAMPLE_SIZE,
-  DIFFERENT_SEEDS_MIN_PERCENT,
   QUARTILE_MIN,
   QUARTILE_MAX,
   PI_ESTIMATE_TOLERANCE,
@@ -71,7 +69,7 @@ describe('Xoshiro256Plus', () => {
         values2.push(uint64());
       }
 
-      // At least 99% should differ
+      // All values should differ
       let differentCount = 0;
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         if (values1[i] != values2[i]) {
@@ -79,7 +77,7 @@ describe('Xoshiro256Plus', () => {
         }
       }
 
-      expect(differentCount >= <i32>(DETERMINISTIC_SAMPLE_SIZE * DIFFERENT_SEEDS_MIN_PERCENT)).equal(true); // At least 99% of values differ with different seeds
+      expect(differentCount).equal(DETERMINISTIC_SAMPLE_SIZE); // All values differ with different seeds
     });
   });
 
@@ -420,11 +418,10 @@ describe('Xoshiro256Plus', () => {
         }
       }
 
-      // With proper jump, there should be no overlaps (or extremely rare collisions)
-      // Allow up to 1 collision due to birthday paradox (very generous)
-      expect(overlap_0_1 <= 1).equal(true); // Stream 0 and 1 should not overlap
-      expect(overlap_1_2 <= 1).equal(true); // Stream 1 and 2 should not overlap
-      expect(overlap_0_2 <= 1).equal(true); // Stream 0 and 2 should not overlap
+      // With proper jump, there should be no overlaps
+      expect(overlap_0_1).equal(0); // Stream 0 and 1 should not overlap
+      expect(overlap_1_2).equal(0); // Stream 1 and 2 should not overlap
+      expect(overlap_0_2).equal(0); // Stream 0 and 2 should not overlap
     });
 
     test('jump matches C reference implementation', () => {
