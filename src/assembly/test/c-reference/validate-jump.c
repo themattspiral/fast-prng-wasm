@@ -94,6 +94,17 @@ void xoshiro256_jump(void) {
 }
 
 // ============================================================================
+// Conversion Functions (matching our WASM uint64_to_float53 logic)
+// ============================================================================
+
+// Converts uint64 to float in [0, 1) using 53-bit precision
+// Matches: uint64_to_float53() in conversion.ts
+double uint64_to_float53(uint64_t value) {
+    // Right shift by 11 to get 53 bits, multiply by 2^-53
+    return (value >> 11) * 0x1.0p-53;
+}
+
+// ============================================================================
 // Test Program
 // ============================================================================
 
@@ -101,31 +112,71 @@ int main() {
     printf("Jump Reference Value Validation\n");
     printf("================================\n\n");
 
-    // Test Xoroshiro128+ with complex seeds (from TEST_SEEDS.DOUBLE_*)
-    printf("Xoroshiro128+ (complex seeds from TEST_SEEDS.DOUBLE_*)\n");
+    // Test Xoroshiro128+ with complex seeds (TEST_SEEDS.DOUBLE_0, DOUBLE_1)
+    // Used for non-SIMD Xoroshiro128Plus and SIMD lane 0
+    printf("Xoroshiro128+ (seeds: DOUBLE_0, DOUBLE_1)\n");
     xoroshiro128_s[0] = 0x9E3779B97F4A7C15ULL;  // TEST_SEEDS.DOUBLE_0
     xoroshiro128_s[1] = 0x6C078965D5B2A5D3ULL;  // TEST_SEEDS.DOUBLE_1
     xoroshiro128_jump();
     uint64_t xoroshiro_result = xoroshiro128_next();
+    double xoroshiro_float = uint64_to_float53(xoroshiro_result);
     printf("  After jump() then next(): %llu\n", (unsigned long long)xoroshiro_result);
-    printf("  Hex: 0x%016llx\n\n", (unsigned long long)xoroshiro_result);
+    printf("  Hex: 0x%016llx\n", (unsigned long long)xoroshiro_result);
+    printf("  As float53: %.17g\n\n", xoroshiro_float);
 
-    // Test Xoshiro256+ with complex seeds (from TEST_SEEDS.QUAD_*)
-    printf("Xoshiro256+ (complex seeds from TEST_SEEDS.QUAD_*)\n");
+    // Test Xoroshiro128+ SIMD Lane 1 with complex seeds (TEST_SEEDS.QUAD_2, QUAD_3)
+    printf("Xoroshiro128+ SIMD Lane 1 (seeds: QUAD_2, QUAD_3)\n");
+    xoroshiro128_s[0] = 0xBF58476D1CE4E5B9ULL;  // TEST_SEEDS.QUAD_2
+    xoroshiro128_s[1] = 0x94D049BB133111EBULL;  // TEST_SEEDS.QUAD_3
+    xoroshiro128_jump();
+    uint64_t xoroshiro_simd_lane1_result = xoroshiro128_next();
+    double xoroshiro_simd_lane1_float = uint64_to_float53(xoroshiro_simd_lane1_result);
+    printf("  After jump() then next(): %llu\n", (unsigned long long)xoroshiro_simd_lane1_result);
+    printf("  Hex: 0x%016llx\n", (unsigned long long)xoroshiro_simd_lane1_result);
+    printf("  As float53: %.17g\n\n", xoroshiro_simd_lane1_float);
+
+    // Test Xoshiro256+ with complex seeds (TEST_SEEDS.QUAD_0, QUAD_1, QUAD_2, QUAD_3)
+    // Used for non-SIMD Xoshiro256Plus and SIMD lane 0
+    printf("Xoshiro256+ (seeds: QUAD_0, QUAD_1, QUAD_2, QUAD_3)\n");
     xoshiro256_s[0] = 0x9E3779B97F4A7C15ULL;  // TEST_SEEDS.QUAD_0
     xoshiro256_s[1] = 0x6C078965D5B2A5D3ULL;  // TEST_SEEDS.QUAD_1
     xoshiro256_s[2] = 0xBF58476D1CE4E5B9ULL;  // TEST_SEEDS.QUAD_2
     xoshiro256_s[3] = 0x94D049BB133111EBULL;  // TEST_SEEDS.QUAD_3
     xoshiro256_jump();
     uint64_t xoshiro_result = xoshiro256_next();
+    double xoshiro_float = uint64_to_float53(xoshiro_result);
     printf("  After jump() then next(): %llu\n", (unsigned long long)xoshiro_result);
-    printf("  Hex: 0x%016llx\n\n", (unsigned long long)xoshiro_result);
+    printf("  Hex: 0x%016llx\n", (unsigned long long)xoshiro_result);
+    printf("  As float53: %.17g\n\n", xoshiro_float);
 
-    // Summary for test-utils.ts
+    // Test Xoshiro256+ SIMD Lane 1 with complex seeds (TEST_SEEDS.OCTET_4, OCTET_5, OCTET_6, OCTET_7)
+    printf("Xoshiro256+ SIMD Lane 1 (seeds: OCTET_4, OCTET_5, OCTET_6, OCTET_7)\n");
+    xoshiro256_s[0] = 0x8C6D2D3A5F9A4B1CULL;  // TEST_SEEDS.OCTET_4
+    xoshiro256_s[1] = 0xD3C5E8B2F7A16E4AULL;  // TEST_SEEDS.OCTET_5
+    xoshiro256_s[2] = 0xA7B9C1D3E5F70829ULL;  // TEST_SEEDS.OCTET_6
+    xoshiro256_s[3] = 0xF1E2D3C4B5A69788ULL;  // TEST_SEEDS.OCTET_7
+    xoshiro256_jump();
+    uint64_t xoshiro_simd_lane1_result = xoshiro256_next();
+    double xoshiro_simd_lane1_float = uint64_to_float53(xoshiro_simd_lane1_result);
+    printf("  After jump() then next(): %llu\n", (unsigned long long)xoshiro_simd_lane1_result);
+    printf("  Hex: 0x%016llx\n", (unsigned long long)xoshiro_simd_lane1_result);
+    printf("  As float53: %.17g\n\n", xoshiro_simd_lane1_float);
+
+    // Summary for test-utils.ts JUMP_REFERENCE namespace
     printf("For test-utils.ts JUMP_REFERENCE namespace:\n");
-    printf("-------------------------------------------\n");
-    printf("XOROSHIRO128PLUS: %llu\n", (unsigned long long)xoroshiro_result);
-    printf("XOSHIRO256PLUS: %llu\n", (unsigned long long)xoshiro_result);
+    printf("============================================\n");
+    printf("Xoroshiro128Plus:\n");
+    printf("  uint64: %llu\n", (unsigned long long)xoroshiro_result);
+    printf("  float:  %.17g\n\n", xoroshiro_float);
+    printf("Xoroshiro128Plus_SIMD_Lane1:\n");
+    printf("  uint64: %llu\n", (unsigned long long)xoroshiro_simd_lane1_result);
+    printf("  float:  %.17g\n\n", xoroshiro_simd_lane1_float);
+    printf("Xoshiro256Plus:\n");
+    printf("  uint64: %llu\n", (unsigned long long)xoshiro_result);
+    printf("  float:  %.17g\n\n", xoshiro_float);
+    printf("Xoshiro256Plus_SIMD_Lane1:\n");
+    printf("  uint64: %llu\n", (unsigned long long)xoshiro_simd_lane1_result);
+    printf("  float:  %.17g\n", xoshiro_simd_lane1_float);
 
     return 0;
 }

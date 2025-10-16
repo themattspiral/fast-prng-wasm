@@ -133,3 +133,43 @@ export const CUSTOM_ARRAY_SIZE_LARGE = 2000;
  * 5000 elements = ~80KB total, which exceeds the 64KB limit.
  */
 export const MEMORY_EXCEEDING_ARRAY_SIZE = 5000;
+
+/**
+ * Reference values for jump() validation.
+ * These are the expected first float values after calling jump() once with TEST_SEEDS,
+ * then generating the next value (via float(), floatArray()[0], etc.).
+ *
+ * Generated and verified by: src/assembly/test/c-reference/validate-jump.c
+ * To regenerate: npm run test:c-ref
+ */
+export const JUMP_REFERENCE = {
+    /** Xoroshiro128Plus with TEST_SEEDS.double, first value after jump() */
+    XOROSHIRO128PLUS: 0.94104842595495075,
+
+    /** Xoroshiro128Plus SIMD Lane 1 with TEST_SEEDS.quad[2,3], first value after jump() */
+    XOROSHIRO128PLUS_SIMD_LANE1: 0.56262870976309654,
+
+    /** Xoshiro256Plus with TEST_SEEDS.quad, first value after jump() */
+    XOSHIRO256PLUS: 0.085101652817760609,
+
+    /** Xoshiro256Plus SIMD Lane 1 with TEST_SEEDS.octet[4,5,6,7], first value after jump() */
+    XOSHIRO256PLUS_SIMD_LANE1: 0.55326868388004757
+};
+
+/**
+ * Stream IDs for testing jump functionality.
+ * These values test different bit positions in the jump polynomial to catch mask regressions.
+ */
+export const TEST_STREAM_IDS = {
+    /** Low stream ID for basic testing */
+    LOW: 1n,
+    /** Mid-range stream ID (requires bit 5 in upper 32 bits) */
+    MID: 40n,
+    /** High stream ID (requires bit 6 in upper 32 bits) */
+    HIGH: 65n
+};
+
+/**
+ * Sample size for integration tests (matches AS DETERMINISTIC_SAMPLE_SIZE).
+ */
+export const INTEGRATION_SAMPLE_SIZE = 1000;
