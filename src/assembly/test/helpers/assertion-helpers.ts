@@ -19,7 +19,6 @@
 
 import { assertResult } from 'assemblyscript-unittest-framework/assembly/env';
 
-@inline
 const EXPECT_MAX_INDEX: u32 = 2147483647; // Sentinel value meaning "no code location"
 
 /**
@@ -39,7 +38,7 @@ const EXPECT_MAX_INDEX: u32 = 2147483647; // Sentinel value meaning "no code loc
  * assertInRange(count, 24000, 26000, "Q1 quartile");
  * // On failure: value: 23500  expect: Q1 quartile: in range [24000, 26000] (below minimum)
  */
-export function assertInRange<T>(value: T, min: T, max: T, message: string = ""): void {
+export function assertInRange<T extends number>(value: T, min: T, max: T, message: string = ""): void {
   const prefix = message ? `${message}: ` : "";
   const inRange = value >= min && value <= max;
 
@@ -72,7 +71,7 @@ export function assertInRange<T>(value: T, min: T, max: T, message: string = "")
  * assertGreaterThanOrEqual(count, 0, "Sample count");
  * // On failure: value: -5  expect: Sample count: >= 0
  */
-export function assertGreaterThanOrEqual<T>(value: T, min: T, message: string = ""): void {
+export function assertGreaterThanOrEqual<T extends number>(value: T, min: T, message: string = ""): void {
   const prefix = message ? `${message}: ` : "";
 
   assertResult.collectCheckResult(
@@ -94,7 +93,7 @@ export function assertGreaterThanOrEqual<T>(value: T, min: T, message: string = 
  * assertLessThan(probability, 1.0, "Probability");
  * // On failure: value: 1.5  expect: Probability: < 1.0
  */
-export function assertLessThan<T>(value: T, max: T, message: string = ""): void {
+export function assertLessThan<T extends number>(value: T, max: T, message: string = ""): void {
   const prefix = message ? `${message}: ` : "";
 
   assertResult.collectCheckResult(
@@ -116,7 +115,7 @@ export function assertLessThan<T>(value: T, max: T, message: string = ""): void 
  * assertLessThanOrEqual(count, 100, "Maximum count");
  * // On failure: value: 105  expect: Maximum count: <= 100
  */
-export function assertLessThanOrEqual<T>(value: T, max: T, message: string = ""): void {
+export function assertLessThanOrEqual<T extends number>(value: T, max: T, message: string = ""): void {
   const prefix = message ? `${message}: ` : "";
 
   assertResult.collectCheckResult(
