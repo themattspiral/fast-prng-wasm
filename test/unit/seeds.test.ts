@@ -1,7 +1,22 @@
+/**
+ * Seed Generation Tests
+ *
+ * Tests for SplitMix64 seeding algorithm and seed64Array utility function.
+ *
+ * Test Strategy:
+ * - Verify SplitMix64 algorithm correctness against reference implementation
+ * - Test determinism and uniqueness of generated seeds
+ * - Validate seed64Array utility produces correct sizes and types
+ * - Test both auto-seeding and custom seed scenarios
+ *
+ * Contrast: These are unit tests for seed generation utilities, while integration
+ * tests use these utilities to test PRNG behavior with various seed patterns.
+ */
+
 import { describe, it, expect } from 'vitest';
 import { SplitMix64, seed64Array } from 'fast-prng-wasm';
 
-describe('SplitMix64', () => {
+describe('SplitMix64 Random Seed Generator', () => {
     describe('Constructor', () => {
         it('should create instance with auto-seed', () => {
             const sm64 = new SplitMix64();

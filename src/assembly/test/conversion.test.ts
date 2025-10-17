@@ -1,25 +1,52 @@
+/**
+ * Scalar Conversion Function Tests
+ *
+ * Tests for uint64 to integer and float conversion functions (non-SIMD).
+ * Converts raw uint64 values to bit-shifted integers (as floats) and actual
+ * floating-point values in various ranges.
+ *
+ * Test Strategy:
+ * - Verify correct output ranges for all conversion types
+ * - Test edge cases (min, max, mid-range, zero)
+ * - Validate bit manipulation (precision, rounding, shifting)
+ *
+ * Contrast: These test scalar conversion functions (single values), while
+ * conversion-simd.test.ts tests SIMD conversions (dual-lane processing).
+ */
+
 import { describe, test, expect } from 'assemblyscript-unittest-framework/assembly';
 import {
   uint64_to_uint53AsFloat,
   uint64_to_uint32AsFloat,
   uint64_to_float53,
   uint64_to_coord53,
-  uint64_to_coord53Squared,
-  BIT_53
+  uint64_to_coord53Squared
 } from '../common/conversion';
+import {
+  HIGH_PRECISION_TOLERANCE,
+  MAX_UINT64_TO_FLOAT_LOWER_BOUND,
+  MAX_SAFE_INTEGER,
+  MAX_UINT32
+} from './helpers/test-utils';
+import {
+  assertGreaterThanOrEqual,
+  assertLessThan,
+  assertLessThanOrEqual,
+  assertGreaterThan
+} from './helpers/assertion-helpers';
 
 describe('uint64_to_float53', () => {
   test('max value should be < 1', () => {
     const input: u64 = 0xFFFFFFFFFFFFFFFF;
     const result = uint64_to_float53(input);
 
-    expect(result >= 0).equal(true); // Should be non-negative
-    expect(result < 1).equal(true); // Should be < 1 (exclusive upper bound)
+    assertGreaterThanOrEqual(result, 0, "result is non-negative");
+    assertLessThan(result, 1, "result < 1");
   });
 
   test('zero should be exactly 0', () => {
     const result = uint64_to_float53(0);
-    expect(result == 0).equal(true);
+    expect(result).equal(0);
   });
 
   test('mid-range should be exactly 0.5', () => {
@@ -27,7 +54,7 @@ describe('uint64_to_float53', () => {
     const result = uint64_to_float53(mid);
 
     // 0.5 is exactly representable in f64
-    expect(result == 0.5).equal(true);
+    expect(result).equal(0.5);
   });
 
   test('should ignore bottom 11 bits', () => {
@@ -37,16 +64,16 @@ describe('uint64_to_float53', () => {
     const result1 = uint64_to_float53(base);
     const result2 = uint64_to_float53(withNoise);
 
-    expect(result1 == result2).equal(true);
+    expect(result1).equal(result2);
   });
 
   test('should use unsigned right shift', () => {
     const highBitSet: u64 = 0xFFFFFFFFFFFFFFFF;
     const result = uint64_to_float53(highBitSet);
 
-    expect(result >= 0).equal(true); // Unsigned shift keeps result positive
-    expect(result < 1).equal(true); // Still within [0, 1) range
-    expect(result > 0.999999).equal(true); // Max u64 produces value very close to 1
+    assertGreaterThanOrEqual(result, 0, "Unsigned shift keeps result positive");
+    assertLessThan(result, 1, "Still within [0, 1) range");
+    assertGreaterThan(result, MAX_UINT64_TO_FLOAT_LOWER_BOUND, "Max u64 produces value very close to 1");
   });
 });
 
@@ -88,8 +115,7 @@ describe('uint64_to_coord53Squared', () => {
         ? coordSquared - manualSquared
         : manualSquared - coordSquared;
 
-      // High precision: within 1e-15
-      expect(diff < 1e-15).equal(true);
+      assertLessThan(diff, HIGH_PRECISION_TOLERANCE, "Optimized coord squared matches manual squaring within high precision tolerance");
     }
   });
 
@@ -110,8 +136,8 @@ describe('uint64_to_uint53AsFloat', () => {
 
     for (let i = 0; i < inputs.length; i++) {
       const result = uint64_to_uint53AsFloat(inputs[i]);
-      expect(result >= 0).equal(true);
-      expect(result <= 9007199254740991).equal(true);
+      assertGreaterThanOrEqual(result, 0, "result >= 0");
+      assertLessThanOrEqual(result, MAX_SAFE_INTEGER, "result <= 2^53-1");
     }
   });
 });
@@ -122,8 +148,8 @@ describe('uint64_to_uint32AsFloat', () => {
 
     for (let i = 0; i < inputs.length; i++) {
       const result = uint64_to_uint32AsFloat(inputs[i]);
-      expect(result >= 0).equal(true);
-      expect(result <= 4294967295).equal(true);
+      assertGreaterThanOrEqual(result, 0, "result >= 0");
+      assertLessThanOrEqual(result, MAX_UINT32, "result <= 2^32-1");
     }
   });
 });

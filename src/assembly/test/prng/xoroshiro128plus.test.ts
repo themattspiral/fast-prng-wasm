@@ -1,3 +1,21 @@
+/**
+ * Xoroshiro128Plus PRNG Tests
+ *
+ * Tests for Xoroshiro128+ (128-bit state, scalar) PRNG implementation.
+ *
+ * Test Strategy:
+ * - Verify determinism with larger sample sequences (vs integration's smaller samples)
+ * - Test quality metrics (uniqueness, full range usage) on larger samples
+ * - Validate all output formats (uint64, floats, coords) at WASM level
+ * - Verify array methods match single-value sequences (stream consistency)
+ * - Test jump() for parallel stream generation with C reference validation
+ * - Statistical smoke tests (quartile distribution, Monte Carlo π)
+ *
+ * Contrast: These are deep WASM-level tests with larger sample sizes testing the raw
+ * PRNG exports directly. Integration tests use smaller samples and test through the JS
+ * wrapper to verify end-to-end wiring across all 5 generator types.
+ */
+
 import { describe, test, expect, beforeEach } from 'assemblyscript-unittest-framework/assembly';
 import {
   setSeeds,
@@ -14,15 +32,13 @@ import {
   coord53Array,
   coord53SquaredArray,
   batchTestUnitCirclePoints,
-  jump,
-  SEED_COUNT
+  jump
 } from '../../prng/xoroshiro128plus';
 import {
   TEST_SEEDS,
   TEST_SEEDS_ALT,
   DETERMINISTIC_SAMPLE_SIZE,
   DISTRIBUTION_SAMPLE_SIZE,
-  DIFFERENT_SEEDS_MIN_PERCENT,
   QUARTILE_MIN,
   QUARTILE_MAX,
   PI_ESTIMATE_TOLERANCE,
@@ -32,8 +48,10 @@ import {
   U64_Q2_MAX,
   U64_Q3_MAX,
   MAX_SAFE_INTEGER,
-  MAX_UINT32
-} from '../test-utils';
+  MAX_UINT32,
+  JUMP_REFERENCE
+} from '../helpers/test-utils';
+import { assertInRange, assertLessThan } from '../helpers/assertion-helpers';
 
 describe('Xoroshiro128Plus', () => {
   beforeEach(() => {
@@ -70,7 +88,7 @@ describe('Xoroshiro128Plus', () => {
         values2.push(uint64());
       }
 
-      // At least 99% should differ
+      // All values should differ
       let differentCount = 0;
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         if (values1[i] != values2[i]) {
@@ -78,7 +96,7 @@ describe('Xoroshiro128Plus', () => {
         }
       }
 
-      expect(differentCount >= <i32>(DETERMINISTIC_SAMPLE_SIZE * DIFFERENT_SEEDS_MIN_PERCENT)).equal(true); // At least 99% of values differ with different seeds
+      expect(differentCount).equal(DETERMINISTIC_SAMPLE_SIZE); // All values differ with different seeds
     });
   });
 
@@ -324,7 +342,7 @@ describe('Xoroshiro128Plus', () => {
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         uniqueValues.add(arr[i]);
       }
-      expect(uniqueValues.size == DETERMINISTIC_SAMPLE_SIZE).equal(true); // All values are unique
+      expect(uniqueValues.size).equal(DETERMINISTIC_SAMPLE_SIZE); // All values are unique
     });
   });
 
@@ -363,6 +381,84 @@ describe('Xoroshiro128Plus', () => {
 
       expect(differentCount).equal(DETERMINISTIC_SAMPLE_SIZE); // All values differ after jump
     });
+
+    test('multiple jumps produce non-overlapping sequences', () => {
+      // Create 3 streams with 0, 1, and 2 jumps
+      const stream0: u64[] = [];
+      setSeeds(TEST_SEEDS.DOUBLE_0, TEST_SEEDS.DOUBLE_1);
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        stream0.push(uint64());
+      }
+
+      const stream1: u64[] = [];
+      setSeeds(TEST_SEEDS.DOUBLE_0, TEST_SEEDS.DOUBLE_1);
+      jump();
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        stream1.push(uint64());
+      }
+
+      const stream2: u64[] = [];
+      setSeeds(TEST_SEEDS.DOUBLE_0, TEST_SEEDS.DOUBLE_1);
+      jump();
+      jump();
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        stream2.push(uint64());
+      }
+
+      const set0 = new Set<u64>();
+      const set1 = new Set<u64>();
+      const set2 = new Set<u64>();
+
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        set0.add(stream0[i]);
+        set1.add(stream1[i]);
+        set2.add(stream2[i]);
+      }
+
+      // Count overlaps by checking if values from one stream exist in another stream's set
+      let overlap_0_1 = 0;
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        if (set1.has(stream0[i])) {
+          overlap_0_1++;
+        }
+      }
+
+      let overlap_1_2 = 0;
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        if (set2.has(stream1[i])) {
+          overlap_1_2++;
+        }
+      }
+
+      let overlap_0_2 = 0;
+      for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
+        if (set2.has(stream0[i])) {
+          overlap_0_2++;
+        }
+      }
+
+      // With proper jump, there should be no overlaps
+      expect(overlap_0_1).equal(0); // Stream 0 and 1 should not overlap
+      expect(overlap_1_2).equal(0); // Stream 1 and 2 should not overlap
+      expect(overlap_0_2).equal(0); // Stream 0 and 2 should not overlap
+    });
+
+    test('jump matches C reference implementation', () => {
+      // Reference value from the official C implementation at:
+      // https://prng.di.unimi.it/xoroshiro128plus.c
+      //
+      // With TEST_SEEDS.DOUBLE_0, TEST_SEEDS.DOUBLE_1, after calling jump(),
+      // the first call to next() should return the reference value.
+      //
+      // This value is verified by src/assembly/test/c-reference/validate-jump.c
+      // to ensure our implementation matches the official reference exactly.
+
+      setSeeds(TEST_SEEDS.DOUBLE_0, TEST_SEEDS.DOUBLE_1);
+      jump();
+      const result = uint64();
+
+      expect(result).equal(JUMP_REFERENCE.XOROSHIRO128PLUS); // Must match C reference implementation
+    });
   });
 
   describe('Statistical Smoke Tests', () => {
@@ -378,24 +474,23 @@ describe('Xoroshiro128Plus', () => {
       }
 
       // Expect roughly 25K in each quartile (allow 24K-26K)
-      expect(q1 >= QUARTILE_MIN && q1 <= QUARTILE_MAX).equal(true); // Q1 has ~25K values
-      expect(q2 >= QUARTILE_MIN && q2 <= QUARTILE_MAX).equal(true); // Q2 has ~25K values
-      expect(q3 >= QUARTILE_MIN && q3 <= QUARTILE_MAX).equal(true); // Q3 has ~25K values
-      expect(q4 >= QUARTILE_MIN && q4 <= QUARTILE_MAX).equal(true); // Q4 has ~25K values
+      assertInRange(q1, QUARTILE_MIN, QUARTILE_MAX, "Q1 quartile");
+      assertInRange(q2, QUARTILE_MIN, QUARTILE_MAX, "Q2 quartile");
+      assertInRange(q3, QUARTILE_MIN, QUARTILE_MAX, "Q3 quartile");
+      assertInRange(q4, QUARTILE_MIN, QUARTILE_MAX, "Q4 quartile");
     });
 
     test('Monte Carlo π estimation (100K samples)', () => {
       const inside = batchTestUnitCirclePoints(DISTRIBUTION_SAMPLE_SIZE);
 
-      expect(inside >= 0).equal(true); // Count should be >= 0
-      expect(inside <= DISTRIBUTION_SAMPLE_SIZE).equal(true); // Count should be <= total
+      assertInRange(inside, 0, DISTRIBUTION_SAMPLE_SIZE, "Points inside circle");
 
       const piEstimate = (4.0 * <f64>inside) / <f64>DISTRIBUTION_SAMPLE_SIZE;
       const diff = piEstimate > PI
         ? piEstimate - PI
         : PI - piEstimate;
 
-      expect(diff < PI_ESTIMATE_TOLERANCE).equal(true); // π estimate within tolerance of actual value
+      assertLessThan(diff, PI_ESTIMATE_TOLERANCE, "π estimation error");
     });
 
     test('batchTestUnitCirclePoints: determinism', () => {

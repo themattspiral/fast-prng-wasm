@@ -10,8 +10,26 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { PRNGType } from '../../src/types/prng';
+import { TEST_SEEDS, getSeedsForPRNG } from '../helpers/test-utils';
 
-// Create a mock PRNG instance
+/**
+ * Creates a mock PRNG with predictable, incrementing values.
+ *
+ * This mock uses incrementing values (1001n, 1002n, etc.) instead of realistic
+ * random numbers. This is intentional and serves several testing purposes:
+ *
+ * 1. **Verifies wrapper logic**: Tests that the wrapper correctly calls WASM methods
+ *    and returns values without caching or interference
+ * 2. **Proves uniqueness**: Incrementing values make it obvious if the wrapper
+ *    incorrectly returns the same value multiple times
+ * 3. **Simplifies assertions**: Predictable values make test expectations clear
+ *    and failures easy to diagnose
+ * 4. **Isolates concerns**: Unit tests focus on the wrapper's behavior, not the
+ *    statistical properties of PRNGs (which are tested in integration tests)
+ *
+ * For testing actual PRNG behavior and statistical properties, see the integration
+ * test suite.
+ */
 function createMockPRNG(seedCount: number, hasJump: boolean = true) {
   const mockMemory = new WebAssembly.Memory({ initial: 1 });
   let callCount = 0;
@@ -89,14 +107,6 @@ vi.mock('../../bin/xoshiro256plus-simd.wasm', () => ({
 // Now import RandomGenerator after mocks are set up
 import { RandomGenerator } from '../../src/random-generator';
 
-// Test seed constants - each generator type gets distinctive seed values
-const SEED_PCG = [100n];
-const SEED_XOROSHIRO128 = [200n, 300n];
-const SEED_XOROSHIRO128_SIMD = [400n, 500n, 600n, 700n];
-const SEED_XOSHIRO256 = [800n, 900n, 1000n, 1100n];
-const SEED_XOSHIRO256_SIMD = [1200n, 1300n, 1400n, 1500n, 1600n, 1700n, 1800n, 1900n];
-const SEED_ALTERNATE = [9900n, 8800n];
-
 describe('RandomGenerator Unit Tests', () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -104,14 +114,15 @@ describe('RandomGenerator Unit Tests', () => {
 
     describe('Constructor', () => {
         it('should create instance with provided seeds', () => {
-            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, SEED_XOROSHIRO128);
+            const seeds = getSeedsForPRNG(PRNGType.Xoroshiro128Plus);
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, seeds);
 
             // Verify wrapper internal state
             expect(gen).toBeInstanceOf(RandomGenerator);
-            expect(gen.seeds).toEqual(SEED_XOROSHIRO128);
+            expect(gen.seeds).toEqual(seeds);
 
             // Verify wrapper calls setSeeds with exact seed values
-            expect((gen as any)._instance.setSeeds).toHaveBeenCalledWith(...SEED_XOROSHIRO128);
+            expect((gen as any)._instance.setSeeds).toHaveBeenCalledWith(...seeds);
         });
 
         it('should auto-seed when seeds not provided', () => {
@@ -128,7 +139,7 @@ describe('RandomGenerator Unit Tests', () => {
 
         it('should throw when insufficient seeds provided', () => {
             expect(() => {
-                new RandomGenerator(PRNGType.Xoroshiro128Plus, SEED_PCG); // needs 2
+                new RandomGenerator(PRNGType.Xoroshiro128Plus, getSeedsForPRNG(PRNGType.PCG)); // needs 2, only provided 1
             }).toThrow(/requires 2 seeds/);
         });
 
@@ -165,41 +176,41 @@ describe('RandomGenerator Unit Tests', () => {
         });
 
         it('should set custom outputArraySize', () => {
-            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, SEED_XOROSHIRO128, null, 500);
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, getSeedsForPRNG(PRNGType.Xoroshiro128Plus), null, 500);
             expect(gen.outputArraySize).toBe(500);
         });
 
         it('should use default outputArraySize of 1000', () => {
-            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, SEED_XOROSHIRO128);
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, getSeedsForPRNG(PRNGType.Xoroshiro128Plus));
             expect(gen.outputArraySize).toBe(1000);
         });
     });
 
     describe('Getters', () => {
         it('should get prngType', () => {
-            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, SEED_XOROSHIRO128);
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, getSeedsForPRNG(PRNGType.Xoroshiro128Plus));
             expect(gen.prngType).toBe(PRNGType.Xoroshiro128Plus);
         });
 
         it('should get seedCount', () => {
-            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, SEED_XOROSHIRO128);
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, getSeedsForPRNG(PRNGType.Xoroshiro128Plus));
             expect(gen.seedCount).toBe(2);
         });
 
         it('should get seeds', () => {
-            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, SEED_XOROSHIRO128);
-            expect(gen.seeds).toEqual(SEED_XOROSHIRO128);
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, getSeedsForPRNG(PRNGType.Xoroshiro128Plus));
+            expect(gen.seeds).toEqual(getSeedsForPRNG(PRNGType.Xoroshiro128Plus));
         });
 
         it('should get outputArraySize', () => {
-            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, SEED_XOROSHIRO128, null, 750);
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, getSeedsForPRNG(PRNGType.Xoroshiro128Plus), null, 750);
             expect(gen.outputArraySize).toBe(750);
         });
     });
 
     describe('Single value methods', () => {
         it('should call int64() and return bigint', () => {
-            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, SEED_XOROSHIRO128);
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, getSeedsForPRNG(PRNGType.Xoroshiro128Plus));
 
             // Call wrapper method
             const val = gen.int64();
@@ -214,7 +225,7 @@ describe('RandomGenerator Unit Tests', () => {
         });
 
         it('should call int53() and return number', () => {
-            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, SEED_XOROSHIRO128);
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, getSeedsForPRNG(PRNGType.Xoroshiro128Plus));
 
             // Call wrapper method
             const val = gen.int53();
@@ -229,7 +240,7 @@ describe('RandomGenerator Unit Tests', () => {
         });
 
         it('should call int32() and return number', () => {
-            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, SEED_XOROSHIRO128);
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, getSeedsForPRNG(PRNGType.Xoroshiro128Plus));
 
             // Call wrapper method
             const val = gen.int32();
@@ -244,7 +255,7 @@ describe('RandomGenerator Unit Tests', () => {
         });
 
         it('should call float()', () => {
-            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, SEED_XOROSHIRO128);
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, getSeedsForPRNG(PRNGType.Xoroshiro128Plus));
 
             // Call wrapper method
             const val = gen.float();
@@ -259,7 +270,7 @@ describe('RandomGenerator Unit Tests', () => {
         });
 
         it('should call coord()', () => {
-            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, SEED_XOROSHIRO128);
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, getSeedsForPRNG(PRNGType.Xoroshiro128Plus));
 
             // Call wrapper method
             const val = gen.coord();
@@ -274,7 +285,7 @@ describe('RandomGenerator Unit Tests', () => {
         });
 
         it('should call coordSquared()', () => {
-            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, SEED_XOROSHIRO128);
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, getSeedsForPRNG(PRNGType.Xoroshiro128Plus));
 
             // Call wrapper method
             const val = gen.coordSquared();
@@ -291,7 +302,7 @@ describe('RandomGenerator Unit Tests', () => {
 
     describe('Array methods', () => {
         it('should call int64Array() and return BigUint64Array', () => {
-            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, SEED_XOROSHIRO128);
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, getSeedsForPRNG(PRNGType.Xoroshiro128Plus));
             const arr = gen.int64Array();
 
             // Get the pointer that was allocated during construction
@@ -306,7 +317,7 @@ describe('RandomGenerator Unit Tests', () => {
         });
 
         it('should call int53Array() and return Float64Array', () => {
-            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, SEED_XOROSHIRO128);
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, getSeedsForPRNG(PRNGType.Xoroshiro128Plus));
             const arr = gen.int53Array();
 
             // Get the pointer that was allocated during construction
@@ -321,7 +332,7 @@ describe('RandomGenerator Unit Tests', () => {
         });
 
         it('should call int32Array() and return Float64Array', () => {
-            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, SEED_XOROSHIRO128);
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, getSeedsForPRNG(PRNGType.Xoroshiro128Plus));
             const arr = gen.int32Array();
 
             // Get the pointer that was allocated during construction
@@ -336,7 +347,7 @@ describe('RandomGenerator Unit Tests', () => {
         });
 
         it('should call floatArray() and return Float64Array', () => {
-            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, SEED_XOROSHIRO128);
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, getSeedsForPRNG(PRNGType.Xoroshiro128Plus));
             const arr = gen.floatArray();
 
             // Get the pointer that was allocated during construction
@@ -351,7 +362,7 @@ describe('RandomGenerator Unit Tests', () => {
         });
 
         it('should call coordArray() and return Float64Array', () => {
-            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, SEED_XOROSHIRO128);
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, getSeedsForPRNG(PRNGType.Xoroshiro128Plus));
             const arr = gen.coordArray();
 
             // Get the pointer that was allocated during construction
@@ -366,7 +377,7 @@ describe('RandomGenerator Unit Tests', () => {
         });
 
         it('should call coordSquaredArray() and return Float64Array', () => {
-            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, SEED_XOROSHIRO128);
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, getSeedsForPRNG(PRNGType.Xoroshiro128Plus));
             const arr = gen.coordSquaredArray();
 
             // Get the pointer that was allocated during construction
@@ -381,7 +392,7 @@ describe('RandomGenerator Unit Tests', () => {
         });
 
         it('should reuse array buffer on subsequent calls', () => {
-            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, SEED_XOROSHIRO128);
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, getSeedsForPRNG(PRNGType.Xoroshiro128Plus));
             const arr1 = gen.floatArray();
             const arr2 = gen.floatArray();
 
@@ -392,7 +403,7 @@ describe('RandomGenerator Unit Tests', () => {
 
     describe('Monte Carlo method', () => {
         it('should call batchTestUnitCirclePoints()', () => {
-            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, SEED_XOROSHIRO128);
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, getSeedsForPRNG(PRNGType.Xoroshiro128Plus));
             const pointCount = 1000;
             const count = gen.batchTestUnitCirclePoints(pointCount);
 
@@ -409,10 +420,10 @@ describe('RandomGenerator Unit Tests', () => {
     describe('Stream ID (uniqueStreamId parameter)', () => {
         // Generators that support jump() - all Xoshiro/Xoroshiro variants
         const JUMP_CAPABLE_GENERATORS = [
-            { type: PRNGType.Xoroshiro128Plus, seeds: SEED_XOROSHIRO128 },
-            { type: PRNGType.Xoroshiro128Plus_SIMD, seeds: SEED_XOROSHIRO128_SIMD },
-            { type: PRNGType.Xoshiro256Plus, seeds: SEED_XOSHIRO256 },
-            { type: PRNGType.Xoshiro256Plus_SIMD, seeds: SEED_XOSHIRO256_SIMD }
+            { type: PRNGType.Xoroshiro128Plus, seeds: getSeedsForPRNG(PRNGType.Xoroshiro128Plus) },
+            { type: PRNGType.Xoroshiro128Plus_SIMD, seeds: getSeedsForPRNG(PRNGType.Xoroshiro128Plus_SIMD) },
+            { type: PRNGType.Xoshiro256Plus, seeds: getSeedsForPRNG(PRNGType.Xoshiro256Plus) },
+            { type: PRNGType.Xoshiro256Plus_SIMD, seeds: getSeedsForPRNG(PRNGType.Xoshiro256Plus_SIMD) }
         ];
 
         describe('Jump-capable generators (Xoshiro/Xoroshiro)', () => {
@@ -451,7 +462,7 @@ describe('RandomGenerator Unit Tests', () => {
         describe('PCG (increment-based stream selection)', () => {
             it('should call setStreamIncrement() BEFORE setSeeds() with positive stream ID', () => {
                 const streamId = 5;
-                const gen = new RandomGenerator(PRNGType.PCG, SEED_PCG, streamId);
+                const gen = new RandomGenerator(PRNGType.PCG, getSeedsForPRNG(PRNGType.PCG), streamId);
 
                 // Get the mock call data
                 const setStreamIncrementMock = (gen as any)._instance.setStreamIncrement;
@@ -461,7 +472,7 @@ describe('RandomGenerator Unit Tests', () => {
                 expect(setStreamIncrementMock).toHaveBeenCalledWith(BigInt(streamId));
 
                 // Verify setSeeds was called
-                expect(setSeedsMock).toHaveBeenCalledWith(...SEED_PCG);
+                expect(setSeedsMock).toHaveBeenCalledWith(...getSeedsForPRNG(PRNGType.PCG));
 
                 // CRITICAL: Verify order - setStreamIncrement must be called BEFORE setSeeds
                 // This is required by PCG's initialization algorithm
@@ -471,21 +482,21 @@ describe('RandomGenerator Unit Tests', () => {
             });
 
             it('should not call setStreamIncrement() when stream ID is null', () => {
-                const gen = new RandomGenerator(PRNGType.PCG, SEED_PCG, null);
+                const gen = new RandomGenerator(PRNGType.PCG, getSeedsForPRNG(PRNGType.PCG), null);
 
                 // Verify setStreamIncrement was not called
                 expect((gen as any)._instance.setStreamIncrement).not.toHaveBeenCalled();
             });
 
             it('should not call setStreamIncrement() when stream ID is 0', () => {
-                const gen = new RandomGenerator(PRNGType.PCG, SEED_PCG, 0);
+                const gen = new RandomGenerator(PRNGType.PCG, getSeedsForPRNG(PRNGType.PCG), 0);
 
                 // Verify setStreamIncrement was not called
                 expect((gen as any)._instance.setStreamIncrement).not.toHaveBeenCalled();
             });
 
             it('should not call setStreamIncrement() when stream ID is negative', () => {
-                const gen = new RandomGenerator(PRNGType.PCG, SEED_PCG, -1);
+                const gen = new RandomGenerator(PRNGType.PCG, getSeedsForPRNG(PRNGType.PCG), -1);
 
                 // Verify setStreamIncrement was not called
                 expect((gen as any)._instance.setStreamIncrement).not.toHaveBeenCalled();
@@ -495,31 +506,31 @@ describe('RandomGenerator Unit Tests', () => {
 
     describe('All PRNG types', () => {
         it('should instantiate PCG', () => {
-            const gen = new RandomGenerator(PRNGType.PCG, SEED_PCG);
+            const gen = new RandomGenerator(PRNGType.PCG, getSeedsForPRNG(PRNGType.PCG));
             expect(gen.prngType).toBe(PRNGType.PCG);
             expect(gen.seedCount).toBe(1);
         });
 
         it('should instantiate Xoroshiro128Plus', () => {
-            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, SEED_XOROSHIRO128);
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, getSeedsForPRNG(PRNGType.Xoroshiro128Plus));
             expect(gen.prngType).toBe(PRNGType.Xoroshiro128Plus);
             expect(gen.seedCount).toBe(2);
         });
 
         it('should instantiate Xoroshiro128Plus_SIMD', () => {
-            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus_SIMD, SEED_XOROSHIRO128_SIMD);
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus_SIMD, getSeedsForPRNG(PRNGType.Xoroshiro128Plus_SIMD));
             expect(gen.prngType).toBe(PRNGType.Xoroshiro128Plus_SIMD);
             expect(gen.seedCount).toBe(4);
         });
 
         it('should instantiate Xoshiro256Plus', () => {
-            const gen = new RandomGenerator(PRNGType.Xoshiro256Plus, SEED_XOSHIRO256);
+            const gen = new RandomGenerator(PRNGType.Xoshiro256Plus, getSeedsForPRNG(PRNGType.Xoshiro256Plus));
             expect(gen.prngType).toBe(PRNGType.Xoshiro256Plus);
             expect(gen.seedCount).toBe(4);
         });
 
         it('should instantiate Xoshiro256Plus_SIMD', () => {
-            const gen = new RandomGenerator(PRNGType.Xoshiro256Plus_SIMD, SEED_XOSHIRO256_SIMD);
+            const gen = new RandomGenerator(PRNGType.Xoshiro256Plus_SIMD, getSeedsForPRNG(PRNGType.Xoshiro256Plus_SIMD));
             expect(gen.prngType).toBe(PRNGType.Xoshiro256Plus_SIMD);
             expect(gen.seedCount).toBe(8);
         });

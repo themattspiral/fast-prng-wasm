@@ -1,3 +1,25 @@
+/**
+ * PCG PRNG Tests
+ *
+ * Tests for PCG (Permuted Congruential Generator) PRNG implementation.
+ *
+ * Test Strategy:
+ * - Verify determinism with larger sample sequences (vs integration's smaller samples)
+ * - Test quality metrics (uniqueness, full range usage) on larger samples
+ * - Validate all output formats (uint32, uint64, floats, coords) at WASM level
+ * - Verify array methods match single-value sequences (stream consistency)
+ * - Test stream selection via setStreamIncrement (PCG-specific feature)
+ * - Statistical smoke tests (quartile distribution, Monte Carlo π)
+ *
+ * Note: PCG tests both uint32 (native) and uint64 (derived) comprehensively because
+ * PCG's uint64 implementation chains two uint32 calls - this complexity warrants
+ * thorough testing. Other generators only test their native output format.
+ *
+ * Contrast: These are deep WASM-level tests with larger sample sizes testing the raw
+ * PRNG exports directly. Integration tests use smaller samples and test through the JS
+ * wrapper to verify end-to-end wiring across all 5 generator types.
+ */
+
 import { describe, test, expect, beforeEach } from 'assemblyscript-unittest-framework/assembly';
 import {
   setSeeds,
@@ -15,15 +37,13 @@ import {
   float53Array,
   coord53Array,
   coord53SquaredArray,
-  batchTestUnitCirclePoints,
-  SEED_COUNT
+  batchTestUnitCirclePoints
 } from '../../prng/pcg';
 import {
   TEST_SEEDS,
   TEST_SEEDS_ALT,
   DETERMINISTIC_SAMPLE_SIZE,
   DISTRIBUTION_SAMPLE_SIZE,
-  DIFFERENT_SEEDS_MIN_PERCENT,
   QUARTILE_MIN,
   QUARTILE_MAX,
   PI_ESTIMATE_TOLERANCE,
@@ -35,7 +55,8 @@ import {
   U32_Q3_MAX,
   MAX_SAFE_INTEGER,
   MAX_UINT32
-} from '../test-utils';
+} from '../helpers/test-utils';
+import { assertInRange, assertLessThan } from '../helpers/assertion-helpers';
 
 describe('PCG', () => {
   beforeEach(() => {
@@ -78,7 +99,7 @@ describe('PCG', () => {
         values2.push(uint32());
       }
 
-      // At least 99% should differ
+      // All values should differ
       let differentCount = 0;
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         if (values1[i] != values2[i]) {
@@ -86,7 +107,7 @@ describe('PCG', () => {
         }
       }
 
-      expect(differentCount >= <i32>(DETERMINISTIC_SAMPLE_SIZE * DIFFERENT_SEEDS_MIN_PERCENT)).equal(true); // At least 9900 of 10000 values differ with different seed
+      expect(differentCount).equal(DETERMINISTIC_SAMPLE_SIZE); // All values differ with different seed
     });
 
     test('uint64 produces identical sequence with same seed', () => {
@@ -118,7 +139,7 @@ describe('PCG', () => {
         values2.push(uint64());
       }
 
-      // At least 99% should differ
+      // All values should differ
       let differentCount = 0;
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         if (values1[i] != values2[i]) {
@@ -126,7 +147,7 @@ describe('PCG', () => {
         }
       }
 
-      expect(differentCount >= <i32>(DETERMINISTIC_SAMPLE_SIZE * DIFFERENT_SEEDS_MIN_PERCENT)).equal(true); // At least 9900 of 10000 values differ with different seed
+      expect(differentCount).equal(DETERMINISTIC_SAMPLE_SIZE); // All values differ with different seed
     });
   });
 
@@ -143,7 +164,7 @@ describe('PCG', () => {
         values.add(uint32());
       }
 
-      expect(values.size == DETERMINISTIC_SAMPLE_SIZE).equal(true); // All 10000 values are unique
+      expect(values.size).equal(DETERMINISTIC_SAMPLE_SIZE); // All 10000 values are unique
     });
 
     test('uint32 should use full range', () => {
@@ -171,7 +192,7 @@ describe('PCG', () => {
         values.add(uint64());
       }
 
-      expect(values.size == DETERMINISTIC_SAMPLE_SIZE).equal(true); // All 10000 values are unique
+      expect(values.size).equal(DETERMINISTIC_SAMPLE_SIZE); // All 10000 values are unique
     });
 
     test('uint64 should use full range', () => {
@@ -496,25 +517,24 @@ describe('PCG', () => {
       }
 
       // Expect roughly 25K in each quartile (allow 24K-26K)
-      expect(q1 >= QUARTILE_MIN && q1 <= QUARTILE_MAX).equal(true); // Q1 has ~25K values
-      expect(q2 >= QUARTILE_MIN && q2 <= QUARTILE_MAX).equal(true); // Q2 has ~25K values
-      expect(q3 >= QUARTILE_MIN && q3 <= QUARTILE_MAX).equal(true); // Q3 has ~25K values
-      expect(q4 >= QUARTILE_MIN && q4 <= QUARTILE_MAX).equal(true); // Q4 has ~25K values
+      assertInRange(q1, QUARTILE_MIN, QUARTILE_MAX, "Q1 quartile"); // Q1 has ~25K values
+      assertInRange(q2, QUARTILE_MIN, QUARTILE_MAX, "Q2 quartile"); // Q2 has ~25K values
+      assertInRange(q3, QUARTILE_MIN, QUARTILE_MAX, "Q3 quartile"); // Q3 has ~25K values
+      assertInRange(q4, QUARTILE_MIN, QUARTILE_MAX, "Q4 quartile"); // Q4 has ~25K values
     });
 
     test('Monte Carlo π estimation (100K samples)', () => {
       const total = DISTRIBUTION_SAMPLE_SIZE;
       const inside = batchTestUnitCirclePoints(total);
 
-      expect(inside >= 0).equal(true); // Count should be >= 0
-      expect(inside <= total).equal(true); // Count should be <= total
+      assertInRange(inside, 0, total, "Points inside circle"); // Count should be in valid range
 
       const piEstimate = (4.0 * <f64>inside) / <f64>total;
       const diff = piEstimate > PI
         ? piEstimate - PI
         : PI - piEstimate;
 
-      expect(diff < PI_ESTIMATE_TOLERANCE).equal(true); // π estimate within 0.02 of actual value
+      assertLessThan(diff, PI_ESTIMATE_TOLERANCE, "π estimation error"); // π estimate within 0.02 of actual value
     });
 
     test('batchTestUnitCirclePoints: determinism', () => {

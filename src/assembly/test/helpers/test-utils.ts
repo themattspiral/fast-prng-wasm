@@ -2,7 +2,6 @@
  * AssemblyScript Test Utilities
  *
  * Shared constants and test seeds for AS PRNG unit tests.
- * These values match the complexity of JS test seeds.
  */
 
 // ============================================================================
@@ -88,14 +87,19 @@ export const DISTRIBUTION_SAMPLE_SIZE: i32 = 100000;
 // ============================================================================
 
 /**
- * Minimum percentage of values that should differ between different seed sets.
- * Used in "different seeds produce different values" tests.
+ * Note on 100% threshold expectations in deterministic tests:
  *
- * Test Standards:
- * - Different seeds: ≥99% different (allows tiny statistical collision chance)
- * - Jump/stream selection: 100% different (deterministic transforms must be orthogonal)
+ * Throughout the test suite, we use 100% thresholds (exact equality) for all deterministic
+ * comparisons including:
+ * - Different seeds producing different sequences
+ * - Stream selection (jump-based or increment-based) producing non-overlapping sequences
+ * - Same seeds producing identical sequences
+ * - SIMD lane independence when seeded differently
+ *
+ * Rationale: With proper PRNGs and typical test sample sizes from 2^64 space, expected
+ * positional matches between different seeds is ~10^-16 to 10^-6 (essentially zero).
+ * Any match indicates a serious implementation bug, not a statistical edge case.
  */
-export const DIFFERENT_SEEDS_MIN_PERCENT: f64 = 0.99;
 
 /**
  * Quartile bounds for distribution tests (100K samples).
@@ -152,3 +156,79 @@ export const MAX_SAFE_INTEGER: f64 = 9007199254740991;
  * Maximum uint32 value (2^32-1) for uint32 range validation.
  */
 export const MAX_UINT32: f64 = 4294967295;
+
+// ============================================================================
+// Precision and Tolerance Constants
+// ============================================================================
+
+/**
+ * High-precision floating-point tolerance for validating conversion accuracy.
+ * Used to verify that computed values match expected values within numerical precision limits.
+ */
+export const HIGH_PRECISION_TOLERANCE: f64 = 1e-15;
+
+/**
+ * Expected lower bound for max uint64 when converted to float53.
+ * The conversion (0xFFFFFFFFFFFFFFFF >>> 11) / 2^53 produces exactly 0.9999999999999998889...
+ * This is a deterministic mathematical property, not a statistical threshold.
+ */
+export const MAX_UINT64_TO_FLOAT_LOWER_BOUND: f64 = 0.999999;
+
+// ============================================================================
+// SIMD Constants
+// ============================================================================
+
+/**
+ * SIMD lane indices for v128 extraction.
+ */
+export const SIMD_LANE_0: i32 = 0;
+export const SIMD_LANE_1: i32 = 1;
+
+/**
+ * Divisor for computing half-sample sizes in SIMD interleaving tests.
+ * SIMD generators produce interleaved dual-lane output, so samples are split evenly.
+ */
+export const SIMD_INTERLEAVE_DIVISOR: i32 = 2;
+
+// ============================================================================
+// Jump Function Reference Values
+// ============================================================================
+
+/**
+ * Reference jump values from official C implementations.
+ * Used to validate jump() correctness against authoritative sources.
+ *
+ * Validation methodology:
+ * - Initialize with TEST_SEEDS (complex 64-bit values)
+ * - Call jump() once
+ * - Call next() once
+ * - Compare result to C reference implementation
+ *
+ * These values are generated and verified by src/assembly/test/c-reference/validate-jump.c
+ * which implements the official reference code from https://prng.di.unimi.it/
+ *
+ * To regenerate/verify these values:
+ *   npm run test:c-ref
+ *
+ * When updating these values, also update the corresponding JS values in
+ * test/helpers/test-utils.ts (JUMP_REFERENCE constant).
+ */
+export namespace JUMP_REFERENCE {
+  /**
+   * Xoroshiro128+ reference from https://prng.di.unimi.it/xoroshiro128plus.c
+   * Test seeds: TEST_SEEDS.DOUBLE_0, TEST_SEEDS.DOUBLE_1
+   * Result after jump() then next(): 17359279474558191039
+   *
+   * Verified by: src/assembly/test/c-reference/validate-jump.c
+   */
+  export const XOROSHIRO128PLUS: u64 = 17359279474558191039;
+
+  /**
+   * Xoshiro256+ reference from https://prng.di.unimi.it/xoshiro256plus.c
+   * Test seeds: TEST_SEEDS.QUAD_0, TEST_SEEDS.QUAD_1, TEST_SEEDS.QUAD_2, TEST_SEEDS.QUAD_3
+   * Result after jump() then next(): 1569848409778915303
+   *
+   * Verified by: src/assembly/test/c-reference/validate-jump.c
+   */
+  export const XOSHIRO256PLUS: u64 = 1569848409778915303;
+}

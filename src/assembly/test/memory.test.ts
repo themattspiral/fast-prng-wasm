@@ -1,21 +1,38 @@
+/**
+ * Memory Allocation Tests (AssemblyScript)
+ *
+ * Minimal tests for WASM memory allocation functions.
+ *
+ * Test Strategy:
+ * - Verify allocation functions return valid pointers
+ * - Test arrays have correct length
+ * - Confirm memory is writable
+ *
+ * Note: These tests are intentionally minimal because:
+ * 1. Release builds use stub runtime (bump allocator, no GC), so arrays persist
+ *    for the lifetime of the WASM instance
+ * 2. Release builds have 64KB memory limit, so we test small allocations only
+ * 3. These functions are thoroughly tested via JS integration tests
+ *    (memory.test.ts, array-behavior.test.ts)
+ *
+ * Contrast: This file tests low-level WASM allocation functions from AssemblyScript,
+ * while test/integration/memory.test.ts tests high-level memory management through
+ * the JavaScript wrapper (array sizes, limits, buffer independence).
+ */
+
 import { describe, test, expect } from 'assemblyscript-unittest-framework/assembly';
 import {
   allocUint64Array,
   allocFloat64Array
 } from '../common/memory';
-
-// Note: These tests are intentionally minimal because:
-// 1. Release builds use stub runtime (bump allocator, no GC), so arrays persist for the lifetime of the WASM instance
-// 2. Release builds have 64KB memory limit, so we test small allocations only
-// 3. These functions are thoroughly tested via JS integration tests (memory.test.ts, array-methods.test.ts)
-// 4. The main goal is to achieve AS coverage metrics for the allocation functions
+import { assertGreaterThan } from './helpers/assertion-helpers';
 
 describe('Memory Management', () => {
   describe('allocUint64Array', () => {
     test('should return non-zero pointer', () => {
       const ptr = allocUint64Array(10);
 
-      expect(ptr > 0).equal(true); // Pointer is non-zero
+      assertGreaterThan(ptr, 0, "Pointer is non-zero");
     });
 
     test('should allocate array with correct length', () => {
@@ -42,7 +59,7 @@ describe('Memory Management', () => {
     test('should return non-zero pointer', () => {
       const ptr = allocFloat64Array(10);
 
-      expect(ptr > 0).equal(true); // Pointer is non-zero
+      assertGreaterThan(ptr, 0, "Pointer is non-zero");
     });
 
     test('should allocate array with correct length', () => {

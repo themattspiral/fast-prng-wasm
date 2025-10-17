@@ -1,14 +1,23 @@
 /** @type {import("assemblyscript-unittest-framework/config.d.ts").Config} */
 export default {
-  // Include both source files for coverage and test files
+  // Include directories containing source files and test files.
+  // Note: The framework automatically excludes *.test.ts files from coverage,
+  // but we still need to include src/assembly/test so it can find test files to execute.
+  // Non-test files in the test directory (like test-utils.ts) must be explicitly excluded.
   include: [
-    "src/assembly/test", 
+    "src/assembly/test",
     "src/assembly/common",
     "src/assembly/prng"
   ],
 
-  // Coverage options
-  collectCoverage: false,  // Temporarily disabled
+  // Exclude test utilities from coverage (has higher priority than include)
+  exclude: [
+    "src/assembly/test/helpers/test-utils.ts",
+    "src/assembly/test/helpers/assertion-helpers.ts"
+  ],
+
+  // Disable by default, enable via CLI
+  collectCoverage: false,
 
   coverageLimit: {
     statements: 98,
@@ -32,6 +41,7 @@ export default {
 
   output: "coverage/as",
 
+  // custom script util/convert-as-coverage-to-lcov.mjs generates lcov output
   mode: ["html", "json", "table"],
 
   // Isolated test execution
