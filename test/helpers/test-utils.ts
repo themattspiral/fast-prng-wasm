@@ -115,7 +115,19 @@ export const SIMD_LANE_COUNT = 2;
 // ============================================================================
 
 /**
- * Sample size for integration tests (matches AS DETERMINISTIC_SAMPLE_SIZE).
+ * Sample size for integration smoke tests.
+ *
+ * Used in tests that verify wrapper integration (correct wiring, return types, basic behavior)
+ * across all 5 PRNGs × 6 methods. These are NOT quality tests - they catch integration bugs
+ * like "wrong WASM function called" or "PRNG stuck at zero".
+ *
+ * 1,000 samples provides:
+ * - Negligible collision probability (~10^-11 for float53, ~10^-14 for uint64)
+ * - Fast execution across 30+ test combinations (5 PRNGs × 6 methods)
+ * - Clear separation from comprehensive quality tests (100K-1M samples in statistical-validation.test.ts)
+ *
+ * Intentionally smaller than AS tests (10K) to optimize speed while maintaining adequate
+ * verification. Quality validation happens in statistical-validation.test.ts.
  */
 export const INTEGRATION_SAMPLE_SIZE = 1000;
 

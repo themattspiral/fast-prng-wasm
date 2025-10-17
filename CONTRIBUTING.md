@@ -106,12 +106,14 @@ describe('AlgorithmName', () => {
    - **Complex Seeds**: Use `TEST_SEEDS.DOUBLE_0` (64-bit hex like `0x9E3779B97F4A7C15`) instead of simple integers like `12345`
    - **Sample Sizes**: Use `DETERMINISTIC_SAMPLE_SIZE` (10K) and `DISTRIBUTION_SAMPLE_SIZE` (100K) constants
    - **Thresholds**: Use named constants like `QUARTILE_MIN`, `QUARTILE_MAX`, `PI_ESTIMATE_TOLERANCE`
-2. **Sample Size Rationale**:
-   - **10K** (DETERMINISTIC_SAMPLE_SIZE): Deterministic tests (uniqueness, sequence matching, range validation). Sufficient because collision probability from 2^64 space is negligible (~10^-15).
-   - **100K** (DISTRIBUTION_SAMPLE_SIZE): Distribution/Monte Carlo smoke tests. Provides ~±4% quartile tolerance and ~±0.02 π estimation tolerance with >99% confidence.
-3. **Aggregation**: Count errors in a loop, then assert once (avoids inflated test counts because of the way this framework counts every call to `expect()` as a "test")
-4. **Inline Comments**: Add comments after `expect()` calls to explain what's being tested
-5. **Template**: See `src/assembly/test/prng/xoroshiro128plus.test.ts` for complete example
+2. **Aggregation**: Count errors in a loop, then assert once (avoids inflated test counts because of the way this framework counts every call to `expect()` as a "test")
+3. **Inline Comments**: Add comments after `expect()` calls to explain what's being tested
+4. **Template**: See `src/assembly/test/prng/xoroshiro128plus.test.ts` for complete example
+
+**Sample Size Rationale**:
+- **10K** (DETERMINISTIC_SAMPLE_SIZE): Used for deterministic tests (uniqueness, sequence matching, range validation). Collision probability from 2^64 space is negligible (~10^-15), making 10K samples statistically robust.
+- **100K** (DISTRIBUTION_SAMPLE_SIZE): Used for distribution/Monte Carlo smoke tests. Provides ~±4% quartile tolerance and ~±0.02 π estimation tolerance with >99% confidence. Optimized from 1M for speed (6.8× faster) while maintaining adequate validation.
+- **Purpose**: AS tests validate PRNG algorithm correctness at the implementation level. Comprehensive statistical validation happens in JS integration tests (see below).
 
 **Required Test Categories** (for PRNG tests):
 - Determinism
@@ -131,30 +133,45 @@ describe('AlgorithmName', () => {
 ```typescript
 import { describe, it, expect } from 'vitest';
 import { RandomGenerator, PRNGType } from 'fast-prng-wasm';
+import { INTEGRATION_SAMPLE_SIZE } from '../helpers/test-utils';
 
 describe('Feature Name', () => {
   it('should do something specific', () => {
     const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus);
 
-    const result = gen.float();
-
-    expect(result).toBeGreaterThanOrEqual(0);
-    expect(result).toBeLessThan(1);
+    for (let i = 0; i < INTEGRATION_SAMPLE_SIZE; i++) {
+      const result = gen.float();
+      expect(result).toBeGreaterThanOrEqual(0);
+      expect(result).toBeLessThan(1);
+    }
   });
 });
 ```
 
 > **⚠️ Imports ⚠️**: Always import from `'fast-prng-wasm'` for integration tests, not from `src/`. This ensures tests run against compiled output.
 
-**Sample Sizes for Statistical Validation** (`test/integration/statistical-validation.test.ts`):
-- **1M**: Chi-square uniformity and Monte Carlo π estimation. Standard error ~0.003, detects biases >0.3%.
-- **100K**: Serial correlation (updated 2025-01-14). Standard error ~0.003, providing robust testing at 17× the 0.05 threshold.
+#### Layered Testing Strategy
 
-**Randomized Testing** (`test/integration/randomized-edge-cases.test.ts`):
-- Complementary testing strategy that generates fresh random seeds on each test run
-- 10 iterations per test with 1,000 samples each
-- Catches edge cases that fixed seeds might miss
-- Validates robustness across the full seed space
+We use different sample sizes for different test purposes to optimize speed while maintaining comprehensive coverage:
+
+**Integration Smoke Tests** (`test/integration/single-value-methods.test.ts`, `array-behavior.test.ts`, `parallel-streams.test.ts`):
+- **Sample Size**: 1,000 (INTEGRATION_SAMPLE_SIZE)
+- **Purpose**: Verify wrapper correctly wires up WASM functions across all 5 PRNGs × 6 methods
+- **What it catches**: Integration bugs like "wrong WASM function called", "PRNG stuck at zero", "missing export"
+- **What it doesn't test**: PRNG quality (that's handled by statistical validation tests)
+- **Why 1K not 10K**: Collision probability already negligible (~10⁻¹¹ for float53, ~10⁻¹⁴ for uint64), 10× faster execution, no redundancy with comprehensive quality tests
+
+**Statistical Validation Tests** (`test/integration/statistical-validation.test.ts`):
+- **1M samples** (UNIFORMITY_SAMPLES, PI_ESTIMATION_SAMPLES): Chi-square uniformity and Monte Carlo π estimation. Standard error ~0.003, detects biases >0.3%.
+- **100K samples** (INDEPENDENCE_SAMPLES): Serial correlation (updated 2025-01-14). Standard error ~0.003, providing robust testing at 17× the 0.05 threshold.
+- **Purpose**: Industry-standard comprehensive quality validation with chi-square, serial correlation, and Monte Carlo tests
+
+**Randomized Chaos Tests** (`test/integration/seed-randomization.test.ts`):
+- **Sample Size**: 1,000 samples (CHAOS_SAMPLE_SIZE) × 10 iterations (different seeds every run)
+- **Purpose**: Catch edge cases with random seeds that fixed seeds might miss
+- **What it validates**: Seed initialization robustness across full seed space
+
+This layered approach provides comprehensive coverage while avoiding redundant testing and optimizing CI speed.
 
 ---
 

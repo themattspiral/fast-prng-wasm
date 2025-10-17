@@ -15,7 +15,7 @@ import {
     COORDS_PER_POINT,
     PI_ESTIMATION_MULTIPLIER
 } from '../helpers/stat-utils';
-import { createTestGenerator, getSeedsForPRNG, DEFAULT_OUTPUT_ARRAY_SIZE, TWO_POW_32, TWO_POW_53, TWO_POW_64 } from '../helpers/test-utils';
+import { createTestGenerator, getSeedsForPRNG, DEFAULT_OUTPUT_ARRAY_SIZE, TWO_POW_32, TWO_POW_53, TWO_POW_64, ALL_PRNG_TYPES } from '../helpers/test-utils';
 
 /**
  * Statistical Validation Tests
@@ -55,14 +55,6 @@ describe('Statistical Validation', () => {
     const UNIFORMITY_SAMPLES = 1000000;
     const INDEPENDENCE_SAMPLES = 100000; // 100K samples for robust correlation testing (standard error ~0.003)
     const PI_ESTIMATION_SAMPLES = 1000000;
-
-    const ALL_ALGORITHMS = [
-        PRNGType.PCG,
-        PRNGType.Xoroshiro128Plus,
-        PRNGType.Xoroshiro128Plus_SIMD,
-        PRNGType.Xoshiro256Plus,
-        PRNGType.Xoshiro256Plus_SIMD
-    ];
 
     describe('Native Integer Uniformity Tests - All Algorithms', () => {
         // Test native integer output for all algorithms to validate core PRNG quality.
@@ -277,7 +269,7 @@ describe('Statistical Validation', () => {
 
     describe('Independence Tests - All Algorithms', () => {
         // Test independence for all algorithms since correlation issues could be algorithm-specific
-        for (const algo of ALL_ALGORITHMS) {
+        for (const algo of ALL_PRNG_TYPES) {
             describe(algo, () => {
                 it('float() values should have low serial correlation', () => {
                     const gen = new RandomGenerator(algo);
@@ -325,7 +317,7 @@ describe('Statistical Validation', () => {
     });
 
     describe('Monte Carlo π Estimation - All Algorithms', () => {
-        for (const algo of ALL_ALGORITHMS) {
+        for (const algo of ALL_PRNG_TYPES) {
             describe(algo, () => {
                 it('should estimate π accurately using coordArray()', () => {
                     const gen = new RandomGenerator(algo);

@@ -55,7 +55,7 @@ describe('Array Behavior', () => {
     // Stream consistency: Array fill logic duplicated in each AS generator.
     // Non-SIMD generators: array methods match repeated single-value calls.
     // SIMD generators tested separately (interleaved dual-lane output).
-    describe('Stream Consistency - Non-SIMD', () => {
+    describe('Array Fill Stream Consistency - Non-SIMD', () => {
         NON_SIMD_PRNG_TYPES.forEach(prngType => {
             describe(`${PRNGType[prngType]}`, () => {
                 it('floatArray() should produce same sequence as repeated float() calls', () => {
@@ -130,7 +130,7 @@ describe('Array Behavior', () => {
     // SIMD stream consistency: SIMD generators interleave dual-lane output in array methods.
     // We validate: (1) determinism with same seeds, (2) divergence with different seeds,
     // (3) lanes match their own non-SIMD sequences when using split seeds.
-    describe('Stream Consistency - SIMD', () => {
+    describe('Array Fill Stream Consistency - SIMD', () => {
         describe('Xoroshiro128Plus_SIMD', () => {
             it('should produce deterministic interleaved output with identical seeds', () => {
                 const seeds = TEST_SEEDS.quad; // [s0, s1, s2, s3] for lanes 0 and 1
