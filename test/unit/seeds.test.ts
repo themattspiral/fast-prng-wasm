@@ -18,8 +18,22 @@ import { SplitMix64, seed64Array } from 'fast-prng-wasm';
 
 describe('SplitMix64 Random Seed Generator', () => {
     describe('Constructor', () => {
-        it('should create instance with auto-seed', () => {
+        it('should create instance with auto-seed (no argument)', () => {
             const sm64 = new SplitMix64();
+
+            expect(sm64).toBeInstanceOf(SplitMix64);
+            expect(sm64._state).toBeDefined();
+        });
+
+        it('should create instance with auto-seed (null)', () => {
+            const sm64 = new SplitMix64(null);
+
+            expect(sm64).toBeInstanceOf(SplitMix64);
+            expect(sm64._state).toBeDefined();
+        });
+
+        it('should create instance with auto-seed (undefined)', () => {
+            const sm64 = new SplitMix64(undefined);
 
             expect(sm64).toBeInstanceOf(SplitMix64);
             expect(sm64._state).toBeDefined();
@@ -37,6 +51,12 @@ describe('SplitMix64 Random Seed Generator', () => {
             const sm64 = new SplitMix64(seed);
 
             expect(sm64._state).toBe(BigInt(seed));
+        });
+
+        it('should create instance with zero seed', () => {
+            const sm64 = new SplitMix64(0);
+
+            expect(sm64._state).toBe(0n);
         });
     });
 
@@ -169,6 +189,42 @@ describe('SplitMix64 Random Seed Generator', () => {
             // Seeds should be unique (tests randomness quality)
             const uniqueSeeds = new Set(seeds);
             expect(uniqueSeeds.size).toBe(100);
+        });
+
+        it('should use performance.now() when available in fallback mode', async () => {
+            // Remove crypto to force fallback, but keep performance
+            vi.stubGlobal('crypto', undefined);
+
+            const mockPerformanceNow = vi.fn(() => 123.456);
+            vi.stubGlobal('performance', {
+                now: mockPerformanceNow,
+            });
+
+            // Dynamically import to get fresh module
+            const { seed64Array: freshSeed64Array } = await import('../../src/seeds');
+
+            // Generate seeds - should use fallback with performance.now()
+            const seeds = freshSeed64Array(2);
+
+            // Verify performance.now() was called
+            expect(mockPerformanceNow).toHaveBeenCalled();
+            expect(seeds.length).toBe(2);
+            expect(seeds.every(s => typeof s === 'bigint')).toBe(true);
+        });
+
+        it('should work without performance.now() in fallback mode', async () => {
+            // Remove both crypto and performance to test minimal fallback
+            vi.stubGlobal('crypto', undefined);
+            vi.stubGlobal('performance', undefined);
+
+            // Dynamically import to get fresh module
+            const { seed64Array: freshSeed64Array } = await import('../../src/seeds');
+
+            // Generate seeds - should use Date.now() + Math.random() only
+            const seeds = freshSeed64Array(5);
+
+            expect(seeds.length).toBe(5);
+            expect(seeds.every(s => typeof s === 'bigint')).toBe(true);
         });
 
         it.skipIf(typeof crypto === 'undefined' || !crypto.getRandomValues)(

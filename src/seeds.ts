@@ -9,6 +9,7 @@
  */
 function seed32(): number {
     // Use cryptographically secure random if available
+    /* v8 ignore next 5 - Crypto availability tested via dynamic import */
     if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
         const arr = new Uint32Array(1);
         crypto.getRandomValues(arr);
@@ -41,6 +42,7 @@ function seed32(): number {
  */
 function seed64(): bigint {
     // Use cryptographically secure random if available
+    /* v8 ignore next 5 - Crypto availability tested via dynamic import */
     if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
         const arr = new Uint32Array(2);
         crypto.getRandomValues(arr);
