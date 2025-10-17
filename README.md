@@ -189,7 +189,7 @@ Some PRNG applications may require several (or very many) instances of a PRNG ru
 See the [`pmc` demo](examples/pmc) for an example that follows this approach, with each generator instance running in a different Node worker thread.
 
 #### Generate a Seed Collection
-If you don't have custom seeds already, the `seed64Array()` function is provided. It returns a `bigint[8]` containing seeds generated with SplitMix64. The initial SplitMix64 seed uses `crypto.getRandomValues()` when available (all modern browsers and Node.js 15+) for strong entropy, falling back to a combination of time and `Math.random()` in older environments. This collection can be provided as the `seeds` argument for any PRNG in this package.
+If you don't have custom seeds already, the `seed64Array()` function is provided. It returns a `bigint[8]` containing seeds generated with SplitMix64. The initial SplitMix64 seed uses `crypto.getRandomValues()` when available (all modern browsers and Node.js 15+) for strong entropy, falling back to combining multiple entropy sources (`Date.now()`, `performance.now()`, and `Math.random()`) in older environments. This collection can be provided as the `seeds` argument for any PRNG in this package.
 
 #### Choose a Unique Stream for Each Parallel Generator
 Sharing seeds between generators assumes you will also provide a unique `uniqueStreamId` argument:

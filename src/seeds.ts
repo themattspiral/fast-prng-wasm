@@ -2,8 +2,8 @@
  * Generate a random 32-bit unsigned integer for seeding.
  *
  * Uses crypto.getRandomValues() when available (browsers and Node.js 15+)
- * for cryptographically secure random values. Falls back to Date.now() +
- * Math.random() in older environments.
+ * for cryptographically secure random values. Falls back to combining multiple
+ * entropy sources (timing + Math.random()) in older environments.
  *
  * @returns Random unsigned 32-bit integer (0 to 0xFFFFFFFF)
  */
@@ -15,9 +15,19 @@ function seed32(): number {
         return arr[0];
     }
 
-    // Fallback for environments without crypto
-    // >>> 0 ensures unsigned 32-bit: bitwise XOR (^) produces signed int32, but seeds must be unsigned
-    return (Date.now() ^ (Math.random() * 0x100000000)) >>> 0;
+    // Fallback: combine multiple entropy sources for better randomness
+    let entropy = Date.now();
+
+    // Add performance.now() if available (microsecond precision gives us more bits of randomness)
+    if (typeof performance !== 'undefined' && performance.now) {
+        entropy ^= (performance.now() * 1000000) | 0;  // | 0 converts float to int32
+    }
+
+    // Mix in Math.random()
+    entropy ^= (Math.random() * 0x100000000) | 0;  // | 0 converts float to int32
+
+    // >>> 0 ensures unsigned 32-bit: bitwise operations produce signed int32, but seeds must be unsigned
+    return entropy >>> 0;
 }
 
 /**
