@@ -21,11 +21,11 @@ function seed32(): number {
 
     // Add performance.now() if available (microsecond precision gives us more bits of randomness)
     if (typeof performance !== 'undefined' && performance.now) {
-        entropy ^= (performance.now() * 1000000) | 0;  // | 0 converts float to int32
+        entropy ^= (performance.now() * 1000000) | 0;  // Scale to microseconds, then | 0 converts float to int32
     }
 
     // Mix in Math.random()
-    entropy ^= (Math.random() * 0x100000000) | 0;  // | 0 converts float to int32
+    entropy ^= (Math.random() * 0x100000000) | 0;  // Scale to 32-bit range, then | 0 converts float to int32
 
     // >>> 0 ensures unsigned 32-bit: bitwise operations produce signed int32, but seeds must be unsigned
     return entropy >>> 0;
@@ -95,12 +95,14 @@ export class SplitMix64 {
 /**
  * Generates an array of random 64-bit integers suitable for seeding
  * the other generators in this library.
- * 
+ *
  * @param count Number of random seeds to generate.
- * 
+ *
  * @param seed Seed for SplitMix64 generator initialization. If not provided,
- * will auto-seed using a combination of the current time and Math.random().
- * 
+ * will auto-seed using crypto.getRandomValues() when available (all modern browsers
+ * and Node.js 15+), falling back to a combination of timing sources and Math.random()
+ * in older environments.
+ *
  * @returns Array of unique 64-bit seeds.
  */
 export function seed64Array(count = 8, seed: number | bigint | null = null): bigint[] {
