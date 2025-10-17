@@ -71,7 +71,7 @@ describe('uint64_to_float53', () => {
     const highBitSet: u64 = 0xFFFFFFFFFFFFFFFF;
     const result = uint64_to_float53(highBitSet);
 
-    assertGreaterThanOrEqual(result, 0, "Unsigned shift keeps result positive");
+    assertGreaterThanOrEqual(result, 0, "Logical shift (>>>) preserves unsigned value");
     assertLessThan(result, 1, "Still within [0, 1) range");
     assertGreaterThan(result, MAX_UINT64_TO_FLOAT_LOWER_BOUND, "Max u64 produces value very close to 1");
   });

@@ -1,9 +1,58 @@
+/**
+ * Generate a random 32-bit unsigned integer for seeding.
+ *
+ * Uses crypto.getRandomValues() when available (browsers and Node.js 15+)
+ * for cryptographically secure random values. Falls back to combining multiple
+ * entropy sources (timing + Math.random()) in older environments.
+ *
+ * @returns Random unsigned 32-bit integer (0 to 0xFFFFFFFF)
+ */
 function seed32(): number {
-    return Date.now() ^ (Math.random() * 0x100000000);
+    // Use cryptographically secure random if available
+    /* v8 ignore next 5 - Crypto availability tested via dynamic import */
+    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+        const arr = new Uint32Array(1);
+        crypto.getRandomValues(arr);
+        return arr[0];
+    }
+
+    // Fallback: combine multiple entropy sources for better randomness
+    let entropy = Date.now();
+
+    // Add performance.now() if available (microsecond precision gives us more bits of randomness)
+    if (typeof performance !== 'undefined' && performance.now) {
+        entropy ^= (performance.now() * 1000000) | 0;  // Scale to microseconds, then | 0 converts float to int32
+    }
+
+    // Mix in Math.random()
+    entropy ^= (Math.random() * 0x100000000) | 0;  // Scale to 32-bit range, then | 0 converts float to int32
+
+    // >>> 0 ensures unsigned 32-bit: bitwise operations produce signed int32, but seeds must be unsigned
+    return entropy >>> 0;
 }
 
+/**
+ * Generate a random 64-bit unsigned integer for seeding.
+ *
+ * Uses crypto.getRandomValues() when available for cryptographically
+ * secure random values. Falls back to combining two seed32() calls
+ * in older environments.
+ *
+ * @returns Random unsigned 64-bit integer as BigInt
+ */
 function seed64(): bigint {
-    return (BigInt(seed32()) << 32n) | BigInt(seed32());
+    // Use cryptographically secure random if available
+    /* v8 ignore next 5 - Crypto availability tested via dynamic import */
+    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+        const arr = new Uint32Array(2);
+        crypto.getRandomValues(arr);
+        return (BigInt(arr[0]) << 32n) | BigInt(arr[1]);
+    }
+
+    // Fallback for environments without crypto
+    const high = seed32();
+    const low = seed32();
+    return (BigInt(high) << 32n) | BigInt(low);
 }
 
 
@@ -46,12 +95,14 @@ export class SplitMix64 {
 /**
  * Generates an array of random 64-bit integers suitable for seeding
  * the other generators in this library.
- * 
+ *
  * @param count Number of random seeds to generate.
- * 
+ *
  * @param seed Seed for SplitMix64 generator initialization. If not provided,
- * will auto-seed using a combination of the current time and Math.random().
- * 
+ * will auto-seed using crypto.getRandomValues() when available (all modern browsers
+ * and Node.js 15+), falling back to a combination of timing sources and Math.random()
+ * in older environments.
+ *
  * @returns Array of unique 64-bit seeds.
  */
 export function seed64Array(count = 8, seed: number | bigint | null = null): bigint[] {

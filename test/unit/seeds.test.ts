@@ -13,13 +13,27 @@
  * tests use these utilities to test PRNG behavior with various seed patterns.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { SplitMix64, seed64Array } from 'fast-prng-wasm';
 
 describe('SplitMix64 Random Seed Generator', () => {
     describe('Constructor', () => {
-        it('should create instance with auto-seed', () => {
+        it('should create instance with auto-seed (no argument)', () => {
             const sm64 = new SplitMix64();
+
+            expect(sm64).toBeInstanceOf(SplitMix64);
+            expect(sm64._state).toBeDefined();
+        });
+
+        it('should create instance with auto-seed (null)', () => {
+            const sm64 = new SplitMix64(null);
+
+            expect(sm64).toBeInstanceOf(SplitMix64);
+            expect(sm64._state).toBeDefined();
+        });
+
+        it('should create instance with auto-seed (undefined)', () => {
+            const sm64 = new SplitMix64(undefined);
 
             expect(sm64).toBeInstanceOf(SplitMix64);
             expect(sm64._state).toBeDefined();
@@ -37,6 +51,12 @@ describe('SplitMix64 Random Seed Generator', () => {
             const sm64 = new SplitMix64(seed);
 
             expect(sm64._state).toBe(BigInt(seed));
+        });
+
+        it('should create instance with zero seed', () => {
+            const sm64 = new SplitMix64(0);
+
+            expect(sm64._state).toBe(0n);
         });
     });
 
@@ -100,73 +120,191 @@ describe('SplitMix64 Random Seed Generator', () => {
             }
         });
     });
-});
 
-describe('seed64Array', () => {
-    it('should generate array of default size (8)', () => {
-        const seeds = seed64Array();
+    describe('Seeding SplitMix64 Seed Generator with Crypto', () => {
+        afterEach(() => {
+            // Restore all mocks after each test
+            vi.unstubAllGlobals();
+            vi.resetModules();
+        });
 
-        expect(Array.isArray(seeds)).toBe(true);
-        expect(seeds.length).toBe(8);
+        it('should use crypto.getRandomValues when available', async () => {
+            // Mock crypto.getRandomValues to track usage
+            const mockGetRandomValues = vi.fn((arr: Uint32Array) => {
+                // Fill with predictable values for testing
+                for (let i = 0; i < arr.length; i++) {
+                    arr[i] = 0x12345678 + i;
+                }
+                return arr;
+            });
+
+            vi.stubGlobal('crypto', {
+                getRandomValues: mockGetRandomValues,
+            });
+
+            // Dynamically import to get fresh module with mocked crypto
+            const { seed64Array: freshSeed64Array } = await import('../../src/seeds');
+
+            // Generate seeds - should use crypto
+            const seeds = freshSeed64Array(2);
+
+            // Verify crypto.getRandomValues was called
+            expect(mockGetRandomValues).toHaveBeenCalled();
+            expect(seeds.length).toBe(2);
+            expect(seeds.every(s => typeof s === 'bigint')).toBe(true);
+        });
+
+        it('should fall back to Date.now + Math.random when crypto unavailable', async () => {
+            // Remove crypto from global scope
+            vi.stubGlobal('crypto', undefined);
+
+            // Dynamically import to get fresh module without crypto
+            const { seed64Array: freshSeed64Array } = await import('../../src/seeds');
+
+            // Generate seeds - should use fallback
+            const seeds = freshSeed64Array(5);
+
+            // Verify seeds were generated
+            expect(seeds.length).toBe(5);
+            expect(seeds.every(s => typeof s === 'bigint')).toBe(true);
+
+            // Seeds should be unique (statistically very likely)
+            const uniqueSeeds = new Set(seeds);
+            expect(uniqueSeeds.size).toBe(5);
+        });
+
+        it('should generate valid 32-bit values in fallback mode', async () => {
+            // Remove crypto to force fallback
+            vi.stubGlobal('crypto', undefined);
+
+            // Dynamically import to get fresh module
+            const { seed64Array: freshSeed64Array } = await import('../../src/seeds');
+
+            // Generate many auto-seeded instances to test seed32() indirectly
+            const seeds = freshSeed64Array(100);
+
+            // All seeds should be valid bigints
+            expect(seeds.every(s => typeof s === 'bigint')).toBe(true);
+
+            // Seeds should be unique (tests randomness quality)
+            const uniqueSeeds = new Set(seeds);
+            expect(uniqueSeeds.size).toBe(100);
+        });
+
+        it('should use performance.now() when available in fallback mode', async () => {
+            // Remove crypto to force fallback, but keep performance
+            vi.stubGlobal('crypto', undefined);
+
+            const mockPerformanceNow = vi.fn(() => 123.456);
+            vi.stubGlobal('performance', {
+                now: mockPerformanceNow,
+            });
+
+            // Dynamically import to get fresh module
+            const { seed64Array: freshSeed64Array } = await import('../../src/seeds');
+
+            // Generate seeds - should use fallback with performance.now()
+            const seeds = freshSeed64Array(2);
+
+            // Verify performance.now() was called
+            expect(mockPerformanceNow).toHaveBeenCalled();
+            expect(seeds.length).toBe(2);
+            expect(seeds.every(s => typeof s === 'bigint')).toBe(true);
+        });
+
+        it('should work without performance.now() in fallback mode', async () => {
+            // Remove both crypto and performance to test minimal fallback
+            vi.stubGlobal('crypto', undefined);
+            vi.stubGlobal('performance', undefined);
+
+            // Dynamically import to get fresh module
+            const { seed64Array: freshSeed64Array } = await import('../../src/seeds');
+
+            // Generate seeds - should use Date.now() + Math.random() only
+            const seeds = freshSeed64Array(5);
+
+            expect(seeds.length).toBe(5);
+            expect(seeds.every(s => typeof s === 'bigint')).toBe(true);
+        });
+
+        it.skipIf(typeof crypto === 'undefined' || !crypto.getRandomValues)(
+            'should produce different values on consecutive calls with crypto',
+            () => {
+                const seeds1 = seed64Array(10);
+                const seeds2 = seed64Array(10);
+
+                // Should be different (statistically guaranteed with crypto RNG)
+                expect(seeds1).not.toEqual(seeds2);
+            }
+        );
     });
 
-    it('should generate array of specified size', () => {
-        const sizes = [1, 2, 4, 10];
+    describe('seed64Array', () => {
+        it('should generate array of default size (8)', () => {
+            const seeds = seed64Array();
 
-        for (const size of sizes) {
-            const seeds = seed64Array(size);
-            expect(seeds.length).toBe(size);
-        }
-    });
+            expect(Array.isArray(seeds)).toBe(true);
+            expect(seeds.length).toBe(8);
+        });
 
-    it('should generate bigint values', () => {
-        const seeds = seed64Array(5);
+        it('should generate array of specified size', () => {
+            const sizes = [1, 2, 4, 10];
 
-        for (const seed of seeds) {
-            expect(typeof seed).toBe('bigint');
-        }
-    });
+            for (const size of sizes) {
+                const seeds = seed64Array(size);
+                expect(seeds.length).toBe(size);
+            }
+        });
 
-    it('should generate unique values', () => {
-        const seeds = seed64Array(100);
-        const uniqueSeeds = new Set(seeds);
+        it('should generate bigint values', () => {
+            const seeds = seed64Array(5);
 
-        // All seeds should be unique (statistically very likely)
-        expect(uniqueSeeds.size).toBe(100);
-    });
+            for (const seed of seeds) {
+                expect(typeof seed).toBe('bigint');
+            }
+        });
 
-    it('should be deterministic with custom seed', () => {
-        const customSeed = 42n;
-        const seeds1 = seed64Array(10, customSeed);
-        const seeds2 = seed64Array(10, customSeed);
+        it('should generate unique values', () => {
+            const seeds = seed64Array(100);
+            const uniqueSeeds = new Set(seeds);
 
-        expect(seeds1).toEqual(seeds2);
-    });
+            // All seeds should be unique (statistically very likely)
+            expect(uniqueSeeds.size).toBe(100);
+        });
 
-    it('should produce different arrays when auto-seeded', () => {
-        const seeds1 = seed64Array(10);
-        const seeds2 = seed64Array(10);
+        it('should be deterministic with custom seed', () => {
+            const customSeed = 42n;
+            const seeds1 = seed64Array(10, customSeed);
+            const seeds2 = seed64Array(10, customSeed);
 
-        // Arrays should be different (statistically very likely)
-        expect(seeds1).not.toEqual(seeds2);
-    });
+            expect(seeds1).toEqual(seeds2);
+        });
 
-    it('should produce known output for known seed', () => {
-        const seeds1 = seed64Array(5, 123n);
-        const seeds2 = seed64Array(5, 123n);
+        it('should produce different arrays when auto-seeded', () => {
+            const seeds1 = seed64Array(10);
+            const seeds2 = seed64Array(10);
 
-        // Same seed should produce same output
-        expect(seeds1).toEqual(seeds2);
+            // Arrays should be different (statistically very likely)
+            expect(seeds1).not.toEqual(seeds2);
+        });
 
-        // Different seed should produce different output
-        const seeds3 = seed64Array(5, 456n);
-        expect(seeds1).not.toEqual(seeds3);
-    });
+        it('should produce known output for known seed', () => {
+            const seeds1 = seed64Array(5, 123n);
+            const seeds2 = seed64Array(5, 123n);
 
-    it('should accept number seed', () => {
-        const seeds = seed64Array(5, 123);
+            // Same seed should produce same output
+            expect(seeds1).toEqual(seeds2);
 
-        expect(Array.isArray(seeds)).toBe(true);
-        expect(seeds.length).toBe(5);
+            // Different seed should produce different output
+            const seeds3 = seed64Array(5, 456n);
+            expect(seeds1).not.toEqual(seeds3);
+        });
+
+        it('should accept number seed', () => {
+            const seeds = seed64Array(5, 123);
+
+            expect(Array.isArray(seeds)).toBe(true);
+            expect(seeds.length).toBe(5);
+        });
     });
 });

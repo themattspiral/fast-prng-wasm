@@ -414,7 +414,7 @@ the other generators in this library.
 | Parameter | Type | Default value | Description |
 | ------ | ------ | ------ | ------ |
 | `count` | `number` | `8` | Number of random seeds to generate. |
-| `seed` | `number` \| `bigint` \| `null` | `null` | Seed for SplitMix64 generator initialization. If not provided, will auto-seed using a combination of the current time and Math.random(). |
+| `seed` | `number` \| `bigint` \| `null` | `null` | Seed for SplitMix64 generator initialization. If not provided, will auto-seed using crypto.getRandomValues() when available (all modern browsers and Node.js 15+), falling back to a combination of timing sources and Math.random() in older environments. |
 
 #### Returns
 
