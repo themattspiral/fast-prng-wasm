@@ -1,9 +1,46 @@
+/**
+ * Generate a random 32-bit unsigned integer for seeding.
+ *
+ * Uses crypto.getRandomValues() when available (browsers and Node.js 15+)
+ * for cryptographically secure random values. Falls back to Date.now() +
+ * Math.random() in older environments.
+ *
+ * @returns Random unsigned 32-bit integer (0 to 0xFFFFFFFF)
+ */
 function seed32(): number {
-    return Date.now() ^ (Math.random() * 0x100000000);
+    // Use cryptographically secure random if available
+    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+        const arr = new Uint32Array(1);
+        crypto.getRandomValues(arr);
+        return arr[0];
+    }
+
+    // Fallback for environments without crypto
+    // >>> 0 ensures unsigned 32-bit: bitwise XOR (^) produces signed int32, but seeds must be unsigned
+    return (Date.now() ^ (Math.random() * 0x100000000)) >>> 0;
 }
 
+/**
+ * Generate a random 64-bit unsigned integer for seeding.
+ *
+ * Uses crypto.getRandomValues() when available for cryptographically
+ * secure random values. Falls back to combining two seed32() calls
+ * in older environments.
+ *
+ * @returns Random unsigned 64-bit integer as BigInt
+ */
 function seed64(): bigint {
-    return (BigInt(seed32()) << 32n) | BigInt(seed32());
+    // Use cryptographically secure random if available
+    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+        const arr = new Uint32Array(2);
+        crypto.getRandomValues(arr);
+        return (BigInt(arr[0]) << 32n) | BigInt(arr[1]);
+    }
+
+    // Fallback for environments without crypto
+    const high = seed32();
+    const low = seed32();
+    return (BigInt(high) << 32n) | BigInt(low);
 }
 
 
