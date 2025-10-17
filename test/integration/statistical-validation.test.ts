@@ -4,10 +4,8 @@ import {
     chiSquareTest,
     CHI_SQUARE_CRITICAL_VALUES,
     serialCorrelationTest,
-    binValuesInRange,
     calculateBinIndex,
     calculateBigIntBinIndex,
-    estimatePi,
     SERIAL_CORRELATION_THRESHOLD,
     PI_ESTIMATION_TOLERANCE,
     CHI_SQUARE_BIN_COUNT_DEFAULT,
@@ -31,8 +29,28 @@ import { createTestGenerator, getSeedsForPRNG, DEFAULT_OUTPUT_ARRAY_SIZE, TWO_PO
  * array-behavior.test.ts (deep array behavior validation across all generators).
  */
 describe('Statistical Validation', () => {
-    // Chi-square tests have ~5% false failure rate by design,
-    // retries + large count reduce this to ~0.0003%
+    /**
+     * Chi-square uniformity tests use retry mechanism to handle statistical false positives.
+     *
+     * Background:
+     * - Tests use 95% confidence level (α = 0.05), giving 5% false positive rate per test
+     * - With 9 uniformity tests, expected ~0.45 spurious failures per test run without retries
+     * - This would cause frequent CI failures despite PRNGs working correctly
+     *
+     * Retry mechanism (Vitest retry option):
+     * - retry: 2 means up to 2 additional attempts after initial failure (3 total attempts)
+     * - Probability of 3 consecutive false positives: 0.05³ = 0.000125 (0.0125%)
+     * - With 9 tests: ~0.001 expected spurious failures per run (once every ~1000 runs)
+     *
+     * Why retry count = 2:
+     * - Retry count = 1: 0.05² = 0.0025 (0.25%) → still too high with 9 tests
+     * - Retry count = 2: 0.05³ = 0.000125 (0.0125%) → acceptably rare
+     *
+     * Interpreting failures:
+     * - Single retry (passes on 2nd/3rd attempt): Normal statistical variance, not a bug
+     * - Multiple retries exhausted: Very likely indicates real PRNG quality issue
+     * - Note: Large sample sizes (1M) already reduce variance significantly
+     */
     const UNIFORMITY_RETRY_COUNT = 2;
     const UNIFORMITY_SAMPLES = 1000000;
     const INDEPENDENCE_SAMPLES = 100000; // 100K samples for robust correlation testing (standard error ~0.003)
