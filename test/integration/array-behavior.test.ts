@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { RandomGenerator, PRNGType } from 'fast-prng-wasm';
 
-import { TEST_SEEDS, TEST_SEEDS_ALT, createTestGenerator, generateSequence, DEFAULT_OUTPUT_ARRAY_SIZE, CUSTOM_ARRAY_SIZE_SMALL, getSeedsForPRNG, ALL_PRNG_TYPES, NON_SIMD_PRNG_TYPES, INTEGRATION_SAMPLE_SIZE, UINT32_MAX, UINT64_MAX, SIMD_LANE_COUNT } from '../helpers/test-utils';
+import { TEST_SEEDS, TEST_SEEDS_ALT, createTestGenerator, generateSequence, DEFAULT_OUTPUT_ARRAY_SIZE, CUSTOM_ARRAY_SIZE_SMALL, getSeedsForPRNG, ALL_PRNG_TYPES, NON_SIMD_PRNG_TYPES, UINT32_MAX, UINT64_MAX, SIMD_LANE_COUNT } from '../helpers/test-utils';
 
 /**
  * Array Behavior Tests
