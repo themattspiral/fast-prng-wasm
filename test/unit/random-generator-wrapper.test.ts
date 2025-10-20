@@ -10,7 +10,7 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { PRNGType } from '../../src/types/prng';
-import { TEST_SEEDS, getSeedsForPRNG } from '../helpers/test-utils';
+import { getSeedsForPRNG } from '../helpers/test-utils';
 
 /**
  * Creates a mock PRNG with predictable, incrementing values.

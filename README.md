@@ -43,7 +43,7 @@ console.log(gen.int64());           // random 64-bit int (bigint)
 - **🌱 Seedable** - Full control over initialization (or automatic seeding)
 - **🧵 Parallel-Ready** - Unique stream selection for multi-threaded applications
 - **✨ Zero Config** - Synchronous WASM loading, no `fs` or `fetch` required
-- **🌐 Universal** - Works in Node.js 16.4+ and all modern browsers
+- **🌐 Universal** - Works in Node.js 18+ and all modern browsers
 - **📦 AssemblyScript Library** - Can be imported to larger WASM project builds
 
 ## PRNG Algorithms
@@ -330,11 +330,12 @@ For a detailed explanation of **why array methods are 3-5× faster** than single
 ### Node
 | Version | Notes |
 |---------|-------|
-| 16.4+ | Full support |
-| 15.0 | All features except SIMD |
-| 8.5.7 - 15 | No SIMD, No `bigint` |
+| 18+ | Full support |
+| 16.4+ | All features, but EOL (not tested) |
+| 15.0 | All features except SIMD (not tested) |
+| <15 | No SIMD, No `bigint` (not tested) |
 
-> Node versions older than 15 are not recommended, as they lack support for `i64` to `bigint` conversion. Versions going back to 8.5.7 (first WASM support in Node) should otherwise still work correctly for 53-bit integer and float `number` values, though they haven't been fully tested.
+> Node 18+ is required. Older versions may work but are not tested or supported (Node 16 reached EOL in September 2023).
 
 ### Browsers
 All modern browsers are fully supported. 

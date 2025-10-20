@@ -20,7 +20,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { RandomGenerator, PRNGType } from 'fast-prng-wasm';
-import { createParallelGenerators, TEST_SEEDS, JUMP_REFERENCE, INTEGRATION_SAMPLE_SIZE, PARALLEL_GENERATOR_COUNT } from '../helpers/test-utils';
+import { createParallelGenerators, TEST_SEEDS, JUMP_REFERENCE, PARALLEL_GENERATOR_COUNT } from '../helpers/test-utils';
 
 /**
  * Validates stream independence for parallel generators.

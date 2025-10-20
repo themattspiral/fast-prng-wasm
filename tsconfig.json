@@ -1,29 +1,42 @@
 {
   "compilerOptions": {
-    "target": "es2020",
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "lib": ["ES2020", "DOM"],
-    "strict": true,
-    "noEmitOnError": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "removeComments": false,
-    "declaration": true,
-    "importHelpers": false,
-    "isolatedModules": true,
-    "isolatedDeclarations": true,
+    // Target Node.js 18+ and modern browsers (ES2022 features, WASM SIMD)
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+
+    // Module system (Rollup handles ESM/CJS/UMD transformation)
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+
+    // Output configuration (Rollup handles multi-format bundling)
     "outDir": "dist",
     "declarationDir": "dist/dts",
     "rootDir": "src",
+    "declaration": true,
+    "removeComments": false,
+
+    // Strict type checking
+    "strict": true,
+    "noEmitOnError": true,
+
+    // Module compatibility
+    "esModuleInterop": true,
+    "verbatimModuleSyntax": true,
+    "isolatedDeclarations": true,
+    "forceConsistentCasingInFileNames": true,
+
+    // Library configuration
+    "importHelpers": false
   },
+
   "include": [
     "src/index.ts",
     "src/types" // required to pickup ambient declaration in wasm.d.ts
   ],
+
   "exclude": [
-    "node_modules", 
-    "**/*.spec.*", 
+    "node_modules",
+    "**/*.spec.*",
     "src/assembly/**/*.ts",
     "examples",
     "dist",
