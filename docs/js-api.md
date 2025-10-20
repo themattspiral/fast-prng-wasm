@@ -167,7 +167,7 @@ randomness that can fit into a JavaScript `number` type.
 ##### coordArray()
 
 ```ts
-coordArray(): Float64Array;
+coordArray(copy): Float64Array;
 ```
 
 Fills WASM memory array with this generator's next set of floats in range [-1, 1).
@@ -177,12 +177,40 @@ Array size is set when generator is created.
 Can be used as part of a coordinate pair in a unit square with radius 1.
 Useful for Monte Carlo simulation.
 
+###### Parameters
+
+| Parameter | Type | Default value | Description |
+| ------ | ------ | ------ | ------ |
+| `copy` | `boolean` | `false` | If true, returns a copy of the buffer. If false (default), returns the reused WASM memory view for performance. Default: false. |
+
 ###### Returns
 
 `Float64Array`
 
 View of the array in WASM memory for this generator, now refilled.
-This output buffer is reused with each call.
+This output buffer is reused with each call unless `copy` is true.
+
+###### Remarks
+
+**⚠️ Warning:** Buffer is reused on each call when `copy=false` (default).
+Use `copy=true` if storing multiple arrays.
+
+###### Examples
+
+```ts
+// Immediate consumption (fast, no copy needed)
+const coords = gen.coordArray();
+for (let i = 0; i < coords.length; i++) {
+  processCoordinate(coords[i]);
+}
+```
+
+```ts
+// Store multiple arrays (use copy parameter)
+const arr1 = gen.coordArray(true);
+const arr2 = gen.coordArray(true);
+console.log(arr1 !== arr2); // true - independent copies
+```
 
 ##### coordSquared()
 
@@ -207,7 +235,7 @@ multiplied by itself
 ##### coordSquaredArray()
 
 ```ts
-coordSquaredArray(): Float64Array;
+coordSquaredArray(copy): Float64Array;
 ```
 
 Fills WASM memory array with this generator's next set of floats in range [-1, 1)
@@ -219,12 +247,41 @@ Can be used as part of a coordinate pair in a unit square with radius 1,
 already squared to speed up testing for unit circle inclusion.
 Useful for Monte Carlo simulation.
 
+###### Parameters
+
+| Parameter | Type | Default value | Description |
+| ------ | ------ | ------ | ------ |
+| `copy` | `boolean` | `false` | If true, returns a copy of the buffer. If false (default), returns the reused WASM memory view for performance. Default: false. |
+
 ###### Returns
 
 `Float64Array`
 
 View of the array in WASM memory for this generator, now refilled.
-This output buffer is reused with each call.
+This output buffer is reused with each call unless `copy` is true.
+
+###### Remarks
+
+**⚠️ Warning:** Buffer is reused on each call when `copy=false` (default).
+Use `copy=true` if storing multiple arrays.
+
+###### Examples
+
+```ts
+// Immediate consumption (fast, no copy needed)
+const coords = gen.coordSquaredArray();
+let inCircle = 0;
+for (let i = 0; i < coords.length - 1; i += 2) {
+  if (coords[i] + coords[i + 1] <= 1) inCircle++;
+}
+```
+
+```ts
+// Store multiple arrays (use copy parameter)
+const arr1 = gen.coordSquaredArray(true);
+const arr2 = gen.coordSquaredArray(true);
+console.log(arr1 !== arr2); // true - independent copies
+```
 
 ##### float()
 
@@ -244,19 +301,44 @@ randomness that can fit into a JavaScript `number` type, as a float.
 ##### floatArray()
 
 ```ts
-floatArray(): Float64Array;
+floatArray(copy): Float64Array;
 ```
 
 Fills WASM memory array with this generator's next set of floats in range [0, 1).
 
 Array size is set when generator is created.
 
+###### Parameters
+
+| Parameter | Type | Default value | Description |
+| ------ | ------ | ------ | ------ |
+| `copy` | `boolean` | `false` | If true, returns a copy of the buffer. If false (default), returns the reused WASM memory view for performance. Default: false. |
+
 ###### Returns
 
 `Float64Array`
 
 View of the array in WASM memory for this generator, now refilled.
-This output buffer is reused with each call.
+This output buffer is reused with each call unless `copy` is true.
+
+###### Remarks
+
+**⚠️ Warning:** Buffer is reused on each call when `copy=false` (default).
+Use `copy=true` if storing multiple arrays.
+
+###### Examples
+
+```ts
+// Immediate consumption (fast, no copy needed)
+const avg = gen.floatArray().reduce((a, b) => a + b, 0) / gen.outputArraySize;
+```
+
+```ts
+// Store multiple arrays (use copy parameter)
+const arr1 = gen.floatArray(true);
+const arr2 = gen.floatArray(true);
+console.log(arr1 !== arr2); // true - independent copies
+```
 
 ##### int32()
 
@@ -275,19 +357,44 @@ An unsigned 32-bit integer between 0 and 2^32 - 1.
 ##### int32Array()
 
 ```ts
-int32Array(): Float64Array;
+int32Array(copy): Float64Array;
 ```
 
 Fills WASM memory array with this generator's next set of unsigned 32-bit integers.
 
 Array size is set when generator is created.
 
+###### Parameters
+
+| Parameter | Type | Default value | Description |
+| ------ | ------ | ------ | ------ |
+| `copy` | `boolean` | `false` | If true, returns a copy of the buffer. If false (default), returns the reused WASM memory view for performance. Default: false. |
+
 ###### Returns
 
 `Float64Array`
 
 View of the array in WASM memory for this generator, now refilled.
-This output buffer is reused with each call.
+This output buffer is reused with each call unless `copy` is true.
+
+###### Remarks
+
+**⚠️ Warning:** Buffer is reused on each call when `copy=false` (default).
+Use `copy=true` if storing multiple arrays.
+
+###### Examples
+
+```ts
+// Immediate consumption (fast, no copy needed)
+const sum = gen.int32Array().reduce((a, b) => a + b, 0);
+```
+
+```ts
+// Store multiple arrays (use copy parameter)
+const arr1 = gen.int32Array(true);
+const arr2 = gen.int32Array(true);
+console.log(arr1 !== arr2); // true - independent copies
+```
 
 ##### int53()
 
@@ -309,19 +416,44 @@ that can fit into a JavaScript `number` type, which is limited to
 ##### int53Array()
 
 ```ts
-int53Array(): Float64Array;
+int53Array(copy): Float64Array;
 ```
 
 Fills WASM memory array with this generator's next set of unsigned 53-bit integers.
 
 Array size is set when generator is created.
 
+###### Parameters
+
+| Parameter | Type | Default value | Description |
+| ------ | ------ | ------ | ------ |
+| `copy` | `boolean` | `false` | If true, returns a copy of the buffer. If false (default), returns the reused WASM memory view for performance. Default: false. |
+
 ###### Returns
 
 `Float64Array`
 
 View of the array in WASM memory for this generator, now refilled.
-This output buffer is reused with each call.
+This output buffer is reused with each call unless `copy` is true.
+
+###### Remarks
+
+**⚠️ Warning:** Buffer is reused on each call when `copy=false` (default).
+Use `copy=true` if storing multiple arrays.
+
+###### Examples
+
+```ts
+// Immediate consumption (fast, no copy needed)
+const max = Math.max(...gen.int53Array());
+```
+
+```ts
+// Store multiple arrays (use copy parameter)
+const arr1 = gen.int53Array(true);
+const arr2 = gen.int53Array(true);
+console.log(arr1 !== arr2); // true - independent copies
+```
 
 ##### int64()
 
@@ -340,19 +472,44 @@ An unsigned 64-bit integer between 0 and 2^64 - 1.
 ##### int64Array()
 
 ```ts
-int64Array(): BigUint64Array;
+int64Array(copy): BigUint64Array;
 ```
 
 Fills WASM memory array with this generator's next set of unsigned 64-bit integers.
 
 Array size is set when generator is created.
 
+###### Parameters
+
+| Parameter | Type | Default value | Description |
+| ------ | ------ | ------ | ------ |
+| `copy` | `boolean` | `false` | If true, returns a copy of the buffer. If false (default), returns the reused WASM memory view for performance. Default: false. |
+
 ###### Returns
 
 `BigUint64Array`
 
 View of the array in WASM memory for this generator, now refilled.
-This output buffer is reused with each call.
+This output buffer is reused with each call unless `copy` is true.
+
+###### Remarks
+
+**⚠️ Warning:** Buffer is reused on each call when `copy=false` (default).
+Use `copy=true` if storing multiple arrays.
+
+###### Examples
+
+```ts
+// Immediate consumption (fast, no copy needed)
+const sum = gen.int64Array().reduce((a, b) => a + b, 0n);
+```
+
+```ts
+// Store multiple arrays (use copy parameter)
+const arr1 = gen.int64Array(true);
+const arr2 = gen.int64Array(true);
+console.log(arr1 !== arr2); // true - independent copies
+```
 
 ***
 

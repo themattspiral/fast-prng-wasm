@@ -278,16 +278,51 @@ export class RandomGenerator {
     }
 
     /**
+     * Helper to copy BigUint64Array buffer values into a new independent array.
+     */
+    private copyBigUint64Array(): BigUint64Array {
+        const result = new BigUint64Array(this._arrayConfig.bigIntOutputArray.length);
+        result.set(this._arrayConfig.bigIntOutputArray);
+        return result;
+    }
+
+    /**
+     * Helper to copy Float64Array buffer values into a new independent array.
+     */
+    private copyFloat64Array(): Float64Array {
+        const result = new Float64Array(this._arrayConfig.floatOutputArray.length);
+        result.set(this._arrayConfig.floatOutputArray);
+        return result;
+    }
+
+    /**
      * Fills WASM memory array with this generator's next set of unsigned 64-bit integers.
      *
      * Array size is set when generator is created.
      *
+     * @param copy - If true, returns a copy of the buffer. If false (default), returns the
+     * reused WASM memory view for performance. Default: false.
+     *
      * @returns View of the array in WASM memory for this generator, now refilled.
-     * This output buffer is reused with each call.
+     * This output buffer is reused with each call unless `copy` is true.
+     *
+     * @remarks
+     * **⚠️ Warning:** Buffer is reused on each call when `copy=false` (default).
+     * Use `copy=true` if storing multiple arrays.
+     *
+     * @example
+     * // Immediate consumption (fast, no copy needed)
+     * const sum = gen.int64Array().reduce((a, b) => a + b, 0n);
+     *
+     * @example
+     * // Store multiple arrays (use copy parameter)
+     * const arr1 = gen.int64Array(true);
+     * const arr2 = gen.int64Array(true);
+     * console.log(arr1 !== arr2); // true - independent copies
      */
-    int64Array(): BigUint64Array {
+    int64Array(copy: boolean = false): BigUint64Array {
         this._instance.uint64Array(this._arrayConfig.bigIntOutputArrayPtr);
-        return this._arrayConfig.bigIntOutputArray;
+        return copy ? this.copyBigUint64Array() : this._arrayConfig.bigIntOutputArray;
     }
     
     /**
@@ -295,12 +330,29 @@ export class RandomGenerator {
      *
      * Array size is set when generator is created.
      *
+     * @param copy - If true, returns a copy of the buffer. If false (default), returns the
+     * reused WASM memory view for performance. Default: false.
+     *
      * @returns View of the array in WASM memory for this generator, now refilled.
-     * This output buffer is reused with each call.
+     * This output buffer is reused with each call unless `copy` is true.
+     *
+     * @remarks
+     * **⚠️ Warning:** Buffer is reused on each call when `copy=false` (default).
+     * Use `copy=true` if storing multiple arrays.
+     *
+     * @example
+     * // Immediate consumption (fast, no copy needed)
+     * const max = Math.max(...gen.int53Array());
+     *
+     * @example
+     * // Store multiple arrays (use copy parameter)
+     * const arr1 = gen.int53Array(true);
+     * const arr2 = gen.int53Array(true);
+     * console.log(arr1 !== arr2); // true - independent copies
      */
-    int53Array(): Float64Array {
+    int53Array(copy: boolean = false): Float64Array {
         this._instance.uint53AsFloatArray(this._arrayConfig.floatOutputArrayPtr);
-        return this._arrayConfig.floatOutputArray;
+        return copy ? this.copyFloat64Array() : this._arrayConfig.floatOutputArray;
     }
     
     /**
@@ -308,12 +360,29 @@ export class RandomGenerator {
      *
      * Array size is set when generator is created.
      *
+     * @param copy - If true, returns a copy of the buffer. If false (default), returns the
+     * reused WASM memory view for performance. Default: false.
+     *
      * @returns View of the array in WASM memory for this generator, now refilled.
-     * This output buffer is reused with each call.
+     * This output buffer is reused with each call unless `copy` is true.
+     *
+     * @remarks
+     * **⚠️ Warning:** Buffer is reused on each call when `copy=false` (default).
+     * Use `copy=true` if storing multiple arrays.
+     *
+     * @example
+     * // Immediate consumption (fast, no copy needed)
+     * const sum = gen.int32Array().reduce((a, b) => a + b, 0);
+     *
+     * @example
+     * // Store multiple arrays (use copy parameter)
+     * const arr1 = gen.int32Array(true);
+     * const arr2 = gen.int32Array(true);
+     * console.log(arr1 !== arr2); // true - independent copies
      */
-    int32Array(): Float64Array {
+    int32Array(copy: boolean = false): Float64Array {
         this._instance.uint32AsFloatArray(this._arrayConfig.floatOutputArrayPtr);
-        return this._arrayConfig.floatOutputArray;
+        return copy ? this.copyFloat64Array() : this._arrayConfig.floatOutputArray;
     }
 
     /**
@@ -321,12 +390,29 @@ export class RandomGenerator {
      *
      * Array size is set when generator is created.
      *
+     * @param copy - If true, returns a copy of the buffer. If false (default), returns the
+     * reused WASM memory view for performance. Default: false.
+     *
      * @returns View of the array in WASM memory for this generator, now refilled.
-     * This output buffer is reused with each call.
+     * This output buffer is reused with each call unless `copy` is true.
+     *
+     * @remarks
+     * **⚠️ Warning:** Buffer is reused on each call when `copy=false` (default).
+     * Use `copy=true` if storing multiple arrays.
+     *
+     * @example
+     * // Immediate consumption (fast, no copy needed)
+     * const avg = gen.floatArray().reduce((a, b) => a + b, 0) / gen.outputArraySize;
+     *
+     * @example
+     * // Store multiple arrays (use copy parameter)
+     * const arr1 = gen.floatArray(true);
+     * const arr2 = gen.floatArray(true);
+     * console.log(arr1 !== arr2); // true - independent copies
      */
-    floatArray(): Float64Array {
+    floatArray(copy: boolean = false): Float64Array {
         this._instance.float53Array(this._arrayConfig.floatOutputArrayPtr);
-        return this._arrayConfig.floatOutputArray;
+        return copy ? this.copyFloat64Array() : this._arrayConfig.floatOutputArray;
     }
     
     /**
@@ -337,12 +423,32 @@ export class RandomGenerator {
      * Can be used as part of a coordinate pair in a unit square with radius 1.
      * Useful for Monte Carlo simulation.
      *
+     * @param copy - If true, returns a copy of the buffer. If false (default), returns the
+     * reused WASM memory view for performance. Default: false.
+     *
      * @returns View of the array in WASM memory for this generator, now refilled.
-     * This output buffer is reused with each call.
+     * This output buffer is reused with each call unless `copy` is true.
+     *
+     * @remarks
+     * **⚠️ Warning:** Buffer is reused on each call when `copy=false` (default).
+     * Use `copy=true` if storing multiple arrays.
+     *
+     * @example
+     * // Immediate consumption (fast, no copy needed)
+     * const coords = gen.coordArray();
+     * for (let i = 0; i < coords.length; i++) {
+     *   processCoordinate(coords[i]);
+     * }
+     *
+     * @example
+     * // Store multiple arrays (use copy parameter)
+     * const arr1 = gen.coordArray(true);
+     * const arr2 = gen.coordArray(true);
+     * console.log(arr1 !== arr2); // true - independent copies
      */
-    coordArray(): Float64Array {
+    coordArray(copy: boolean = false): Float64Array {
         this._instance.coord53Array(this._arrayConfig.floatOutputArrayPtr);
-        return this._arrayConfig.floatOutputArray;
+        return copy ? this.copyFloat64Array() : this._arrayConfig.floatOutputArray;
     }
 
     /**
@@ -355,12 +461,33 @@ export class RandomGenerator {
      * already squared to speed up testing for unit circle inclusion.
      * Useful for Monte Carlo simulation.
      *
+     * @param copy - If true, returns a copy of the buffer. If false (default), returns the
+     * reused WASM memory view for performance. Default: false.
+     *
      * @returns View of the array in WASM memory for this generator, now refilled.
-     * This output buffer is reused with each call.
+     * This output buffer is reused with each call unless `copy` is true.
+     *
+     * @remarks
+     * **⚠️ Warning:** Buffer is reused on each call when `copy=false` (default).
+     * Use `copy=true` if storing multiple arrays.
+     *
+     * @example
+     * // Immediate consumption (fast, no copy needed)
+     * const coords = gen.coordSquaredArray();
+     * let inCircle = 0;
+     * for (let i = 0; i < coords.length - 1; i += 2) {
+     *   if (coords[i] + coords[i + 1] <= 1) inCircle++;
+     * }
+     *
+     * @example
+     * // Store multiple arrays (use copy parameter)
+     * const arr1 = gen.coordSquaredArray(true);
+     * const arr2 = gen.coordSquaredArray(true);
+     * console.log(arr1 !== arr2); // true - independent copies
      */
-    coordSquaredArray(): Float64Array {
+    coordSquaredArray(copy: boolean = false): Float64Array {
         this._instance.coord53SquaredArray(this._arrayConfig.floatOutputArrayPtr);
-        return this._arrayConfig.floatOutputArray;
+        return copy ? this.copyFloat64Array() : this._arrayConfig.floatOutputArray;
     }
 
     /**

@@ -50,6 +50,102 @@ describe('Array Behavior', () => {
             expect(array1[0]).not.toBe(firstValue);
             expect(array1[0]).toBe(array2[0]); // Both point to new values
         });
+
+        it('floatArray(copy=true) should return independent copies', () => {
+            const gen = createTestGenerator();
+
+            const array1 = gen.floatArray(true);
+            const array2 = gen.floatArray(true);
+
+            // Different references
+            expect(array1).not.toBe(array2);
+            // Different values (generator advanced)
+            expect(array1[0]).not.toBe(array2[0]);
+        });
+
+        it('int64Array(copy=true) should return independent copies', () => {
+            const gen = createTestGenerator();
+
+            const array1 = gen.int64Array(true);
+            const array2 = gen.int64Array(true);
+
+            // Different references
+            expect(array1).not.toBe(array2);
+            // Different values (generator advanced)
+            expect(array1[0]).not.toBe(array2[0]);
+        });
+
+        it('int53Array(copy=true) should return independent copies', () => {
+            const gen = createTestGenerator();
+
+            const array1 = gen.int53Array(true);
+            const array2 = gen.int53Array(true);
+
+            // Different references
+            expect(array1).not.toBe(array2);
+            // Different values (generator advanced)
+            expect(array1[0]).not.toBe(array2[0]);
+        });
+
+        it('int32Array(copy=true) should return independent copies', () => {
+            const gen = createTestGenerator();
+
+            const array1 = gen.int32Array(true);
+            const array2 = gen.int32Array(true);
+
+            // Different references
+            expect(array1).not.toBe(array2);
+            // Different values (generator advanced)
+            expect(array1[0]).not.toBe(array2[0]);
+        });
+
+        it('coordArray(copy=true) should return independent copies', () => {
+            const gen = createTestGenerator();
+
+            const array1 = gen.coordArray(true);
+            const array2 = gen.coordArray(true);
+
+            // Different references
+            expect(array1).not.toBe(array2);
+            // Different values (generator advanced)
+            expect(array1[0]).not.toBe(array2[0]);
+        });
+
+        it('coordSquaredArray(copy=true) should return independent copies', () => {
+            const gen = createTestGenerator();
+
+            const array1 = gen.coordSquaredArray(true);
+            const array2 = gen.coordSquaredArray(true);
+
+            // Different references
+            expect(array1).not.toBe(array2);
+            // Different values (generator advanced)
+            expect(array1[0]).not.toBe(array2[0]);
+        });
+
+        it('copy parameter should preserve values when storing multiple arrays', () => {
+            const gen = createTestGenerator();
+
+            const array1 = gen.floatArray(true);
+            const array1Value = array1[0];
+
+            const array2 = gen.floatArray(true);
+
+            // array1 values should be preserved
+            expect(array1[0]).toBe(array1Value);
+            // array2 should have different values
+            expect(array2[0]).not.toBe(array1Value);
+        });
+
+        it('copy=false (and default) should maintain buffer reuse behavior (backward compatibility)', () => {
+            const gen = createTestGenerator();
+
+            const array1 = gen.floatArray(false);
+            const array2 = gen.floatArray();  // Test default (no param) too
+
+            // Same reference (buffer reuse) - both explicit false and default
+            expect(array1).toBe(array2);
+        });
     });
 
     // Stream consistency: Array fill logic duplicated in each AS generator.
