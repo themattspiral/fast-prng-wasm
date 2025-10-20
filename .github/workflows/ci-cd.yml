@@ -10,16 +10,16 @@ on:
   workflow_dispatch:
 
 jobs:
-  build_and_test:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: ⬇️ Checkout code
         uses: actions/checkout@v4
 
-      - name: 🛠️ Set up Node.js
+      - name: 🛠️ Set up Node.js 20 for build
         uses: actions/setup-node@v4
         with:
-          node-version: '18' # earliest LTS version that supports WASM SIMD
+          node-version: '20' # required by AssemblyScript 0.28+
           cache: 'npm'
 
       - name: 📦 Install dependencies (CI)
@@ -46,6 +46,31 @@ jobs:
             LICENSE.md
           retention-days: 7
 
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ['18', '20', '22']
+    steps:
+      - name: ⬇️ Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🛠️ Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: 📦 Install dependencies (CI)
+        run: npm ci
+
+      - name: ⬇️ Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+          path: .
+
       - name: 🧪 Run AssemblyScript tests with coverage
         run: npm run test:as:coverage
 
@@ -53,9 +78,11 @@ jobs:
         run: npm run test:js:coverage
 
       - name: 🔄 Convert AS coverage to lcov format
+        if: matrix.node-version == '18'
         run: node util/convert-as-coverage-to-lcov.mjs
 
       - name: 📊 Upload coverage to Codecov (AssemblyScript)
+        if: matrix.node-version == '18'
         uses: codecov/codecov-action@v4
         with:
           files: ./coverage/as/lcov.info
@@ -66,6 +93,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: 📊 Upload coverage to Codecov (JavaScript)
+        if: matrix.node-version == '18'
         uses: codecov/codecov-action@v4
         with:
           files: ./coverage/js/lcov.info
@@ -76,7 +104,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
   version_and_release:
-    needs: build_and_test
+    needs: [build, test]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
