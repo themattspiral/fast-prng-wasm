@@ -42,6 +42,9 @@
   "files": [
     "dist"
   ],
+  "engines": {
+    "node": ">=16.4.0"
+  },
   "devDependencies": {
     "@rollup/plugin-typescript": "^12.1.4",
     "@rollup/plugin-wasm": "^6.2.2",

@@ -1,4 +1,5 @@
-import { PRNGType, PRNG, JumpablePRNG, IncrementablePRNG } from './types/prng';
+import { PRNGType } from './types/prng';
+import type { PRNG, JumpablePRNG, IncrementablePRNG } from './types/prng';
 import { seed64Array } from './seeds';
 
 // @rollup/plugin-wasm imports these binaries as base64 strings, and provides a 
