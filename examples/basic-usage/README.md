@@ -3,7 +3,7 @@
 A simple example demonstrating the core features of `fast-prng-wasm`.
 
 ## Requirements
-See the [Compatability]() section of `fast-prng-wasm`'s README, but generally **Node 16.4+** for full support (SIMD + bigint).
+See the [Compatability]() section of `fast-prng-wasm`'s README, but generally **Node 18+** for full support (SIMD + bigint).
 
 ## Running the Example
 This project uses a local dependency for `fast-prng-wasm`, so you must build the local library project first, or install a published version.

@@ -7,7 +7,7 @@ A [Monte Carlo estimation of pi (π)](https://www.geeksforgeeks.org/estimating-v
 - This project is a good example of using a single set of shared seeds across multiple generators, combined with providing `uniqueStreamId` values (via a parameter on generator creation) to select a unique random stream for each generator.
 
 ## Requirements
-See the [Compatability]() section of `fast-prng-wasm`'s README, but generally **Node 16.4+** for full support (SIMD + bigint).
+See the [Compatability]() section of `fast-prng-wasm`'s README, but generally **Node 18+** for full support (SIMD + bigint).
 
 ## Running the Example
 This project uses a local dependency for `fast-prng-wasm`, so you must build the local library project first, or install a published version.

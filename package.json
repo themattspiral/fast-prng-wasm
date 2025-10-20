@@ -43,7 +43,7 @@
     "dist"
   ],
   "engines": {
-    "node": ">=16.4.0"
+    "node": ">=18.0.0"
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "^12.1.4",

@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    // Target Node.js 16.4+ and modern browsers (ES2022 features, WASM SIMD)
+    // Target Node.js 18+ and modern browsers (ES2022 features, WASM SIMD)
     "target": "ES2022",
     "lib": ["ES2022", "DOM"],
 
