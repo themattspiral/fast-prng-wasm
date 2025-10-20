@@ -124,7 +124,7 @@ numberArray = gen.floatArray();           // 1000 floats in [0, 1)
 ```
 
 #### WASM Array Memory Buffer
-> **⚠️ Reused Buffer Warning:** The array returned by these methods is actually a `DataView` looking at a portion of WebAssembly memory. This memory buffer is **reused between calls** to the `*Array()` methods (to minimize WASM-JS boundary crossing time), so **you must actually consume (e.g. read/copy) the output between each call**.
+> **⚠️ Reused Buffer Warning:** The array returned by these methods is actually a `DataView` looking at a portion of WebAssembly memory. For performance, this memory buffer is **reused between calls** to the `*Array()` methods by default (to minimize WASM-JS boundary crossing time), so **you must actually consume (e.g. read/copy) the output between each call** (unless using the `copy` param).
 
 ```typescript
 const gen = new RandomGenerator();
@@ -140,6 +140,19 @@ console.log(array2);                      // consume again (extract more random 
 console.log(array1 === array2);           // true (same array in memory)
 console.log(array1[42] === array2[42]);   // true (second call refilled the same array)
 ```
+
+**Copying Arrays:** If you need to store multiple arrays, use the optional `copy` parameter:
+
+```typescript
+// Get independent copies
+const array1 = gen.floatArray(true);      // Pass true to copy
+const array2 = gen.floatArray(true);      // Each call returns a new array
+
+console.log(array1 !== array2);           // true (different arrays)
+console.log(array1[0] !== array2[0]);     // true (different values preserved)
+```
+
+**Performance Note:** Using `copy=true` is 30-50% slower than the default buffer reuse, but provides safety when storing multiple arrays.
 
 #### Set Array Output Size
 If you don't need 1000 numbers with each method call, you can specify your preferred size for the output array via the constructor. Note that an array larger than the default of 1000 does not increase performance further in test scenarios. For a detailed explanation, see: [Understanding Performance: Why Array Methods Are Faster](examples/basic-usage#understanding-performance-why-array-methods-are-faster).

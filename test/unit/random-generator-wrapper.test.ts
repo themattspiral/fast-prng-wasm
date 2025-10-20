@@ -399,6 +399,75 @@ describe('RandomGenerator Unit Tests', () => {
             // Same buffer reference
             expect(arr1.buffer).toBe(arr2.buffer);
         });
+
+        it('should return independent copy when copy=true for int64Array', () => {
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, getSeedsForPRNG(PRNGType.Xoroshiro128Plus));
+            const arr1 = gen.int64Array(true);
+            const arr2 = gen.int64Array(true);
+
+            // Different array instances
+            expect(arr1).not.toBe(arr2);
+            expect(arr1.buffer).not.toBe(arr2.buffer);
+        });
+
+        it('should return independent copy when copy=true for floatArray', () => {
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, getSeedsForPRNG(PRNGType.Xoroshiro128Plus));
+            const arr1 = gen.floatArray(true);
+            const arr2 = gen.floatArray(true);
+
+            // Different array instances
+            expect(arr1).not.toBe(arr2);
+            expect(arr1.buffer).not.toBe(arr2.buffer);
+        });
+
+        it('should return independent copy when copy=true for int53Array', () => {
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, getSeedsForPRNG(PRNGType.Xoroshiro128Plus));
+            const arr1 = gen.int53Array(true);
+            const arr2 = gen.int53Array(true);
+
+            // Different array instances
+            expect(arr1).not.toBe(arr2);
+            expect(arr1.buffer).not.toBe(arr2.buffer);
+        });
+
+        it('should return independent copy when copy=true for int32Array', () => {
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, getSeedsForPRNG(PRNGType.Xoroshiro128Plus));
+            const arr1 = gen.int32Array(true);
+            const arr2 = gen.int32Array(true);
+
+            // Different array instances
+            expect(arr1).not.toBe(arr2);
+            expect(arr1.buffer).not.toBe(arr2.buffer);
+        });
+
+        it('should return independent copy when copy=true for coordArray', () => {
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, getSeedsForPRNG(PRNGType.Xoroshiro128Plus));
+            const arr1 = gen.coordArray(true);
+            const arr2 = gen.coordArray(true);
+
+            // Different array instances
+            expect(arr1).not.toBe(arr2);
+            expect(arr1.buffer).not.toBe(arr2.buffer);
+        });
+
+        it('should return independent copy when copy=true for coordSquaredArray', () => {
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, getSeedsForPRNG(PRNGType.Xoroshiro128Plus));
+            const arr1 = gen.coordSquaredArray(true);
+            const arr2 = gen.coordSquaredArray(true);
+
+            // Different array instances
+            expect(arr1).not.toBe(arr2);
+            expect(arr1.buffer).not.toBe(arr2.buffer);
+        });
+
+        it('should reuse buffer when copy=false (default)', () => {
+            const gen = new RandomGenerator(PRNGType.Xoroshiro128Plus, getSeedsForPRNG(PRNGType.Xoroshiro128Plus));
+            const arr1 = gen.floatArray(false);
+            const arr2 = gen.floatArray(); // Default is false
+
+            // Same buffer reference
+            expect(arr1).toBe(arr2);
+        });
     });
 
     describe('Monte Carlo method', () => {
