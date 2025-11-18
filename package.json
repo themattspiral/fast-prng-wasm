@@ -46,17 +46,17 @@
     "node": ">=18.0.0"
   },
   "devDependencies": {
-    "@rollup/plugin-typescript": "^12.1.4",
-    "@rollup/plugin-wasm": "^6.2.2",
+    "@rollup/plugin-typescript": "^12.3.0",
+    "@rollup/plugin-wasm": "~6.2.2",
     "@vitest/coverage-v8": "^3.2.4",
-    "assemblyscript": "^0.28.9",
+    "assemblyscript": "~0.28.9",
     "assemblyscript-unittest-framework": "^1.4.1",
     "conventional-changelog-conventionalcommits": "^9.1.0",
-    "rollup": "^4.52.5",
+    "rollup": "^4.53.2",
     "rollup-plugin-delete": "^3.0.1",
     "rollup-plugin-dts": "^6.2.3",
     "tslib": "^2.8.1",
-    "typedoc": "^0.28.13",
+    "typedoc": "^0.28.14",
     "typedoc-plugin-markdown": "^4.9.0",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"
