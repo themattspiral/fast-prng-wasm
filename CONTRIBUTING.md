@@ -14,7 +14,7 @@ Thank you for your interest in contributing to fast-prng-wasm! This document pro
 ## Development Setup
 
 ```bash
-# Clone the repository
+# Clone the repository (note: please fork if you're creating a PR)
 git clone https://github.com/themattspiral/fast-prng-wasm.git
 cd fast-prng-wasm
 
