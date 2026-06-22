@@ -5,7 +5,7 @@ node_modules/
 /debug
 /bin
 
-# rollup output
+# build output
 /dist
 
 # npm package output
