@@ -20,19 +20,18 @@
  * the JavaScript wrapper (array sizes, limits, buffer independence).
  */
 
-import { describe, test, expect } from 'assemblyscript-unittest-framework/assembly';
+import { describe, test, expect } from 'vitest-pool-assemblyscript/assembly';
 import {
   allocUint64Array,
   allocFloat64Array
 } from '../common/memory';
-import { assertGreaterThan } from './helpers/assertion-helpers';
 
 describe('Memory Management', () => {
   describe('allocUint64Array', () => {
     test('should return non-zero pointer', () => {
       const ptr = allocUint64Array(10);
 
-      assertGreaterThan(ptr, 0, "Pointer is non-zero");
+      expect(ptr).toBeGreaterThan(0); // Pointer is non-zero
     });
 
     test('should allocate array with correct length', () => {
@@ -40,7 +39,7 @@ describe('Memory Management', () => {
       const ptr = allocUint64Array(size);
       const arr = changetype<Uint64Array>(ptr);
 
-      expect(arr.length).equal(size); // Array has correct size
+      expect(arr.length).toBe(size); // Array has correct size
     });
 
     test('should allocate writable memory', () => {
@@ -50,8 +49,8 @@ describe('Memory Management', () => {
       arr[0] = 12345;
       arr[5] = 67890;
 
-      expect(arr[0]).equal(12345); // Can write and read back values
-      expect(arr[5]).equal(67890);
+      expect(arr[0]).toBe(12345); // Can write and read back values
+      expect(arr[5]).toBe(67890);
     });
   });
 
@@ -59,7 +58,7 @@ describe('Memory Management', () => {
     test('should return non-zero pointer', () => {
       const ptr = allocFloat64Array(10);
 
-      assertGreaterThan(ptr, 0, "Pointer is non-zero");
+      expect(ptr).toBeGreaterThan(0); // Pointer is non-zero
     });
 
     test('should allocate array with correct length', () => {
@@ -67,7 +66,7 @@ describe('Memory Management', () => {
       const ptr = allocFloat64Array(size);
       const arr = changetype<Float64Array>(ptr);
 
-      expect(arr.length).equal(size); // Array has correct size
+      expect(arr.length).toBe(size); // Array has correct size
     });
 
     test('should allocate writable memory', () => {
@@ -77,8 +76,8 @@ describe('Memory Management', () => {
       arr[0] = 0.12345;
       arr[5] = 0.67890;
 
-      expect(arr[0]).equal(0.12345); // Can write and read back values
-      expect(arr[5]).equal(0.67890);
+      expect(arr[0]).toBe(0.12345); // Can write and read back values
+      expect(arr[5]).toBe(0.67890);
     });
   });
 });

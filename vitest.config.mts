@@ -1,4 +1,5 @@
 import { defineConfig, defineProject } from 'vitest/config';
+import { createAssemblyScriptPool } from 'vitest-pool-assemblyscript/config';
 
 export default defineConfig({
   test: {
@@ -13,21 +14,30 @@ export default defineConfig({
 
     // Coverage configuration
     coverage: {
-      provider: 'v8',
+      enabled: true,
+
+      provider: 'custom',
+      customProviderModule: 'vitest-pool-assemblyscript/coverage',
+
       reporter: ['text', 'json', 'html', 'lcov'],
-      reportsDirectory: 'coverage/js',
+      reportsDirectory: 'coverage',
 
-      // Include source files for coverage tracking
-      include: ['src/**/*.ts'],
-
-      // Exclude type definitions, WASM (tested indirectly), and type files
+      include: [
+        'src/**/*.ts'
+      ],
       exclude: [
+        'src/index.ts',
+        'src/assembly/**/*.ts',
         'src/**/*.d.ts',
-        'src/assembly/**',  // WASM code tested via wrapper
-        'src/types/**',     // Type definitions only
-        'node_modules/**',
-        'dist/**',
-        'test/**'
+        'src/types/**',
+      ],
+
+      assemblyScriptInclude: [
+        'src/assembly/**/*.ts',
+      ],
+      assemblyScriptExclude: [
+        'src/assembly/index.ts',
+        'src/assembly/test/**/*.ts'
       ],
 
       // Coverage thresholds - lower than AS since core logic is in WASM
@@ -49,6 +59,16 @@ export default defineConfig({
           name: { label: 'TS suite', color: 'blue' },
           include: ['test/**/*.test.ts'],
           exclude: ['node_modules', 'dist'],
+        }
+      }),
+
+      defineProject({
+        test: {
+          name: { label: 'AS Suite', color: 'yellow' },
+          include: [ 'src/assembly/test/**/*.test.ts' ],
+          pool: createAssemblyScriptPool({
+            extraCompilerFlags: ['--enable', 'simd'],
+          }),
         }
       })
     ]

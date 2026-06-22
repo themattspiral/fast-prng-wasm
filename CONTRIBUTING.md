@@ -36,28 +36,16 @@ This project implements its core PRNGs using WebAssembly via [AssemblyScript](ht
 
 | Tests | Type | Target | Framework |
 |-------|------|--------|-------------------|
-| **AssemblyScript (AS)** | Unit | Algorithm correctness | [`assemblyscript-unittest-framework`](https://github.com/jayphelps/assemblyscript-unittest-framework) |
 | **JavaScript (JS)** | Integration | Wrapper API and comprehensive statistical validation | [`vitest`](https://vitest.dev/) |
+| **AssemblyScript (AS)** | Unit | Algorithm correctness | vitest via [`vitest-pool-assemblyscript`](https://github.com/themattspiral/vitest-pool-assemblyscript) |
 
 ### Running Tests
 
 ```bash
 # Run all tests
-npm test
-
-# Run AssemblyScript tests only
-npm run test:as
-
-# Run JavaScript/integration tests only
 #   `npm run build` first if you have changed any AS source files
 #   `npm run lib` first if you have changed only JS source files
-npm run test:js
-
-# Run AssemblyScript tests with coverage
-npm run test:as:coverage
-
-# Run JavaScript tests with coverage
-npm run test:js:coverage
+npm test
 ```
 
 Reports will be generated in `coverage/`
@@ -70,20 +58,23 @@ Reports will be generated in `coverage/`
 
 **Example**:
 ```typescript
-import { describe, test, expect, beforeEach } from 'assemblyscript-unittest-framework/assembly';
+import { describe, test, expect } from 'vitest-pool-assemblyscript/assembly';
 import { setSeeds, uint64 } from '../../prng/algorithmname';
 import {
   TEST_SEEDS,
   TEST_SEEDS_ALT,
   DETERMINISTIC_SAMPLE_SIZE
-} from '../test-utils';
+} from '../helpers/test-utils';
+
+function setupTest(): void {
+  // Complex seeds, reset before each test
+  setSeeds(TEST_SEEDS.DOUBLE_0, TEST_SEEDS.DOUBLE_1);
+}
 
 describe('AlgorithmName', () => {
-  beforeEach(() => {
-    setSeeds(TEST_SEEDS.DOUBLE_0, TEST_SEEDS.DOUBLE_1);  // Complex seeds, reset before each test
-  });
-
   test('uint64 produces identical sequence with same seeds', () => {
+    setupTest();
+    
     const seq1: u64[] = [];
     for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
       seq1.push(uint64());
@@ -95,18 +86,18 @@ describe('AlgorithmName', () => {
       if (uint64() != seq1[i]) mismatchCount++;
     }
 
-    expect(mismatchCount).equal(0); // All values should match
+    expect(mismatchCount).toBe(0); // All values should match
   });
 });
 ```
 
 **Key Patterns** (for PRNG tests):
 
-1. **Use test-utils.ts constants**: Import TEST_SEEDS, TEST_SEEDS_ALT, DETERMINISTIC_SAMPLE_SIZE, DISTRIBUTION_SAMPLE_SIZE, and other constants from `../test-utils` instead of using magic numbers
+1. **Use test-utils.ts constants**: Import TEST_SEEDS, TEST_SEEDS_ALT, DETERMINISTIC_SAMPLE_SIZE, DISTRIBUTION_SAMPLE_SIZE, and other constants from `../helpers/test-utils` instead of using magic numbers
    - **Complex Seeds**: Use `TEST_SEEDS.DOUBLE_0` (64-bit hex like `0x9E3779B97F4A7C15`) instead of simple integers like `12345`
    - **Sample Sizes**: Use `DETERMINISTIC_SAMPLE_SIZE` (10K) and `DISTRIBUTION_SAMPLE_SIZE` (100K) constants
    - **Thresholds**: Use named constants like `QUARTILE_MIN`, `QUARTILE_MAX`, `PI_ESTIMATE_TOLERANCE`
-2. **Aggregation**: Count errors in a loop, then assert once (avoids inflated test counts because of the way this framework counts every call to `expect()` as a "test")
+2. **Aggregation**: Count errors in a loop, then assert once — checking a single aggregated result avoids an `expect()` call per sample (each crosses the WASM→JS boundary) and produces one clear failure instead of thousands
 3. **Inline Comments**: Add comments after `expect()` calls to explain what's being tested
 4. **Template**: See `src/assembly/test/prng/xoroshiro128plus.test.ts` for complete example
 
@@ -205,7 +196,7 @@ This layered approach provides comprehensive coverage while avoiding redundant t
 2. **Make your changes**:
    - Write tests for new features
    - Ensure all tests pass: `npm test`
-   - Verify coverage remains above 90%: `npm run test:coverage`
+   - Verify coverage remains above 90% (reported automatically by `npm test`)
 
 3. **Update documentation**:
    - Update README.md if adding user-facing features

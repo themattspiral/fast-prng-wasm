@@ -14,7 +14,7 @@
  * conversion-simd.test.ts tests SIMD conversions (dual-lane processing).
  */
 
-import { describe, test, expect } from 'assemblyscript-unittest-framework/assembly';
+import { describe, test, expect } from 'vitest-pool-assemblyscript/assembly';
 import {
   uint64_to_uint53AsFloat,
   uint64_to_uint32AsFloat,
@@ -28,25 +28,19 @@ import {
   MAX_SAFE_INTEGER,
   MAX_UINT32
 } from './helpers/test-utils';
-import {
-  assertGreaterThanOrEqual,
-  assertLessThan,
-  assertLessThanOrEqual,
-  assertGreaterThan
-} from './helpers/assertion-helpers';
 
 describe('uint64_to_float53', () => {
   test('max value should be < 1', () => {
     const input: u64 = 0xFFFFFFFFFFFFFFFF;
     const result = uint64_to_float53(input);
 
-    assertGreaterThanOrEqual(result, 0, "result is non-negative");
-    assertLessThan(result, 1, "result < 1");
+    expect(result).toBeGreaterThanOrEqual(0);
+    expect(result).toBeLessThan(1);
   });
 
   test('zero should be exactly 0', () => {
     const result = uint64_to_float53(0);
-    expect(result).equal(0);
+    expect(result).toBe(0);
   });
 
   test('mid-range should be exactly 0.5', () => {
@@ -54,7 +48,7 @@ describe('uint64_to_float53', () => {
     const result = uint64_to_float53(mid);
 
     // 0.5 is exactly representable in f64
-    expect(result).equal(0.5);
+    expect(result).toBe(0.5);
   });
 
   test('should ignore bottom 11 bits', () => {
@@ -64,16 +58,16 @@ describe('uint64_to_float53', () => {
     const result1 = uint64_to_float53(base);
     const result2 = uint64_to_float53(withNoise);
 
-    expect(result1).equal(result2);
+    expect(result1).toBe(result2);
   });
 
   test('should use unsigned right shift', () => {
     const highBitSet: u64 = 0xFFFFFFFFFFFFFFFF;
     const result = uint64_to_float53(highBitSet);
 
-    assertGreaterThanOrEqual(result, 0, "Logical shift (>>>) preserves unsigned value");
-    assertLessThan(result, 1, "Still within [0, 1) range");
-    assertGreaterThan(result, MAX_UINT64_TO_FLOAT_LOWER_BOUND, "Max u64 produces value very close to 1");
+    expect(result).toBeGreaterThanOrEqual(0);
+    expect(result).toBeLessThan(1);
+    expect(result).toBeGreaterThan(MAX_UINT64_TO_FLOAT_LOWER_BOUND);
   });
 });
 
@@ -83,8 +77,8 @@ describe('uint64_to_coord53', () => {
 
     for (let i = 0; i < inputs.length; i++) {
       const result = uint64_to_coord53(inputs[i]);
-      expect(result >= -1).equal(true);
-      expect(result < 1).equal(true);
+      expect(result).toBeGreaterThanOrEqual(-1);
+      expect(result).toBeLessThan(1);
     }
   });
 
@@ -93,12 +87,12 @@ describe('uint64_to_coord53', () => {
     const result = uint64_to_coord53(mid);
 
     // 0.5 * 2 - 1 = 0
-    expect(result == 0).equal(true);
+    expect(result).toBe(0);
   });
 
   test('min should be -1', () => {
     const result = uint64_to_coord53(0);
-    expect(result == -1).equal(true);
+    expect(result).toBe(-1);
   });
 });
 
@@ -115,7 +109,7 @@ describe('uint64_to_coord53Squared', () => {
         ? coordSquared - manualSquared
         : manualSquared - coordSquared;
 
-      assertLessThan(diff, HIGH_PRECISION_TOLERANCE, "Optimized coord squared matches manual squaring within high precision tolerance");
+      expect(diff).toBeLessThan(HIGH_PRECISION_TOLERANCE);
     }
   });
 
@@ -124,8 +118,8 @@ describe('uint64_to_coord53Squared', () => {
 
     for (let i = 0; i < inputs.length; i++) {
       const result = uint64_to_coord53Squared(inputs[i]);
-      expect(result >= 0).equal(true); // Squared value is non-negative
-      expect(result <= 1).equal(true); // Upper bound is inclusive (squaring -1 gives exactly 1)
+      expect(result).toBeGreaterThanOrEqual(0); // Squared value is non-negative
+      expect(result).toBeLessThanOrEqual(1); // Upper bound is inclusive (squaring -1 gives exactly 1)
     }
   });
 });
@@ -136,8 +130,8 @@ describe('uint64_to_uint53AsFloat', () => {
 
     for (let i = 0; i < inputs.length; i++) {
       const result = uint64_to_uint53AsFloat(inputs[i]);
-      assertGreaterThanOrEqual(result, 0, "result >= 0");
-      assertLessThanOrEqual(result, MAX_SAFE_INTEGER, "result <= 2^53-1");
+      expect(result).toBeGreaterThanOrEqual(0);
+      expect(result).toBeLessThanOrEqual(MAX_SAFE_INTEGER);
     }
   });
 });
@@ -148,8 +142,8 @@ describe('uint64_to_uint32AsFloat', () => {
 
     for (let i = 0; i < inputs.length; i++) {
       const result = uint64_to_uint32AsFloat(inputs[i]);
-      assertGreaterThanOrEqual(result, 0, "result >= 0");
-      assertLessThanOrEqual(result, MAX_UINT32, "result <= 2^32-1");
+      expect(result).toBeGreaterThanOrEqual(0);
+      expect(result).toBeLessThanOrEqual(MAX_UINT32);
     }
   });
 });

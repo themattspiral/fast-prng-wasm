@@ -15,7 +15,7 @@
  * while conversion.test.ts tests scalar conversions (single values).
  */
 
-import { describe, test, expect } from 'assemblyscript-unittest-framework/assembly';
+import { describe, test, expect } from 'vitest-pool-assemblyscript/assembly';
 import {
   uint64_to_uint53AsFloat,
   uint64_to_uint32AsFloat,
@@ -37,11 +37,6 @@ import {
   SIMD_LANE_0,
   SIMD_LANE_1
 } from './helpers/test-utils';
-import {
-  assertGreaterThanOrEqual,
-  assertLessThan,
-  assertLessThanOrEqual
-} from './helpers/assertion-helpers';
 
 describe('uint64x2_to_uint53AsFloatx2', () => {
   test('should match scalar version for both lanes', () => {
@@ -53,8 +48,8 @@ describe('uint64x2_to_uint53AsFloatx2', () => {
     const lane0 = v128.extract_lane<f64>(result, <u8>SIMD_LANE_0);
     const lane1 = v128.extract_lane<f64>(result, <u8>SIMD_LANE_1);
 
-    expect(lane0).equal(uint64_to_uint53AsFloat(input1)); // SIMD lane 0 matches scalar result
-    expect(lane1).equal(uint64_to_uint53AsFloat(input2)); // SIMD lane 1 matches scalar result
+    expect(lane0).toBe(uint64_to_uint53AsFloat(input1)); // SIMD lane 0 matches scalar result
+    expect(lane1).toBe(uint64_to_uint53AsFloat(input2)); // SIMD lane 1 matches scalar result
   });
 
   test('should extract correct lanes', () => {
@@ -66,11 +61,11 @@ describe('uint64x2_to_uint53AsFloatx2', () => {
     const lane0 = v128.extract_lane<f64>(result, <u8>SIMD_LANE_0);
     const lane1 = v128.extract_lane<f64>(result, <u8>SIMD_LANE_1);
 
-    assertGreaterThanOrEqual(lane0, 0, "Lane 0 is non-negative");
-    assertLessThanOrEqual(lane0, MAX_SAFE_INTEGER, "Lane 0 within MAX_SAFE_INTEGER");
-    assertGreaterThanOrEqual(lane1, 0, "Lane 1 is non-negative");
-    assertLessThanOrEqual(lane1, MAX_SAFE_INTEGER, "Lane 1 within MAX_SAFE_INTEGER");
-    expect(lane0 != lane1).equal(true);
+    expect(lane0).toBeGreaterThanOrEqual(0); // Lane 0 is non-negative
+    expect(lane0).toBeLessThanOrEqual(MAX_SAFE_INTEGER); // Lane 0 within MAX_SAFE_INTEGER
+    expect(lane1).toBeGreaterThanOrEqual(0); // Lane 1 is non-negative
+    expect(lane1).toBeLessThanOrEqual(MAX_SAFE_INTEGER); // Lane 1 within MAX_SAFE_INTEGER
+    expect(lane0).not.toBe(lane1);
   });
 });
 
@@ -84,8 +79,8 @@ describe('uint64x2_to_uint32AsFloatx2', () => {
     const lane0 = v128.extract_lane<f64>(result, <u8>SIMD_LANE_0);
     const lane1 = v128.extract_lane<f64>(result, <u8>SIMD_LANE_1);
 
-    expect(lane0).equal(uint64_to_uint32AsFloat(input1));
-    expect(lane1).equal(uint64_to_uint32AsFloat(input2));
+    expect(lane0).toBe(uint64_to_uint32AsFloat(input1));
+    expect(lane1).toBe(uint64_to_uint32AsFloat(input2));
   });
 
   test('should extract correct lanes', () => {
@@ -97,11 +92,11 @@ describe('uint64x2_to_uint32AsFloatx2', () => {
     const lane0 = v128.extract_lane<f64>(result, <u8>SIMD_LANE_0);
     const lane1 = v128.extract_lane<f64>(result, <u8>SIMD_LANE_1);
 
-    assertGreaterThanOrEqual(lane0, 0, "Lane 0 is non-negative");
-    assertLessThanOrEqual(lane0, MAX_UINT32, "Lane 0 within MAX_UINT32");
-    assertGreaterThanOrEqual(lane1, 0, "Lane 1 is non-negative");
-    assertLessThanOrEqual(lane1, MAX_UINT32, "Lane 1 within MAX_UINT32");
-    expect(lane0 != lane1).equal(true);
+    expect(lane0).toBeGreaterThanOrEqual(0); // Lane 0 is non-negative
+    expect(lane0).toBeLessThanOrEqual(MAX_UINT32); // Lane 0 within MAX_UINT32
+    expect(lane1).toBeGreaterThanOrEqual(0); // Lane 1 is non-negative
+    expect(lane1).toBeLessThanOrEqual(MAX_UINT32); // Lane 1 within MAX_UINT32
+    expect(lane0).not.toBe(lane1);
   });
 });
 
@@ -115,8 +110,8 @@ describe('uint64x2_to_float53x2', () => {
     const lane0 = v128.extract_lane<f64>(result, <u8>SIMD_LANE_0);
     const lane1 = v128.extract_lane<f64>(result, <u8>SIMD_LANE_1);
 
-    expect(lane0).equal(uint64_to_float53(input1));
-    expect(lane1).equal(uint64_to_float53(input2));
+    expect(lane0).toBe(uint64_to_float53(input1));
+    expect(lane1).toBe(uint64_to_float53(input2));
   });
 
   test('should produce values in [0, 1) for both lanes', () => {
@@ -128,10 +123,10 @@ describe('uint64x2_to_float53x2', () => {
     const lane0 = v128.extract_lane<f64>(result, <u8>SIMD_LANE_0);
     const lane1 = v128.extract_lane<f64>(result, <u8>SIMD_LANE_1);
 
-    assertGreaterThanOrEqual(lane0, 0, "Lane 0 lower bound");
-    assertLessThan(lane0, 1, "Lane 0 upper bound");
-    assertGreaterThanOrEqual(lane1, 0, "Lane 1 lower bound");
-    assertLessThan(lane1, 1, "Lane 1 upper bound");
+    expect(lane0).toBeGreaterThanOrEqual(0); // Lane 0 lower bound
+    expect(lane0).toBeLessThan(1); // Lane 0 upper bound
+    expect(lane1).toBeGreaterThanOrEqual(0); // Lane 1 lower bound
+    expect(lane1).toBeLessThan(1); // Lane 1 upper bound
   });
 
   test('mid-range should be exactly 0.5', () => {
@@ -142,8 +137,8 @@ describe('uint64x2_to_float53x2', () => {
     const lane0 = v128.extract_lane<f64>(result, <u8>SIMD_LANE_0);
     const lane1 = v128.extract_lane<f64>(result, <u8>SIMD_LANE_1);
 
-    expect(lane0 == 0.5).equal(true);
-    expect(lane1 == 0.5).equal(true);
+    expect(lane0).toBe(0.5);
+    expect(lane1).toBe(0.5);
   });
 });
 
@@ -157,8 +152,8 @@ describe('uint64x2_to_coord53x2', () => {
     const lane0 = v128.extract_lane<f64>(result, <u8>SIMD_LANE_0);
     const lane1 = v128.extract_lane<f64>(result, <u8>SIMD_LANE_1);
 
-    expect(lane0).equal(uint64_to_coord53(input1));
-    expect(lane1).equal(uint64_to_coord53(input2));
+    expect(lane0).toBe(uint64_to_coord53(input1));
+    expect(lane1).toBe(uint64_to_coord53(input2));
   });
 
   test('should produce values in [-1, 1) for both lanes', () => {
@@ -170,10 +165,10 @@ describe('uint64x2_to_coord53x2', () => {
     const lane0 = v128.extract_lane<f64>(result, <u8>SIMD_LANE_0);
     const lane1 = v128.extract_lane<f64>(result, <u8>SIMD_LANE_1);
 
-    assertGreaterThanOrEqual(lane0, -1, "Lane 0 lower bound");
-    assertLessThan(lane0, 1, "Lane 0 upper bound");
-    assertGreaterThanOrEqual(lane1, -1, "Lane 1 lower bound");
-    assertLessThan(lane1, 1, "Lane 1 upper bound");
+    expect(lane0).toBeGreaterThanOrEqual(-1); // Lane 0 lower bound
+    expect(lane0).toBeLessThan(1); // Lane 0 upper bound
+    expect(lane1).toBeGreaterThanOrEqual(-1); // Lane 1 lower bound
+    expect(lane1).toBeLessThan(1); // Lane 1 upper bound
   });
 
   test('mid-range should be exactly 0', () => {
@@ -184,8 +179,8 @@ describe('uint64x2_to_coord53x2', () => {
     const lane0 = v128.extract_lane<f64>(result, <u8>SIMD_LANE_0);
     const lane1 = v128.extract_lane<f64>(result, <u8>SIMD_LANE_1);
 
-    expect(lane0 == 0).equal(true);
-    expect(lane1 == 0).equal(true);
+    expect(lane0).toBe(0);
+    expect(lane1).toBe(0);
   });
 
   test('min should be -1', () => {
@@ -195,8 +190,8 @@ describe('uint64x2_to_coord53x2', () => {
     const lane0 = v128.extract_lane<f64>(result, <u8>SIMD_LANE_0);
     const lane1 = v128.extract_lane<f64>(result, <u8>SIMD_LANE_1);
 
-    expect(lane0 == -1).equal(true);
-    expect(lane1 == -1).equal(true);
+    expect(lane0).toBe(-1);
+    expect(lane1).toBe(-1);
   });
 });
 
@@ -210,8 +205,8 @@ describe('uint64x2_to_coord53Squaredx2', () => {
     const lane0 = v128.extract_lane<f64>(result, <u8>SIMD_LANE_0);
     const lane1 = v128.extract_lane<f64>(result, <u8>SIMD_LANE_1);
 
-    expect(lane0).equal(uint64_to_coord53Squared(input1));
-    expect(lane1).equal(uint64_to_coord53Squared(input2));
+    expect(lane0).toBe(uint64_to_coord53Squared(input1));
+    expect(lane1).toBe(uint64_to_coord53Squared(input2));
   });
 
   test('should match manual squaring (high precision)', () => {
@@ -232,8 +227,8 @@ describe('uint64x2_to_coord53Squaredx2', () => {
       ? lane1 - coord2 * coord2
       : coord2 * coord2 - lane1;
 
-    assertLessThan(diff0, HIGH_PRECISION_TOLERANCE, "Lane 0 precision");
-    assertLessThan(diff1, HIGH_PRECISION_TOLERANCE, "Lane 1 precision");
+    expect(diff0).toBeLessThan(HIGH_PRECISION_TOLERANCE); // Lane 0 precision
+    expect(diff1).toBeLessThan(HIGH_PRECISION_TOLERANCE); // Lane 1 precision
   });
 
   test('should always be in [0, 1] for both lanes', () => {
@@ -245,9 +240,9 @@ describe('uint64x2_to_coord53Squaredx2', () => {
     const lane0 = v128.extract_lane<f64>(result, <u8>SIMD_LANE_0);
     const lane1 = v128.extract_lane<f64>(result, <u8>SIMD_LANE_1);
 
-    assertGreaterThanOrEqual(lane0, 0, "Lane 0 squared value is non-negative");
-    assertLessThanOrEqual(lane0, 1, "Lane 0 upper bound is inclusive");
-    assertGreaterThanOrEqual(lane1, 0, "Lane 1 squared value is non-negative");
-    assertLessThanOrEqual(lane1, 1, "Lane 1 upper bound is inclusive");
+    expect(lane0).toBeGreaterThanOrEqual(0); // Lane 0 squared value is non-negative
+    expect(lane0).toBeLessThanOrEqual(1); // Lane 0 upper bound is inclusive
+    expect(lane1).toBeGreaterThanOrEqual(0); // Lane 1 squared value is non-negative
+    expect(lane1).toBeLessThanOrEqual(1); // Lane 1 upper bound is inclusive
   });
 });
