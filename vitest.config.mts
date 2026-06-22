@@ -1,9 +1,12 @@
-import { defineConfig } from 'vitest/config';
+import { defineConfig, defineProject } from 'vitest/config';
 
 export default defineConfig({
   test: {
     // Test environment
     environment: 'node',
+
+    // Reporter configuration
+    reporters: ['verbose'],
 
     // Global test timeout
     testTimeout: 10000,
@@ -40,11 +43,14 @@ export default defineConfig({
       clean: true
     },
 
-    // Include/exclude patterns for test files
-    include: ['test/**/*.test.ts'],
-    exclude: ['node_modules', 'dist'],
-
-    // Reporter configuration
-    reporters: ['verbose']
+    projects: [
+      defineProject({
+        test: {
+          name: { label: 'TS suite', color: 'blue' },
+          include: ['test/**/*.test.ts'],
+          exclude: ['node_modules', 'dist'],
+        }
+      })
+    ]
   }
 });
