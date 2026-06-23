@@ -16,11 +16,11 @@ PRNG Algorithm Type
 
 | Enumeration Member | Value | Description |
 | ------ | ------ | ------ |
-| <a id="pcg"></a> `PCG` | `"PCG"` | PCG XSH RR |
-| <a id="xoroshiro128plus"></a> `Xoroshiro128Plus` | `"Xoroshiro128Plus"` | Xoroshiro128+ |
-| <a id="xoroshiro128plus_simd"></a> `Xoroshiro128Plus_SIMD` | `"Xoroshiro128Plus_SIMD"` | Xoroshiro128+ (SIMD-enabled) |
-| <a id="xoshiro256plus"></a> `Xoshiro256Plus` | `"Xoshiro256Plus"` | Xoshiro256+ |
-| <a id="xoshiro256plus_simd"></a> `Xoshiro256Plus_SIMD` | `"Xoshiro256Plus_SIMD"` | Xoshiro256+ (SIMD-enabled) |
+| <a id="enumeration-member-pcg"></a> `PCG` | `"PCG"` | PCG XSH RR |
+| <a id="enumeration-member-xoroshiro128plus"></a> `Xoroshiro128Plus` | `"Xoroshiro128Plus"` | Xoroshiro128+ |
+| <a id="enumeration-member-xoroshiro128plus_simd"></a> `Xoroshiro128Plus_SIMD` | `"Xoroshiro128Plus_SIMD"` | Xoroshiro128+ (SIMD-enabled) |
+| <a id="enumeration-member-xoshiro256plus"></a> `Xoshiro256Plus` | `"Xoshiro256Plus"` | Xoshiro256+ |
+| <a id="enumeration-member-xoshiro256plus_simd"></a> `Xoshiro256Plus_SIMD` | `"Xoshiro256Plus_SIMD"` | Xoshiro256+ (SIMD-enabled) |
 
 ## Classes
 
@@ -34,10 +34,10 @@ A seedable pseudo random number generator that runs in WebAssembly.
 
 ```ts
 new RandomGenerator(
-   prngType, 
-   seeds, 
-   uniqueStreamId, 
-   outputArraySize): RandomGenerator;
+   prngType?, 
+   seeds?, 
+   uniqueStreamId?, 
+   outputArraySize?): RandomGenerator;
 ```
 
 Creates a WASM pseudo random number generator.
@@ -167,7 +167,7 @@ randomness that can fit into a JavaScript `number` type.
 ##### coordArray()
 
 ```ts
-coordArray(copy): Float64Array;
+coordArray(copy?): Float64Array;
 ```
 
 Fills WASM memory array with this generator's next set of floats in range [-1, 1).
@@ -235,7 +235,7 @@ multiplied by itself
 ##### coordSquaredArray()
 
 ```ts
-coordSquaredArray(copy): Float64Array;
+coordSquaredArray(copy?): Float64Array;
 ```
 
 Fills WASM memory array with this generator's next set of floats in range [-1, 1)
@@ -301,7 +301,7 @@ randomness that can fit into a JavaScript `number` type, as a float.
 ##### floatArray()
 
 ```ts
-floatArray(copy): Float64Array;
+floatArray(copy?): Float64Array;
 ```
 
 Fills WASM memory array with this generator's next set of floats in range [0, 1).
@@ -357,7 +357,7 @@ An unsigned 32-bit integer between 0 and 2^32 - 1.
 ##### int32Array()
 
 ```ts
-int32Array(copy): Float64Array;
+int32Array(copy?): Float64Array;
 ```
 
 Fills WASM memory array with this generator's next set of unsigned 32-bit integers.
@@ -416,7 +416,7 @@ that can fit into a JavaScript `number` type, which is limited to
 ##### int53Array()
 
 ```ts
-int53Array(copy): Float64Array;
+int53Array(copy?): Float64Array;
 ```
 
 Fills WASM memory array with this generator's next set of unsigned 53-bit integers.
@@ -472,7 +472,7 @@ An unsigned 64-bit integer between 0 and 2^64 - 1.
 ##### int64Array()
 
 ```ts
-int64Array(copy): BigUint64Array;
+int64Array(copy?): BigUint64Array;
 ```
 
 Fills WASM memory array with this generator's next set of unsigned 64-bit integers.
@@ -524,7 +524,7 @@ the other generators within this library.
 ##### Constructor
 
 ```ts
-new SplitMix64(seed): SplitMix64;
+new SplitMix64(seed?): SplitMix64;
 ```
 
 ###### Parameters
@@ -541,7 +541,7 @@ new SplitMix64(seed): SplitMix64;
 
 | Property | Type |
 | ------ | ------ |
-| <a id="_state"></a> `_state` | `bigint` |
+| <a id="property-_state"></a> `_state` | `bigint` |
 
 #### Methods
 
@@ -560,7 +560,7 @@ next(): bigint;
 ### seed64Array()
 
 ```ts
-function seed64Array(count, seed): bigint[];
+function seed64Array(count?, seed?): bigint[];
 ```
 
 Generates an array of random 64-bit integers suitable for seeding

@@ -14,6 +14,12 @@
     "common/memory.ts"
   ],
 
+  "compilerOptions": {
+    "paths": {
+      "vitest-pool-assemblyscript/assembly": ["../../node_modules/vitest-pool-assemblyscript/assembly/index.ts"],
+    }
+  },
+
   "out": "../../docs",
   "cleanOutputDir": false,
   "disableSources": true,
