@@ -51,7 +51,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: ['18', '20', '22', '24']
+        node-version: ['20', '22', '24']
     steps:
       - name: ⬇️ Checkout code
         uses: actions/checkout@v6
@@ -72,12 +72,12 @@ jobs:
           path: .
 
       - name: 🧪 Run Tests with Coverage
-        if: matrix.node-version == '22' || matrix.node-version == '24'
-        run: npm test
+        if: matrix.node-version != '20'
+        run: npx vitest run
         
       - name: 🧪 Run Tests without Coverage
-        if: matrix.node-version == '18' || matrix.node-version == '20'
-        run: npm test --collectCoverage false
+        if: matrix.node-version == '20'
+        run: npx vitest run --collectCoverage false
 
       - name: 📊 Upload coverage to Codecov
         if: matrix.node-version == '24'
