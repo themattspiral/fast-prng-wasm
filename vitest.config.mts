@@ -1,5 +1,6 @@
 import { defineConfig, defineProject } from 'vitest/config';
 import { createAssemblyScriptPool } from 'vitest-pool-assemblyscript/config';
+import { wasmInitStub } from './test/plugins/wasm-init-stub';
 
 export default defineConfig({
   test: {
@@ -55,6 +56,9 @@ export default defineConfig({
 
     projects: [
       defineProject({
+        // Stub `*.wasm?init&sync` imports so the wrapper unit tests' vi.mock()s
+        // attach without the generated bin/*.wasm files present (see plugin).
+        plugins: [wasmInitStub()],
         test: {
           name: { label: 'TS suite', color: 'blue' },
           include: ['test/**/*.test.ts'],

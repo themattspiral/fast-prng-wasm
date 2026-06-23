@@ -77,7 +77,7 @@ jobs:
         
       - name: 🧪 Run Tests without Coverage
         if: matrix.node-version == '20'
-        run: npx vitest run --collectCoverage false
+        run: npx vitest run --no-coverage
 
       - name: 📊 Upload coverage to Codecov
         if: matrix.node-version == '24'
