@@ -84,23 +84,23 @@ function createMockPRNG(seedCount: number, hasJump: boolean = true) {
 }
 
 // Mock the WASM imports before importing RandomGenerator
-vi.mock('../../bin/pcg.wasm', () => ({
+vi.mock('../../bin/pcg.wasm?init&sync', () => ({
   default: vi.fn(() => ({ exports: createMockPRNG(1, false) })) // PCG uses setStreamIncrement
 }));
 
-vi.mock('../../bin/xoroshiro128plus.wasm', () => ({
+vi.mock('../../bin/xoroshiro128plus.wasm?init&sync', () => ({
   default: vi.fn(() => ({ exports: createMockPRNG(2, true) })) // Xoroshiro uses jump
 }));
 
-vi.mock('../../bin/xoroshiro128plus-simd.wasm', () => ({
+vi.mock('../../bin/xoroshiro128plus-simd.wasm?init&sync', () => ({
   default: vi.fn(() => ({ exports: createMockPRNG(4, true) }))
 }));
 
-vi.mock('../../bin/xoshiro256plus.wasm', () => ({
+vi.mock('../../bin/xoshiro256plus.wasm?init&sync', () => ({
   default: vi.fn(() => ({ exports: createMockPRNG(4, true) }))
 }));
 
-vi.mock('../../bin/xoshiro256plus-simd.wasm', () => ({
+vi.mock('../../bin/xoshiro256plus-simd.wasm?init&sync', () => ({
   default: vi.fn(() => ({ exports: createMockPRNG(8, true) }))
 }));
 

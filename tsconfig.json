@@ -4,11 +4,11 @@
     "target": "ES2022",
     "lib": ["ES2022", "DOM"],
 
-    // Module system (Rollup handles ESM/CJS/UMD transformation)
+    // Module system (tsdown handles ESM/CJS/UMD transformation)
     "module": "ESNext",
     "moduleResolution": "Bundler",
 
-    // Output configuration (Rollup handles multi-format bundling)
+    // Output configuration (tsdown handles multi-format bundling)
     "outDir": "dist",
     "declarationDir": "dist/dts",
     "rootDir": "src",

@@ -114,7 +114,7 @@ for (let i = 0; i < 1_000_000; i++) {
 
 Yes, but with diminishing returns. Larger arrays mean fewer boundary crossings:
 
-| Array Size | Boundary Crossings (1B numbers) | Overhead Time |
+| Array Size | Boundary Crossings (per 1B numbers) | Overhead Time |
 |------------|--------------------------------|---------------|
 | 1 (single) | 1 billion | ~100 seconds |
 | 100 | 10 million | ~1 second |
@@ -122,12 +122,7 @@ Yes, but with diminishing returns. Larger arrays mean fewer boundary crossings:
 | 10,000 | 100,000 | ~0.01 seconds |
 | 1,000,000 | 1,000 | ~0.0001 seconds |
 
-**However:** The default of 1,000 already reduces overhead to negligible levels (0.3% of total time). Going larger:
-- ✅ Saves ~0.1 seconds per billion numbers (tiny improvement)
-- ❌ Increases memory usage (8KB → 80KB → 8MB)
-- ❌ May hit WASM memory limits
-- ❌ No improvement to actual RNG speed
-
+**However:** The default of 1,000 already reduces overhead to negligible levels for most use cases (0.3% of total time). Going larger saves ~0.1 seconds per billion numbers.
 
 ## Troubleshooting
 

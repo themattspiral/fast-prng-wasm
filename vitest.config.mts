@@ -1,30 +1,44 @@
-import { defineConfig } from 'vitest/config';
+import { defineConfig, defineProject } from 'vitest/config';
+import { createAssemblyScriptPool } from 'vitest-pool-assemblyscript/config';
+import { wasmInitStub } from './test/plugins/wasm-init-stub';
 
 export default defineConfig({
   test: {
     // Test environment
     environment: 'node',
 
+    // Reporter configuration
+    reporters: ['verbose'],
+
     // Global test timeout
     testTimeout: 10000,
 
     // Coverage configuration
     coverage: {
-      provider: 'v8',
+      enabled: true,
+
+      provider: 'custom',
+      customProviderModule: 'vitest-pool-assemblyscript/coverage',
+
       reporter: ['text', 'json', 'html', 'lcov'],
-      reportsDirectory: 'coverage/js',
+      reportsDirectory: 'coverage',
 
-      // Include source files for coverage tracking
-      include: ['src/**/*.ts'],
-
-      // Exclude type definitions, WASM (tested indirectly), and type files
+      include: [
+        'src/**/*.ts'
+      ],
       exclude: [
+        'src/index.ts',
+        'src/assembly/**/*.ts',
         'src/**/*.d.ts',
-        'src/assembly/**',  // WASM code tested via wrapper
-        'src/types/**',     // Type definitions only
-        'node_modules/**',
-        'dist/**',
-        'test/**'
+        'src/types/**',
+      ],
+
+      assemblyScriptInclude: [
+        'src/assembly/**/*.ts',
+      ],
+      assemblyScriptExclude: [
+        'src/assembly/index.ts',
+        'src/assembly/test/**/*.ts'
       ],
 
       // Coverage thresholds - lower than AS since core logic is in WASM
@@ -40,11 +54,27 @@ export default defineConfig({
       clean: true
     },
 
-    // Include/exclude patterns for test files
-    include: ['test/**/*.test.ts'],
-    exclude: ['node_modules', 'dist'],
+    projects: [
+      defineProject({
+        // Stub `*.wasm?init&sync` imports so the wrapper unit tests' vi.mock()s
+        // attach without the generated bin/*.wasm files present (see plugin).
+        plugins: [wasmInitStub()],
+        test: {
+          name: { label: 'TS suite', color: 'blue' },
+          include: ['test/**/*.test.ts'],
+          exclude: ['node_modules', 'dist'],
+        }
+      }),
 
-    // Reporter configuration
-    reporters: ['verbose']
+      defineProject({
+        test: {
+          name: { label: 'AS Suite', color: 'yellow' },
+          include: [ 'src/assembly/test/**/*.test.ts' ],
+          pool: createAssemblyScriptPool({
+            extraCompilerFlags: ['--enable', 'simd'],
+          }),
+        }
+      })
+    ]
   }
 });

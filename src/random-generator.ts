@@ -2,14 +2,14 @@ import { PRNGType } from './types/prng';
 import type { PRNG, JumpablePRNG, IncrementablePRNG } from './types/prng';
 import { seed64Array } from './seeds';
 
-// @rollup/plugin-wasm imports these binaries as base64 strings, and provides a 
+// rolldown-plugin-wasm imports these binaries as base64 strings, and provides a 
 // function on module load to synchronously instantiate each WASM generator.
 // See types/wasm.d.ts and types/prng.ts
-import PCG from '../bin/pcg.wasm';
-import Xoroshiro128Plus from '../bin/xoroshiro128plus.wasm';
-import Xoroshiro128Plus_SIMD from '../bin/xoroshiro128plus-simd.wasm';
-import Xoshiro256Plus from '../bin/xoshiro256plus.wasm';
-import Xoshiro256Plus_SIMD from '../bin/xoshiro256plus-simd.wasm';
+import PCG from '../bin/pcg.wasm?init&sync';
+import Xoroshiro128Plus from '../bin/xoroshiro128plus.wasm?init&sync';
+import Xoroshiro128Plus_SIMD from '../bin/xoroshiro128plus-simd.wasm?init&sync';
+import Xoshiro256Plus from '../bin/xoshiro256plus.wasm?init&sync';
+import Xoshiro256Plus_SIMD from '../bin/xoshiro256plus-simd.wasm?init&sync';
 
 const wasmImports: WebAssembly.Imports = {
     env: {

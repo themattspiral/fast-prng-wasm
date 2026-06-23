@@ -16,7 +16,7 @@
  * wrapper to verify end-to-end wiring across all 5 generator types.
  */
 
-import { describe, test, expect, beforeEach } from 'assemblyscript-unittest-framework/assembly';
+import { describe, test, expect } from 'vitest-pool-assemblyscript/assembly';
 import {
   setSeeds,
   uint64,
@@ -51,15 +51,17 @@ import {
   MAX_UINT32,
   JUMP_REFERENCE
 } from '../helpers/test-utils';
-import { assertInRange, assertLessThan } from '../helpers/assertion-helpers';
+
+/** Applies this suite's default seeds to establish a known generator state at the start of each test. */
+function setupTest(): void {
+  setSeeds(TEST_SEEDS.QUAD_0, TEST_SEEDS.QUAD_1, TEST_SEEDS.QUAD_2, TEST_SEEDS.QUAD_3);
+}
 
 describe('Xoshiro256Plus', () => {
-  beforeEach(() => {
-    setSeeds(TEST_SEEDS.QUAD_0, TEST_SEEDS.QUAD_1, TEST_SEEDS.QUAD_2, TEST_SEEDS.QUAD_3);
-  });
-
   describe('Determinism', () => {
     test('uint64 produces identical sequence with same seeds', () => {
+      setupTest();
+
       const seq1: u64[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         seq1.push(uint64());
@@ -73,10 +75,12 @@ describe('Xoshiro256Plus', () => {
         }
       }
 
-      expect(mismatchCount).equal(0); // All values should match with same seeds
+      expect(mismatchCount).toBe(0); // All values should match with same seeds
     });
 
     test('uint64 produces different values with different seeds', () => {
+      setupTest();
+
       const values1: u64[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         values1.push(uint64());
@@ -96,21 +100,25 @@ describe('Xoshiro256Plus', () => {
         }
       }
 
-      expect(differentCount).equal(DETERMINISTIC_SAMPLE_SIZE); // All values differ with different seeds
+      expect(differentCount).toBe(DETERMINISTIC_SAMPLE_SIZE); // All values differ with different seeds
     });
   });
 
   describe('Quality', () => {
     test('uint64 should produce unique values', () => {
+      setupTest();
+
       const values = new Set<u64>();
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         values.add(uint64());
       }
 
-      expect(values.size == DETERMINISTIC_SAMPLE_SIZE).equal(true); // All values are unique
+      expect(values.size).toBe(DETERMINISTIC_SAMPLE_SIZE); // All values are unique
     });
 
     test('uint64 should use full range', () => {
+      setupTest();
+
       let hasHighBit = false;
       let hasLowBit = false;
 
@@ -125,13 +133,15 @@ describe('Xoshiro256Plus', () => {
         if (hasHighBit && hasLowBit) break;
       }
 
-      expect(hasHighBit).equal(true); // Should produce values >= 2^63
-      expect(hasLowBit).equal(true); // Should produce values < 2^63
+      expect(hasHighBit).toBe(true); // Should produce values >= 2^63
+      expect(hasLowBit).toBe(true); // Should produce values < 2^63
     });
   });
 
   describe('Range Validation', () => {
     test('uint53AsFloat should be in [0, 2^53-1]', () => {
+      setupTest();
+
       let belowMin = 0;
       let aboveMax = 0;
 
@@ -141,11 +151,13 @@ describe('Xoshiro256Plus', () => {
         if (val > MAX_SAFE_INTEGER) aboveMax++;
       }
 
-      expect(belowMin).equal(0); // No values below 0
-      expect(aboveMax).equal(0); // No values above 2^53-1
+      expect(belowMin).toBe(0); // No values below 0
+      expect(aboveMax).toBe(0); // No values above 2^53-1
     });
 
     test('uint32AsFloat should be in [0, 2^32-1]', () => {
+      setupTest();
+
       let belowMin = 0;
       let aboveMax = 0;
 
@@ -155,11 +167,13 @@ describe('Xoshiro256Plus', () => {
         if (val > MAX_UINT32) aboveMax++;
       }
 
-      expect(belowMin).equal(0); // No values below 0
-      expect(aboveMax).equal(0); // No values above 2^32-1
+      expect(belowMin).toBe(0); // No values below 0
+      expect(aboveMax).toBe(0); // No values above 2^32-1
     });
 
     test('float53 should be in [0, 1)', () => {
+      setupTest();
+
       let belowMin = 0;
       let aboveMax = 0;
 
@@ -169,11 +183,13 @@ describe('Xoshiro256Plus', () => {
         if (val >= 1) aboveMax++;
       }
 
-      expect(belowMin).equal(0); // No values below 0
-      expect(aboveMax).equal(0); // No values >= 1
+      expect(belowMin).toBe(0); // No values below 0
+      expect(aboveMax).toBe(0); // No values >= 1
     });
 
     test('coord53 should be in [-1, 1)', () => {
+      setupTest();
+
       let belowMin = 0;
       let aboveMax = 0;
 
@@ -183,11 +199,13 @@ describe('Xoshiro256Plus', () => {
         if (val >= 1) aboveMax++;
       }
 
-      expect(belowMin).equal(0); // No values below -1
-      expect(aboveMax).equal(0); // No values >= 1
+      expect(belowMin).toBe(0); // No values below -1
+      expect(aboveMax).toBe(0); // No values >= 1
     });
 
     test('coord53Squared should be in [0, 1]', () => {
+      setupTest();
+
       let belowMin = 0;
       let aboveMax = 0;
 
@@ -197,13 +215,15 @@ describe('Xoshiro256Plus', () => {
         if (val > 1) aboveMax++;
       }
 
-      expect(belowMin).equal(0); // No values below 0
-      expect(aboveMax).equal(0); // No values above 1 (inclusive upper bound)
+      expect(belowMin).toBe(0); // No values below 0
+      expect(aboveMax).toBe(0); // No values above 1 (inclusive upper bound)
     });
   });
 
   describe('Array Methods', () => {
     test('uint64Array should match repeated uint64 calls', () => {
+      setupTest();
+
       const singleValues: u64[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         singleValues.push(uint64());
@@ -220,10 +240,12 @@ describe('Xoshiro256Plus', () => {
         }
       }
 
-      expect(mismatchCount).equal(0); // All array values match single-call sequence
+      expect(mismatchCount).toBe(0); // All array values match single-call sequence
     });
 
     test('uint53AsFloatArray should match repeated uint53AsFloat calls', () => {
+      setupTest();
+
       const singleValues: f64[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         singleValues.push(uint53AsFloat());
@@ -240,10 +262,12 @@ describe('Xoshiro256Plus', () => {
         }
       }
 
-      expect(mismatchCount).equal(0); // All array values match single-call sequence
+      expect(mismatchCount).toBe(0); // All array values match single-call sequence
     });
 
     test('uint32AsFloatArray should match repeated uint32AsFloat calls', () => {
+      setupTest();
+
       const singleValues: f64[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         singleValues.push(uint32AsFloat());
@@ -260,10 +284,12 @@ describe('Xoshiro256Plus', () => {
         }
       }
 
-      expect(mismatchCount).equal(0); // All array values match single-call sequence
+      expect(mismatchCount).toBe(0); // All array values match single-call sequence
     });
 
     test('float53Array should match repeated float53 calls', () => {
+      setupTest();
+
       const singleValues: f64[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         singleValues.push(float53());
@@ -280,10 +306,12 @@ describe('Xoshiro256Plus', () => {
         }
       }
 
-      expect(mismatchCount).equal(0); // All array values match single-call sequence
+      expect(mismatchCount).toBe(0); // All array values match single-call sequence
     });
 
     test('coord53Array should match repeated coord53 calls', () => {
+      setupTest();
+
       const singleValues: f64[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         singleValues.push(coord53());
@@ -300,10 +328,12 @@ describe('Xoshiro256Plus', () => {
         }
       }
 
-      expect(mismatchCount).equal(0); // All array values match single-call sequence
+      expect(mismatchCount).toBe(0); // All array values match single-call sequence
     });
 
     test('coord53SquaredArray should match repeated coord53Squared calls', () => {
+      setupTest();
+
       const singleValues: f64[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         singleValues.push(coord53Squared());
@@ -320,20 +350,24 @@ describe('Xoshiro256Plus', () => {
         }
       }
 
-      expect(mismatchCount).equal(0); // All array values match single-call sequence
+      expect(mismatchCount).toBe(0); // All array values match single-call sequence
     });
 
     test('float53Array should handle size 1', () => {
+      setupTest();
+
       const expected = float53();
 
       setSeeds(TEST_SEEDS.QUAD_0, TEST_SEEDS.QUAD_1, TEST_SEEDS.QUAD_2, TEST_SEEDS.QUAD_3);
       const arr = new Float64Array(1);
       float53Array(arr);
 
-      expect(arr[0]).equal(expected); // Single-element array works correctly
+      expect(arr[0]).toBe(expected); // Single-element array works correctly
     });
 
     test('float53Array should handle large arrays', () => {
+      setupTest();
+
       const arr = new Float64Array(DETERMINISTIC_SAMPLE_SIZE);
       float53Array(arr);
 
@@ -342,12 +376,14 @@ describe('Xoshiro256Plus', () => {
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         uniqueValues.add(arr[i]);
       }
-      expect(uniqueValues.size).equal(DETERMINISTIC_SAMPLE_SIZE); // All values are unique
+      expect(uniqueValues.size).toBe(DETERMINISTIC_SAMPLE_SIZE); // All values are unique
     });
   });
 
   describe('Jump Function', () => {
     test('jump advances state deterministically', () => {
+      setupTest();
+
       jump();
       const val1 = uint64();
 
@@ -355,10 +391,12 @@ describe('Xoshiro256Plus', () => {
       jump();
       const val2 = uint64();
 
-      expect(val1).equal(val2); // Jump produces same value with same initial seeds
+      expect(val1).toBe(val2); // Jump produces same value with same initial seeds
     });
 
     test('jump produces different sequence', () => {
+      setupTest();
+
       const beforeJump: u64[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         beforeJump.push(uint64());
@@ -379,10 +417,12 @@ describe('Xoshiro256Plus', () => {
         }
       }
 
-      expect(differentCount).equal(DETERMINISTIC_SAMPLE_SIZE); // All values differ after jump
+      expect(differentCount).toBe(DETERMINISTIC_SAMPLE_SIZE); // All values differ after jump
     });
 
     test('multiple jumps produce non-overlapping sequences', () => {
+      setupTest();
+
       // Create 3 streams with 0, 1, and 2 jumps
       const stream0: u64[] = [];
       setSeeds(TEST_SEEDS.QUAD_0, TEST_SEEDS.QUAD_1, TEST_SEEDS.QUAD_2, TEST_SEEDS.QUAD_3);
@@ -438,12 +478,14 @@ describe('Xoshiro256Plus', () => {
       }
 
       // With proper jump, there should be no overlaps
-      expect(overlap_0_1).equal(0); // Stream 0 and 1 should not overlap
-      expect(overlap_1_2).equal(0); // Stream 1 and 2 should not overlap
-      expect(overlap_0_2).equal(0); // Stream 0 and 2 should not overlap
+      expect(overlap_0_1).toBe(0); // Stream 0 and 1 should not overlap
+      expect(overlap_1_2).toBe(0); // Stream 1 and 2 should not overlap
+      expect(overlap_0_2).toBe(0); // Stream 0 and 2 should not overlap
     });
 
     test('jump matches C reference implementation', () => {
+      setupTest();
+
       // Reference value from the official C implementation at:
       // https://prng.di.unimi.it/xoshiro256plus.c
       //
@@ -457,12 +499,14 @@ describe('Xoshiro256Plus', () => {
       jump();
       const result = uint64();
 
-      expect(result).equal(JUMP_REFERENCE.XOSHIRO256PLUS); // Must match C reference implementation
+      expect(result).toBe(JUMP_REFERENCE.XOSHIRO256PLUS); // Must match C reference implementation
     });
   });
 
   describe('Statistical Smoke Tests', () => {
     test('uint64: basic distribution check (100K samples)', () => {
+      setupTest();
+
       let q1 = 0, q2 = 0, q3 = 0, q4 = 0;
 
       for (let i = 0; i < DISTRIBUTION_SAMPLE_SIZE; i++) {
@@ -474,32 +518,41 @@ describe('Xoshiro256Plus', () => {
       }
 
       // Expect roughly 25K in each quartile (allow 24K-26K)
-      assertInRange(q1, QUARTILE_MIN, QUARTILE_MAX, "Q1 quartile"); // Q1 has ~25K values
-      assertInRange(q2, QUARTILE_MIN, QUARTILE_MAX, "Q2 quartile"); // Q2 has ~25K values
-      assertInRange(q3, QUARTILE_MIN, QUARTILE_MAX, "Q3 quartile"); // Q3 has ~25K values
-      assertInRange(q4, QUARTILE_MIN, QUARTILE_MAX, "Q4 quartile"); // Q4 has ~25K values
+      expect(q1).toBeGreaterThanOrEqual(QUARTILE_MIN); // Q1 quartile in range [QUARTILE_MIN, QUARTILE_MAX]
+      expect(q1).toBeLessThanOrEqual(QUARTILE_MAX);
+      expect(q2).toBeGreaterThanOrEqual(QUARTILE_MIN); // Q2 quartile in range [QUARTILE_MIN, QUARTILE_MAX]
+      expect(q2).toBeLessThanOrEqual(QUARTILE_MAX);
+      expect(q3).toBeGreaterThanOrEqual(QUARTILE_MIN); // Q3 quartile in range [QUARTILE_MIN, QUARTILE_MAX]
+      expect(q3).toBeLessThanOrEqual(QUARTILE_MAX);
+      expect(q4).toBeGreaterThanOrEqual(QUARTILE_MIN); // Q4 quartile in range [QUARTILE_MIN, QUARTILE_MAX]
+      expect(q4).toBeLessThanOrEqual(QUARTILE_MAX);
     });
 
     test('Monte Carlo π estimation (100K samples)', () => {
+      setupTest();
+
       const inside = batchTestUnitCirclePoints(DISTRIBUTION_SAMPLE_SIZE);
 
-      assertInRange(inside, 0, DISTRIBUTION_SAMPLE_SIZE, "Points inside circle"); // Count should be in valid range
+      expect(inside).toBeGreaterThanOrEqual(0); // Points inside circle in valid range [0, DISTRIBUTION_SAMPLE_SIZE]
+      expect(inside).toBeLessThanOrEqual(DISTRIBUTION_SAMPLE_SIZE);
 
       const piEstimate = (4.0 * <f64>inside) / <f64>DISTRIBUTION_SAMPLE_SIZE;
       const diff = piEstimate > PI
         ? piEstimate - PI
         : PI - piEstimate;
 
-      assertLessThan(diff, PI_ESTIMATE_TOLERANCE, "π estimation error"); // π estimate within tolerance of actual value
+      expect(diff).toBeLessThan(PI_ESTIMATE_TOLERANCE); // π estimation error: estimate within tolerance of actual value
     });
 
     test('batchTestUnitCirclePoints: determinism', () => {
+      setupTest();
+
       const result1 = batchTestUnitCirclePoints(DETERMINISTIC_SAMPLE_SIZE);
 
       setSeeds(TEST_SEEDS.QUAD_0, TEST_SEEDS.QUAD_1, TEST_SEEDS.QUAD_2, TEST_SEEDS.QUAD_3);
       const result2 = batchTestUnitCirclePoints(DETERMINISTIC_SAMPLE_SIZE);
 
-      expect(result1).equal(result2); // Monte Carlo results are deterministic with same seeds
+      expect(result1).toBe(result2); // Monte Carlo results are deterministic with same seeds
     });
   });
 });

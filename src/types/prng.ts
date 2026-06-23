@@ -16,7 +16,7 @@ export enum PRNGType {
 
 /**
  * An instance of a compiled WebAssembly module (.wasm)
- * as returned by the @rollup/plugin-wasm plugin, with
+ * as returned by the rolldown-plugin-wasm plugin, with
  * exports that adhere to the {@link PRNG} interface.
  * 
  * See types/wasm.d.ts

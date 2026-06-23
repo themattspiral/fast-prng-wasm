@@ -343,7 +343,8 @@ For a detailed explanation of **why array methods are 3-5× faster** than single
 ### Node
 | Version | Notes |
 |---------|-------|
-| 18+ | Full support |
+| 20+ | Full support |
+| 18 | All features, but EOL (not tested) |
 | 16.4+ | All features, but EOL (not tested) |
 | 15.0 | All features except SIMD (not tested) |
 | <15 | No SIMD, No `bigint` (not tested) |
