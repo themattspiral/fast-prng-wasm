@@ -2,10 +2,5 @@
   "extends": "assemblyscript/std/assembly.json",
   "include": [
     "./**/*.ts"
-  ],
-  "compilerOptions": {
-    "paths": {
-      "vitest-pool-assemblyscript/assembly": ["../../node_modules/vitest-pool-assemblyscript/assembly/index.ts"],
-    }
-  },
+  ]
 }
