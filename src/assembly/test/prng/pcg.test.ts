@@ -20,7 +20,7 @@
  * wrapper to verify end-to-end wiring across all 5 generator types.
  */
 
-import { describe, test, expect } from 'vitest-pool-assemblyscript/assembly';
+import { describe, test, expect, beforeEach } from 'vitest-pool-assemblyscript/assembly';
 import {
   setSeeds,
   setStreamIncrement,
@@ -57,12 +57,11 @@ import {
   MAX_UINT32
 } from '../helpers/test-utils';
 
-/** Applies this suite's default seeds to establish a known generator state at the start of each test. */
-function setupTest(): void {
-  setSeeds(TEST_SEEDS.SINGLE);
-}
-
 describe('PCG', () => {
+  beforeEach(() => {
+    setSeeds(TEST_SEEDS.SINGLE);
+  });
+
   describe('Determinism', () => {
     // NOTE: PCG tests both uint32 (native) and uint64 (derived) in Determinism and Quality
     // sections because PCG's uint64 is non-trivial - it chains two uint32 calls and advances
@@ -71,8 +70,6 @@ describe('PCG', () => {
     // derived via a simple bit shift (uint64() >>> 32).
 
     test('uint32 produces identical sequence with same seed', () => {
-      setupTest();
-
       const seq1: u32[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         seq1.push(uint32());
@@ -90,8 +87,6 @@ describe('PCG', () => {
     });
 
     test('uint32 produces different values with different seed', () => {
-      setupTest();
-
       const values1: u32[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         values1.push(uint32());
@@ -115,8 +110,6 @@ describe('PCG', () => {
     });
 
     test('uint64 produces identical sequence with same seed', () => {
-      setupTest();
-
       const seq1: u64[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         seq1.push(uint64());
@@ -134,8 +127,6 @@ describe('PCG', () => {
     });
 
     test('uint64 produces different values with different seed', () => {
-      setupTest();
-
       const values1: u64[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         values1.push(uint64());
@@ -167,8 +158,6 @@ describe('PCG', () => {
     // derived via a simple bit shift (uint64() >>> 32).
 
     test('uint32 should produce unique values', () => {
-      setupTest();
-
       const values = new Set<u32>();
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         values.add(uint32());
@@ -178,8 +167,6 @@ describe('PCG', () => {
     });
 
     test('uint32 should use full range', () => {
-      setupTest();
-
       let hasHighBit = false;
       let hasLowBit = false;
 
@@ -199,8 +186,6 @@ describe('PCG', () => {
     });
 
     test('uint64 should produce unique values', () => {
-      setupTest();
-
       const values = new Set<u64>();
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         values.add(uint64());
@@ -210,8 +195,6 @@ describe('PCG', () => {
     });
 
     test('uint64 should use full range', () => {
-      setupTest();
-
       let hasHighBit = false;
       let hasLowBit = false;
 
@@ -233,8 +216,6 @@ describe('PCG', () => {
 
   describe('Range Validation', () => {
     test('uint53AsFloat should be in [0, 2^53-1]', () => {
-      setupTest();
-
       let belowMin = 0;
       let aboveMax = 0;
 
@@ -249,8 +230,6 @@ describe('PCG', () => {
     });
 
     test('uint32AsFloat should be in [0, 2^32-1]', () => {
-      setupTest();
-
       let belowMin = 0;
       let aboveMax = 0;
 
@@ -265,8 +244,6 @@ describe('PCG', () => {
     });
 
     test('float53 should be in [0, 1)', () => {
-      setupTest();
-
       let belowMin = 0;
       let aboveMax = 0;
 
@@ -281,8 +258,6 @@ describe('PCG', () => {
     });
 
     test('coord53 should be in [-1, 1)', () => {
-      setupTest();
-
       let belowMin = 0;
       let aboveMax = 0;
 
@@ -297,8 +272,6 @@ describe('PCG', () => {
     });
 
     test('coord53Squared should be in [0, 1]', () => {
-      setupTest();
-
       let belowMin = 0;
       let aboveMax = 0;
 
@@ -315,8 +288,6 @@ describe('PCG', () => {
 
   describe('Array Methods', () => {
     test('uint64Array should match repeated uint64 calls', () => {
-      setupTest();
-
       const singleValues: u64[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         singleValues.push(uint64());
@@ -337,8 +308,6 @@ describe('PCG', () => {
     });
 
     test('uint53AsFloatArray should match repeated uint53AsFloat calls', () => {
-      setupTest();
-
       const singleValues: f64[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         singleValues.push(uint53AsFloat());
@@ -359,8 +328,6 @@ describe('PCG', () => {
     });
 
     test('uint32AsFloatArray should match repeated uint32AsFloat calls', () => {
-      setupTest();
-
       const singleValues: f64[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         singleValues.push(uint32AsFloat());
@@ -381,8 +348,6 @@ describe('PCG', () => {
     });
 
     test('float53Array should match repeated float53 calls', () => {
-      setupTest();
-
       const singleValues: f64[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         singleValues.push(float53());
@@ -403,8 +368,6 @@ describe('PCG', () => {
     });
 
     test('coord53Array should match repeated coord53 calls', () => {
-      setupTest();
-
       const singleValues: f64[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         singleValues.push(coord53());
@@ -425,8 +388,6 @@ describe('PCG', () => {
     });
 
     test('coord53SquaredArray should match repeated coord53Squared calls', () => {
-      setupTest();
-
       const singleValues: f64[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         singleValues.push(coord53Squared());
@@ -447,8 +408,6 @@ describe('PCG', () => {
     });
 
     test('float53Array should handle size 1', () => {
-      setupTest();
-
       const expected = float53();
 
       setSeeds(TEST_SEEDS.SINGLE);
@@ -459,8 +418,6 @@ describe('PCG', () => {
     });
 
     test('float53Array should handle large arrays', () => {
-      setupTest();
-
       const arr = new Float64Array(DETERMINISTIC_SAMPLE_SIZE);
       float53Array(arr);
 
@@ -475,8 +432,6 @@ describe('PCG', () => {
 
   describe('Stream Increment', () => {
     test('setStreamIncrement with setSeeds produces deterministic sequence', () => {
-      setupTest();
-
       setStreamIncrement(5);
       setSeeds(TEST_SEEDS.SINGLE);
       const val1 = uint32();
@@ -489,8 +444,6 @@ describe('PCG', () => {
     });
 
     test('setStreamIncrement produces different sequence from default', () => {
-      setupTest();
-
       // Default stream (no setStreamIncrement call)
       setSeeds(TEST_SEEDS.SINGLE);
       const defaultSeq: u32[] = [];
@@ -518,8 +471,6 @@ describe('PCG', () => {
     });
 
     test('different stream increments produce completely different sequences', () => {
-      setupTest();
-
       // Stream increment 1
       setStreamIncrement(1);
       setSeeds(TEST_SEEDS.SINGLE);
@@ -550,8 +501,6 @@ describe('PCG', () => {
 
   describe('Statistical Smoke Tests', () => {
     test('uint32: basic distribution check (100K samples)', () => {
-      setupTest();
-
       const q1Max: u32 = U32_Q1_MAX;
       const q2Max: u32 = U32_Q2_MAX;
       const q3Max: u32 = U32_Q3_MAX;
@@ -578,8 +527,6 @@ describe('PCG', () => {
     });
 
     test('Monte Carlo π estimation (100K samples)', () => {
-      setupTest();
-
       const total = DISTRIBUTION_SAMPLE_SIZE;
       const inside = batchTestUnitCirclePoints(total);
 
@@ -595,8 +542,6 @@ describe('PCG', () => {
     });
 
     test('batchTestUnitCirclePoints: determinism', () => {
-      setupTest();
-
       const result1 = batchTestUnitCirclePoints(DETERMINISTIC_SAMPLE_SIZE);
 
       setSeeds(TEST_SEEDS.SINGLE);
