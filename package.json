@@ -47,7 +47,7 @@
   },
   "devDependencies": {
     "@vitest/coverage-v8": "5.0.0-beta.7",
-    "assemblyscript": "0.28.19",
+    "assemblyscript": "0.28.20",
     "conventional-changelog-conventionalcommits": "^9.3.1",
     "rolldown-plugin-wasm": "^0.3.2",
     "tsdown": "^0.22.14",
