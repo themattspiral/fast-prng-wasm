@@ -16,7 +16,7 @@
  * wrapper to verify end-to-end wiring across all 5 generator types.
  */
 
-import { describe, test, expect } from 'vitest-pool-assemblyscript/assembly';
+import { describe, test, expect, beforeEach } from 'vitest-pool-assemblyscript/assembly';
 import {
   setSeeds,
   uint64,
@@ -52,16 +52,14 @@ import {
   JUMP_REFERENCE
 } from '../helpers/test-utils';
 
-/** Applies this suite's default seeds to establish a known generator state at the start of each test. */
-function setupTest(): void {
-  setSeeds(TEST_SEEDS.QUAD_0, TEST_SEEDS.QUAD_1, TEST_SEEDS.QUAD_2, TEST_SEEDS.QUAD_3);
-}
-
 describe('Xoshiro256Plus', () => {
+  // apply this suite's default seeds to establish a known generator state at the start of each test
+  beforeEach(() => {
+    setSeeds(TEST_SEEDS.QUAD_0, TEST_SEEDS.QUAD_1, TEST_SEEDS.QUAD_2, TEST_SEEDS.QUAD_3);
+  });
+
   describe('Determinism', () => {
     test('uint64 produces identical sequence with same seeds', () => {
-      setupTest();
-
       const seq1: u64[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         seq1.push(uint64());
@@ -79,8 +77,6 @@ describe('Xoshiro256Plus', () => {
     });
 
     test('uint64 produces different values with different seeds', () => {
-      setupTest();
-
       const values1: u64[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         values1.push(uint64());
@@ -106,8 +102,6 @@ describe('Xoshiro256Plus', () => {
 
   describe('Quality', () => {
     test('uint64 should produce unique values', () => {
-      setupTest();
-
       const values = new Set<u64>();
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         values.add(uint64());
@@ -117,8 +111,6 @@ describe('Xoshiro256Plus', () => {
     });
 
     test('uint64 should use full range', () => {
-      setupTest();
-
       let hasHighBit = false;
       let hasLowBit = false;
 
@@ -140,8 +132,6 @@ describe('Xoshiro256Plus', () => {
 
   describe('Range Validation', () => {
     test('uint53AsFloat should be in [0, 2^53-1]', () => {
-      setupTest();
-
       let belowMin = 0;
       let aboveMax = 0;
 
@@ -156,8 +146,6 @@ describe('Xoshiro256Plus', () => {
     });
 
     test('uint32AsFloat should be in [0, 2^32-1]', () => {
-      setupTest();
-
       let belowMin = 0;
       let aboveMax = 0;
 
@@ -172,8 +160,6 @@ describe('Xoshiro256Plus', () => {
     });
 
     test('float53 should be in [0, 1)', () => {
-      setupTest();
-
       let belowMin = 0;
       let aboveMax = 0;
 
@@ -188,8 +174,6 @@ describe('Xoshiro256Plus', () => {
     });
 
     test('coord53 should be in [-1, 1)', () => {
-      setupTest();
-
       let belowMin = 0;
       let aboveMax = 0;
 
@@ -204,8 +188,6 @@ describe('Xoshiro256Plus', () => {
     });
 
     test('coord53Squared should be in [0, 1]', () => {
-      setupTest();
-
       let belowMin = 0;
       let aboveMax = 0;
 
@@ -222,8 +204,6 @@ describe('Xoshiro256Plus', () => {
 
   describe('Array Methods', () => {
     test('uint64Array should match repeated uint64 calls', () => {
-      setupTest();
-
       const singleValues: u64[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         singleValues.push(uint64());
@@ -244,8 +224,6 @@ describe('Xoshiro256Plus', () => {
     });
 
     test('uint53AsFloatArray should match repeated uint53AsFloat calls', () => {
-      setupTest();
-
       const singleValues: f64[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         singleValues.push(uint53AsFloat());
@@ -266,8 +244,6 @@ describe('Xoshiro256Plus', () => {
     });
 
     test('uint32AsFloatArray should match repeated uint32AsFloat calls', () => {
-      setupTest();
-
       const singleValues: f64[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         singleValues.push(uint32AsFloat());
@@ -288,8 +264,6 @@ describe('Xoshiro256Plus', () => {
     });
 
     test('float53Array should match repeated float53 calls', () => {
-      setupTest();
-
       const singleValues: f64[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         singleValues.push(float53());
@@ -310,8 +284,6 @@ describe('Xoshiro256Plus', () => {
     });
 
     test('coord53Array should match repeated coord53 calls', () => {
-      setupTest();
-
       const singleValues: f64[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         singleValues.push(coord53());
@@ -332,8 +304,6 @@ describe('Xoshiro256Plus', () => {
     });
 
     test('coord53SquaredArray should match repeated coord53Squared calls', () => {
-      setupTest();
-
       const singleValues: f64[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         singleValues.push(coord53Squared());
@@ -354,8 +324,6 @@ describe('Xoshiro256Plus', () => {
     });
 
     test('float53Array should handle size 1', () => {
-      setupTest();
-
       const expected = float53();
 
       setSeeds(TEST_SEEDS.QUAD_0, TEST_SEEDS.QUAD_1, TEST_SEEDS.QUAD_2, TEST_SEEDS.QUAD_3);
@@ -366,8 +334,6 @@ describe('Xoshiro256Plus', () => {
     });
 
     test('float53Array should handle large arrays', () => {
-      setupTest();
-
       const arr = new Float64Array(DETERMINISTIC_SAMPLE_SIZE);
       float53Array(arr);
 
@@ -382,8 +348,6 @@ describe('Xoshiro256Plus', () => {
 
   describe('Jump Function', () => {
     test('jump advances state deterministically', () => {
-      setupTest();
-
       jump();
       const val1 = uint64();
 
@@ -395,8 +359,6 @@ describe('Xoshiro256Plus', () => {
     });
 
     test('jump produces different sequence', () => {
-      setupTest();
-
       const beforeJump: u64[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         beforeJump.push(uint64());
@@ -421,8 +383,6 @@ describe('Xoshiro256Plus', () => {
     });
 
     test('multiple jumps produce non-overlapping sequences', () => {
-      setupTest();
-
       // Create 3 streams with 0, 1, and 2 jumps
       const stream0: u64[] = [];
       setSeeds(TEST_SEEDS.QUAD_0, TEST_SEEDS.QUAD_1, TEST_SEEDS.QUAD_2, TEST_SEEDS.QUAD_3);
@@ -484,8 +444,6 @@ describe('Xoshiro256Plus', () => {
     });
 
     test('jump matches C reference implementation', () => {
-      setupTest();
-
       // Reference value from the official C implementation at:
       // https://prng.di.unimi.it/xoshiro256plus.c
       //
@@ -505,8 +463,6 @@ describe('Xoshiro256Plus', () => {
 
   describe('Statistical Smoke Tests', () => {
     test('uint64: basic distribution check (100K samples)', () => {
-      setupTest();
-
       let q1 = 0, q2 = 0, q3 = 0, q4 = 0;
 
       for (let i = 0; i < DISTRIBUTION_SAMPLE_SIZE; i++) {
@@ -529,8 +485,6 @@ describe('Xoshiro256Plus', () => {
     });
 
     test('Monte Carlo π estimation (100K samples)', () => {
-      setupTest();
-
       const inside = batchTestUnitCirclePoints(DISTRIBUTION_SAMPLE_SIZE);
 
       expect(inside).toBeGreaterThanOrEqual(0); // Points inside circle in valid range [0, DISTRIBUTION_SAMPLE_SIZE]
@@ -545,8 +499,6 @@ describe('Xoshiro256Plus', () => {
     });
 
     test('batchTestUnitCirclePoints: determinism', () => {
-      setupTest();
-
       const result1 = batchTestUnitCirclePoints(DETERMINISTIC_SAMPLE_SIZE);
 
       setSeeds(TEST_SEEDS.QUAD_0, TEST_SEEDS.QUAD_1, TEST_SEEDS.QUAD_2, TEST_SEEDS.QUAD_3);

@@ -17,7 +17,7 @@
  * to verify end-to-end wiring across all 5 generator types.
  */
 
-import { describe, test, expect } from 'vitest-pool-assemblyscript/assembly';
+import { describe, test, expect, beforeEach } from 'vitest-pool-assemblyscript/assembly';
 import {
   setSeeds,
   uint64,
@@ -66,16 +66,14 @@ import {
   JUMP_REFERENCE
 } from '../helpers/test-utils';
 
-/** Applies this suite's default seeds to establish a known generator state at the start of each test. */
-function setupTest(): void {
-  setSeeds(TEST_SEEDS.OCTET_0, TEST_SEEDS.OCTET_1, TEST_SEEDS.OCTET_2, TEST_SEEDS.OCTET_3, TEST_SEEDS.OCTET_4, TEST_SEEDS.OCTET_5, TEST_SEEDS.OCTET_6, TEST_SEEDS.OCTET_7);
-}
-
 describe('Xoshiro256PlusSIMD', () => {
+  // apply this suite's default seeds to establish a known generator state at the start of each test
+  beforeEach(() => {
+      setSeeds(TEST_SEEDS.OCTET_0, TEST_SEEDS.OCTET_1, TEST_SEEDS.OCTET_2, TEST_SEEDS.OCTET_3, TEST_SEEDS.OCTET_4, TEST_SEEDS.OCTET_5, TEST_SEEDS.OCTET_6, TEST_SEEDS.OCTET_7);
+  });
+
   describe('Determinism', () => {
     test('uint64 produces identical sequence with same seeds', () => {
-      setupTest();
-
       const seq1: u64[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         seq1.push(uint64());
@@ -93,8 +91,6 @@ describe('Xoshiro256PlusSIMD', () => {
     });
 
     test('uint64 produces different values with different seeds', () => {
-      setupTest();
-
       const values1: u64[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         values1.push(uint64());
@@ -120,8 +116,6 @@ describe('Xoshiro256PlusSIMD', () => {
 
   describe('Quality', () => {
     test('uint64 should produce unique values', () => {
-      setupTest();
-
       const values = new Set<u64>();
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         values.add(uint64());
@@ -131,8 +125,6 @@ describe('Xoshiro256PlusSIMD', () => {
     });
 
     test('uint64 should use full range', () => {
-      setupTest();
-
       let hasHighBit = false;
       let hasLowBit = false;
 
@@ -154,8 +146,6 @@ describe('Xoshiro256PlusSIMD', () => {
 
   describe('Range Validation', () => {
     test('uint53AsFloat should be in [0, 2^53-1]', () => {
-      setupTest();
-
       let belowMin = 0;
       let aboveMax = 0;
 
@@ -170,8 +160,6 @@ describe('Xoshiro256PlusSIMD', () => {
     });
 
     test('uint32AsFloat should be in [0, 2^32-1]', () => {
-      setupTest();
-
       let belowMin = 0;
       let aboveMax = 0;
 
@@ -186,8 +174,6 @@ describe('Xoshiro256PlusSIMD', () => {
     });
 
     test('float53 should be in [0, 1)', () => {
-      setupTest();
-
       let belowMin = 0;
       let aboveMax = 0;
 
@@ -202,8 +188,6 @@ describe('Xoshiro256PlusSIMD', () => {
     });
 
     test('coord53 should be in [-1, 1)', () => {
-      setupTest();
-
       let belowMin = 0;
       let aboveMax = 0;
 
@@ -218,8 +202,6 @@ describe('Xoshiro256PlusSIMD', () => {
     });
 
     test('coord53Squared should be in [0, 1]', () => {
-      setupTest();
-
       let belowMin = 0;
       let aboveMax = 0;
 
@@ -240,8 +222,6 @@ describe('Xoshiro256PlusSIMD', () => {
     // Instead, we test determinism and value quality.
 
     test('uint64Array produces deterministic sequences', () => {
-      setupTest();
-
       const arr1 = new Uint64Array(DETERMINISTIC_SAMPLE_SIZE);
       uint64Array(arr1);
 
@@ -260,8 +240,6 @@ describe('Xoshiro256PlusSIMD', () => {
     });
 
     test('uint53AsFloatArray produces deterministic sequences', () => {
-      setupTest();
-
       const arr1 = new Float64Array(DETERMINISTIC_SAMPLE_SIZE);
       uint53AsFloatArray(arr1);
 
@@ -280,8 +258,6 @@ describe('Xoshiro256PlusSIMD', () => {
     });
 
     test('uint53AsFloatArray values are in correct range', () => {
-      setupTest();
-
       const arr = new Float64Array(DETERMINISTIC_SAMPLE_SIZE);
       uint53AsFloatArray(arr);
 
@@ -298,8 +274,6 @@ describe('Xoshiro256PlusSIMD', () => {
     });
 
     test('uint32AsFloatArray produces deterministic sequences', () => {
-      setupTest();
-
       const arr1 = new Float64Array(DETERMINISTIC_SAMPLE_SIZE);
       uint32AsFloatArray(arr1);
 
@@ -318,8 +292,6 @@ describe('Xoshiro256PlusSIMD', () => {
     });
 
     test('uint32AsFloatArray values are in correct range', () => {
-      setupTest();
-
       const arr = new Float64Array(DETERMINISTIC_SAMPLE_SIZE);
       uint32AsFloatArray(arr);
 
@@ -336,8 +308,6 @@ describe('Xoshiro256PlusSIMD', () => {
     });
 
     test('float53Array produces deterministic sequences', () => {
-      setupTest();
-
       const arr1 = new Float64Array(DETERMINISTIC_SAMPLE_SIZE);
       float53Array(arr1);
 
@@ -356,8 +326,6 @@ describe('Xoshiro256PlusSIMD', () => {
     });
 
     test('float53Array should handle large arrays', () => {
-      setupTest();
-
       const arr = new Float64Array(DETERMINISTIC_SAMPLE_SIZE);
       float53Array(arr);
 
@@ -370,8 +338,6 @@ describe('Xoshiro256PlusSIMD', () => {
     });
 
     test('coord53Array values are in correct range', () => {
-      setupTest();
-
       const arr = new Float64Array(DETERMINISTIC_SAMPLE_SIZE);
       coord53Array(arr);
 
@@ -388,8 +354,6 @@ describe('Xoshiro256PlusSIMD', () => {
     });
 
     test('coord53SquaredArray produces deterministic sequences', () => {
-      setupTest();
-
       const arr1 = new Float64Array(DETERMINISTIC_SAMPLE_SIZE);
       coord53SquaredArray(arr1);
 
@@ -408,8 +372,6 @@ describe('Xoshiro256PlusSIMD', () => {
     });
 
     test('coord53SquaredArray values are in correct range', () => {
-      setupTest();
-
       const arr = new Float64Array(DETERMINISTIC_SAMPLE_SIZE);
       coord53SquaredArray(arr);
 
@@ -428,8 +390,6 @@ describe('Xoshiro256PlusSIMD', () => {
 
   describe('Jump Function', () => {
     test('jump advances state deterministically', () => {
-      setupTest();
-
       jump();
       const val1 = uint64();
 
@@ -441,8 +401,6 @@ describe('Xoshiro256PlusSIMD', () => {
     });
 
     test('jump produces different sequence', () => {
-      setupTest();
-
       const beforeJump: u64[] = [];
       for (let i = 0; i < DETERMINISTIC_SAMPLE_SIZE; i++) {
         beforeJump.push(uint64());
@@ -467,8 +425,6 @@ describe('Xoshiro256PlusSIMD', () => {
     });
 
     test('multiple jumps produce non-overlapping sequences', () => {
-      setupTest();
-
       // Create 3 streams with 0, 1, and 2 jumps to validate the parallel computation guarantee
       const stream0: u64[] = [];
       setSeeds(TEST_SEEDS.OCTET_0, TEST_SEEDS.OCTET_1, TEST_SEEDS.OCTET_2, TEST_SEEDS.OCTET_3, TEST_SEEDS.OCTET_4, TEST_SEEDS.OCTET_5, TEST_SEEDS.OCTET_6, TEST_SEEDS.OCTET_7);
@@ -530,8 +486,6 @@ describe('Xoshiro256PlusSIMD', () => {
     });
 
     test('jump matches C reference implementation', () => {
-      setupTest();
-
       // Reference value from the official C implementation at:
       // https://prng.di.unimi.it/xoshiro256plus.c
       //
@@ -551,8 +505,6 @@ describe('Xoshiro256PlusSIMD', () => {
 
   describe('Statistical Smoke Tests', () => {
     test('uint64: basic distribution check (100K samples)', () => {
-      setupTest();
-
       let q1 = 0, q2 = 0, q3 = 0, q4 = 0;
 
       for (let i = 0; i < DISTRIBUTION_SAMPLE_SIZE; i++) {
@@ -575,8 +527,6 @@ describe('Xoshiro256PlusSIMD', () => {
     });
 
     test('Monte Carlo π estimation (100K samples)', () => {
-      setupTest();
-
       const inside = batchTestUnitCirclePoints(DISTRIBUTION_SAMPLE_SIZE);
 
       expect(inside).toBeGreaterThanOrEqual(0); // Points inside circle in valid range [0, DISTRIBUTION_SAMPLE_SIZE]
@@ -591,8 +541,6 @@ describe('Xoshiro256PlusSIMD', () => {
     });
 
     test('batchTestUnitCirclePoints: determinism', () => {
-      setupTest();
-
       const result1 = batchTestUnitCirclePoints(DETERMINISTIC_SAMPLE_SIZE);
 
       setSeeds(TEST_SEEDS.OCTET_0, TEST_SEEDS.OCTET_1, TEST_SEEDS.OCTET_2, TEST_SEEDS.OCTET_3, TEST_SEEDS.OCTET_4, TEST_SEEDS.OCTET_5, TEST_SEEDS.OCTET_6, TEST_SEEDS.OCTET_7);
@@ -604,8 +552,6 @@ describe('Xoshiro256PlusSIMD', () => {
 
   describe('SIMD-Specific Tests', () => {
     test('uint64x2 produces independent non-zero values in both lanes', () => {
-      setupTest();
-
       const lane0_values: u64[] = [];
       const lane1_values: u64[] = [];
       let zeroCountLane0 = 0;
@@ -642,8 +588,6 @@ describe('Xoshiro256PlusSIMD', () => {
     });
 
     test('SIMD lanes remain non-overlapping after jump()', () => {
-      setupTest();
-
       // Test that after jumping, the two lanes still don't overlap with each other
       const lane0_jump: u64[] = [];
       const lane1_jump: u64[] = [];
@@ -673,8 +617,6 @@ describe('Xoshiro256PlusSIMD', () => {
     });
 
     test('SIMD lanes with different jump counts remain non-overlapping', () => {
-      setupTest();
-
       // Cross-lane, cross-jump test: Lane 0 with 0 jumps vs Lane 1 with 1 jump
       const lane0_no_jump: u64[] = [];
       const lane1_one_jump: u64[] = [];
@@ -708,8 +650,6 @@ describe('Xoshiro256PlusSIMD', () => {
     });
 
     test('uint53AsFloatx2 produces valid values', () => {
-      setupTest();
-
       let belowMinLane0 = 0;
       let aboveMaxLane0 = 0;
       let belowMinLane1 = 0;
@@ -733,8 +673,6 @@ describe('Xoshiro256PlusSIMD', () => {
     });
 
     test('uint32AsFloatx2 produces valid values', () => {
-      setupTest();
-
       let belowMinLane0 = 0;
       let aboveMaxLane0 = 0;
       let belowMinLane1 = 0;
@@ -758,8 +696,6 @@ describe('Xoshiro256PlusSIMD', () => {
     });
 
     test('float53x2 produces values in correct range', () => {
-      setupTest();
-
       let belowMinLane0 = 0;
       let aboveMaxLane0 = 0;
       let belowMinLane1 = 0;
@@ -783,8 +719,6 @@ describe('Xoshiro256PlusSIMD', () => {
     });
 
     test('coord53x2 produces values in correct range', () => {
-      setupTest();
-
       let belowMinLane0 = 0;
       let aboveMaxLane0 = 0;
       let belowMinLane1 = 0;
@@ -808,8 +742,6 @@ describe('Xoshiro256PlusSIMD', () => {
     });
 
     test('coord53Squaredx2 produces values in correct range', () => {
-      setupTest();
-
       let belowMinLane0 = 0;
       let aboveMaxLane0 = 0;
       let belowMinLane1 = 0;
@@ -833,8 +765,6 @@ describe('Xoshiro256PlusSIMD', () => {
     });
 
     test('array methods work with even-sized arrays', () => {
-      setupTest();
-
       const evenArr = new Float64Array(DETERMINISTIC_SAMPLE_SIZE);
       float53Array(evenArr);
 
@@ -850,8 +780,6 @@ describe('Xoshiro256PlusSIMD', () => {
     });
 
     test('interleaved identical streams with duplicated seeds', () => {
-      setupTest();
-
       // When seeds are [a, b, c, d, a, b, c, d], SIMD creates two identical parallel streams
       // This tests that lane 0 and lane 1 produce the same sequence when seeded identically
       setSeeds(TEST_SEEDS.QUAD_0, TEST_SEEDS.QUAD_1, TEST_SEEDS.QUAD_2, TEST_SEEDS.QUAD_3, TEST_SEEDS.QUAD_0, TEST_SEEDS.QUAD_1, TEST_SEEDS.QUAD_2, TEST_SEEDS.QUAD_3);
@@ -871,8 +799,6 @@ describe('Xoshiro256PlusSIMD', () => {
     });
 
     test('interleaved different streams when lanes have different seeds', () => {
-      setupTest();
-
       // Lane 0: TEST_SEEDS.QUAD_0-3, Lane 1: TEST_SEEDS_ALT.QUAD_0-3
       // This tests that when using different seeds for each lane, lane0 differs from lane1
       setSeeds(TEST_SEEDS.QUAD_0, TEST_SEEDS.QUAD_1, TEST_SEEDS.QUAD_2, TEST_SEEDS.QUAD_3, TEST_SEEDS_ALT.QUAD_0, TEST_SEEDS_ALT.QUAD_1, TEST_SEEDS_ALT.QUAD_2, TEST_SEEDS_ALT.QUAD_3);
@@ -892,8 +818,6 @@ describe('Xoshiro256PlusSIMD', () => {
     });
 
     test('interleaved matching streams: both lanes match their own non-SIMD sequences', () => {
-      setupTest();
-
       // Generate non-SIMD sequence for lane 0 with TEST_SEEDS
       setSeedsNonSIMD(TEST_SEEDS.QUAD_0, TEST_SEEDS.QUAD_1, TEST_SEEDS.QUAD_2, TEST_SEEDS.QUAD_3);
       const nonSIMDArr0 = new Float64Array(<i32>(DETERMINISTIC_SAMPLE_SIZE / 2));
