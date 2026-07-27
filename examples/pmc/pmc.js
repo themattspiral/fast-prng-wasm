@@ -13,7 +13,7 @@ import { WorkerBatchMode, WorkerSeedMode } from './enum.js';
  * Modify these parameters to change characteristics of the Monte Carlo simulation *
  * ******************************************************************************* */
 
-const TOTAL_POINT_COUNT = 1000000000;                   // 1 Billion points
+const TOTAL_POINT_COUNT = 1_000_000_000;                // 1 Billion points
 const PRNG = PRNGType.Xoshiro256Plus_SIMD;
 const WORKER_BATCH_MODE = WorkerBatchMode.GeneratorBatch;
 const WORKER_COUNT = availableParallelism();            // use all CPU cores
