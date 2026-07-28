@@ -497,9 +497,9 @@ export class RandomGenerator {
      * 
      * Useful for Monte Carlo simulation.
      * 
-     * @param pointCount Number of random points in (-1, 1) to generate and test.
+     * @param pointCount Number of random points in [-1, 1) to generate and test.
      * 
-     * @returns {number} Number of random points in (-1, 1) which fell *inside* of the
+     * @returns {number} Number of random points in [-1, 1) which fell *inside* of the
      * unit circle with radius 1.
      */
     batchTestUnitCirclePoints(pointCount: number): number {

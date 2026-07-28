@@ -14,7 +14,7 @@
     "common/memory.ts"
   ],
 
-  "out": "../../docs",
+  "out": "../docs",
   "cleanOutputDir": false,
   "disableSources": true,
   "readme": "none",

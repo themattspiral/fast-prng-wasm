@@ -15,5 +15,5 @@ fast-prng-wasm-*.tgz
 /coverage
 
 # compiled C reference
-/src/assembly/test/c-reference/validate-jump*
-!/src/assembly/test/c-reference/validate-jump.c
+/assembly/test/c-reference/validate-jump*
+!/assembly/test/c-reference/validate-jump.c

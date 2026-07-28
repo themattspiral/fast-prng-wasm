@@ -28,17 +28,16 @@ export default defineConfig({
       ],
       exclude: [
         'src/index.ts',
-        'src/assembly/**/*.ts',
         'src/**/*.d.ts',
         'src/types/**',
       ],
 
       assemblyScriptInclude: [
-        'src/assembly/**/*.ts',
+        'assembly/**/*.ts',
       ],
       assemblyScriptExclude: [
-        'src/assembly/index.ts',
-        'src/assembly/test/**/*.ts'
+        'assembly/index.ts',
+        'assembly/test/**/*.ts'
       ],
 
       // Coverage thresholds - lower than AS since core logic is in WASM
@@ -69,7 +68,7 @@ export default defineConfig({
       defineProject({
         test: {
           name: { label: 'AS Suite', color: 'yellow' },
-          include: [ 'src/assembly/test/**/*.test.ts' ],
+          include: [ 'assembly/test/**/*.test.ts' ],
           pool: createAssemblyScriptPool({
             extraCompilerFlags: ['--enable', 'simd'],
           }),

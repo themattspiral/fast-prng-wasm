@@ -450,7 +450,7 @@ describe('Xoroshiro128Plus', () => {
       // With TEST_SEEDS.DOUBLE_0, TEST_SEEDS.DOUBLE_1, after calling jump(),
       // the first call to next() should return the reference value.
       //
-      // This value is verified by src/assembly/test/c-reference/validate-jump.c
+      // This value is verified by assembly/test/c-reference/validate-jump.c
       // to ensure our implementation matches the official reference exactly.
 
       setSeeds(TEST_SEEDS.DOUBLE_0, TEST_SEEDS.DOUBLE_1);

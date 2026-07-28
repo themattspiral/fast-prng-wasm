@@ -11,7 +11,7 @@
  * - Confirm oversized arrays fail gracefully
  *
  * Contrast: This file tests memory infrastructure handling/logic through the JS wrapper
- * (allocation requests, limits, buffer independence), while src/assembly/test/memory.test.ts 
+ * (allocation requests, limits, buffer independence), while assembly/test/memory.test.ts 
  * tests the underlying WASM allocation functions we have exposed directly in AssemblyScript,
  * and array-behavior.test.ts tests array-fill-specific logic correctness (stream consistency
  * vs single, SIMD interleaving, correct value ranges, and correct array return types). 

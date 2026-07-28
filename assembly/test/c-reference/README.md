@@ -27,7 +27,7 @@ npm run test:c-ref
 ### Manual Build
 
 ```bash
-cd src/assembly/test/c-reference
+cd assembly/test/c-reference
 bash build-and-run.sh
 ```
 

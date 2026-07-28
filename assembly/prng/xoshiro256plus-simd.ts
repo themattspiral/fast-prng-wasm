@@ -1,17 +1,17 @@
 /**
- * An AssemblyScript implementation of the Xoroshiro128+ pseudo random number generator,
- * a 64-bit generator with 128 bits of state (2^128 period) and a jump function for
+ * An AssemblyScript implementation of the Xoshiro256+ pseudo random number generator,
+ * a 64-bit generator with 256 bits of state (2^256 period) and a jump function for
  * unique sequence selection.
  * 
  * This version supports WebAssembly SIMD to provide 2 random outputs for the price of 1
  * when using array output functions.
  * @packageDocumentation
- */
+*/
 
 /*
-* Based on the xoroshiro128+ C reference implementation
-* Public Domain, 2016-2018 by David Blackman and Sebastiano Vigna (vigna@acm.org)
-* https://prng.di.unimi.it/xoroshiro128plus.c
+* Based on the xoshiro256+ C reference implementation
+* Public Domain, 2018 by David Blackman and Sebastiano Vigna (vigna@acm.org)
+* https://prng.di.unimi.it/xoshiro256plus.c
 * 
 * With thanks to Dennis Kawurek's WASM SIMD explainer
 * https://tty4.dev/development/wasm-simd-operations/
@@ -26,7 +26,7 @@ import {
     uint64_to_float53,
     uint64_to_coord53,
     uint64_to_coord53Squared,
-    JUMP_128
+    JUMP_256
 } from '../common/conversion';
 import {
     uint64x2_to_uint53AsFloatx2,
@@ -42,36 +42,47 @@ export { allocUint64Array, allocFloat64Array } from '../common/memory';
 // Internal state
 let s0: v128 = i64x2.splat(0);
 let s1: v128 = i64x2.splat(0);
+let s2: v128 = i64x2.splat(0);
+let s3: v128 = i64x2.splat(0);
 
 /** Number of seeds required for this generator's {@link setSeeds} function. */
-export const SEED_COUNT: i32 = 4;
+export const SEED_COUNT: i32 = 8;
 
 /** Initializes this generator's internal state with the provided random seeds. */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function setSeeds(a: u64, b: u64, c: u64, d: u64): void {
-    s0 = i64x2(a, c);
-    s1 = i64x2(b, d);
+export function setSeeds(
+    a: u64, b: u64, c: u64, d: u64,
+    e: u64, f: u64, g: u64, h: u64
+): void {
+    s0 = i64x2(a, e);
+    s1 = i64x2(b, f);
+    s2 = i64x2(c, g);
+    s3 = i64x2(d, h);
 };
 
 /**
- * Advances the state by 2^64 steps every call. Can be used to generate 2^64 
+ * Advances the state by 2^128 steps every call. Can be used to generate 2^128 
  * non-overlapping subsequences (with the same seed) for parallel computations.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function jump(): void {  
+export function jump(): void {
     let jump_s0: v128 = i64x2.splat(0);
     let jump_s1: v128 = i64x2.splat(0);
+    let jump_s2: v128 = i64x2.splat(0);
+    let jump_s3: v128 = i64x2.splat(0);
 
     // loop through each 64-bit value in the jump array
-    for (let i: i32 = 0; i < JUMP_128.length; i++) {
+    for (let i: i32 = 0; i < JUMP_256.length; i++) {
         // loop through each bit of the jump value, and if bit is 1, compute a new jump state
         for (let b: i32 = 0; b < 64; b++) {
             // Explicit u64 cast for clarity (AS infers correctly, matches C reference)
-            if ((JUMP_128[i] & ((<u64>1) << b)) != 0) {
+            if ((JUMP_256[i] & ((<u64>1) << b)) != 0) {
                 jump_s0 = v128.xor(jump_s0, s0);
                 jump_s1 = v128.xor(jump_s1, s1);
+                jump_s2 = v128.xor(jump_s2, s2);
+                jump_s3 = v128.xor(jump_s3, s3);
             }
             uint64x2();
         }
@@ -80,6 +91,8 @@ export function jump(): void {
     // Set the new state
     s0 = jump_s0;
     s1 = jump_s1;
+    s2 = jump_s2;
+    s3 = jump_s3;
 }
 
 /**
@@ -91,31 +104,30 @@ export function jump(): void {
 @inline
 export function uint64x2(): v128 {
     // output
-    const result: v128 = v128.add<u64>(s0, s1);
-    
-    // xoroshiro128+
+    const result: v128 = v128.add<u64>(s0, s3);
 
-    // t = s1 ^ s0
-    const t: v128 = v128.xor(s1, s0);
+    // Shift
+    // t = s1 << 17
+    const t: v128 = v128.shl<u64>(s1, 17);
 
-    // s0 = ((s0 << 24) | (s0 >> 40)) ^ t ^ (t << 16);
+    // XOR
+    s2 = v128.xor(s2, s0);
+    s3 = v128.xor(s3, s1);
+    s1 = v128.xor(s1, s2);
+    s0 = v128.xor(s0, s3);
+
+    s2 = v128.xor(s2, t);
+
+    // Rotate: rotl(45) == (sl 45 | sr (64-45))
     // Use i64x2.shr_u for unsigned/logical right shift (v128.shr is signed/arithmetic)
-    const rot = v128.or( v128.shl<u64>(s0, 24), i64x2.shr_u(s0, 40) );
-    s0 = v128.xor( rot, v128.xor(t, v128.shl<u64>(t, 16)) );
-
-    // s1 = ((t << 37) | (t >> 27));
-    s1 = v128.or(
-        v128.shl<u64>(t, 37),
-        // Use i64x2.shr_u for unsigned/logical right shift (v128.shr is signed/arithmetic)
-        i64x2.shr_u(t, 27)
-    )
+    s3 = v128.or(v128.shl<u64>(s3, 45), i64x2.shr_u(s3, 19));
 
     return result;
-};
+}
 
 /**
  * Gets this generator's next 2 unsigned 53-bit integers.
- *
+ * 
  * @returns 2 unsigned 53-bit integers, returned as `f64`s
  * so that the JS runtime converts them to `number`s.
  */
@@ -127,7 +139,7 @@ export function uint53AsFloatx2(): v128 {
 
 /**
  * Gets this generator's next 2 unsigned 32-bit integers.
- *
+ * 
  * @returns 2 unsigned 32-bit integers, returned as `f64`s
  * so that the JS runtime converts them to `number`s.
  */
@@ -138,9 +150,9 @@ export function uint32AsFloatx2(): v128 {
 }
 
 /**
- * Gets this generator's next 2 53-bit floating point numbers in range [0, 1).
+ * Gets this generator's next 2 floating point numbers in range [0, 1).
  * 
- * @returns 2 53-bit floating point numbers in range [0, 1).
+ * @returns 2 floating point numbers in range [0, 1).
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
@@ -149,12 +161,12 @@ export function float53x2(): v128 {
 }
 
 /**
- * Gets this generator's next 2 53-bit floating point numbers in range [-1, 1).
+ * Gets this generator's next 2 floating point numbers in range [-1, 1).
  * 
  * Can be considered a "coordinate" in a unit circle with radius 1.
  * Useful for Monte Carlo simulation.
  * 
- * @returns 2 53-bit floating point numbers in range [-1, 1).
+ * @returns 2 floating point numbers in range [-1, 1).
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
@@ -163,11 +175,11 @@ export function coord53x2(): v128 {
 }
 
 /**
- * Gets the square of this generator's next 2 53-bit floating point numbers in range [-1, 1).
+ * Gets the square of this generator's next 2 floating point numbers in range [-1, 1).
  * 
  * Useful for Monte Carlo simulation.
  * 
- * @returns 2 53-bit floating point numbers in range [-1, 1), each multiplied by itself.
+ * @returns 2 floating point numbers in range [-1, 1), each multiplied by itself.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
@@ -224,7 +236,7 @@ export function uint32AsFloat(): f64 {
  * 
  * Discards the additional random number generated with SIMD.
  * 
- * @returns A 53-bit floating point number in range [0, 1).
+ * @returns A floating point number in range [0, 1).
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
@@ -240,7 +252,7 @@ export function float53(): f64 {
  * Can be considered part of a "coordinate" in a unit circle with radius 1.
  * Useful for Monte Carlo simulation.
  * 
- * @returns A 53-bit floating point number in range [-1, 1).
+ * @returns A floating point number in range [-1, 1).
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
@@ -255,7 +267,7 @@ export function coord53(): f64 {
  * 
  * Useful for Monte Carlo simulation.
  * 
- * @returns A 53-bit floating point number in range [-1, 1), multiplied by itself.
+ * @returns A floating point number in range [-1, 1), multiplied by itself.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
@@ -287,7 +299,7 @@ export function coord53Squared(): f64 {
  * 
  * Can be used to estimate pi (π).
  * 
- * @param count The number of random (x,y) coordinate points in (-1, 1) to generate and check.
+ * @param count The number of random (x,y) coordinate points in [-1, 1) to generate and check.
  * 
  * @returns The number of random points which fell *inside* of the unit circle with radius 1.
  */
@@ -417,7 +429,7 @@ export function coord53Array(arr: Float64Array): void {
 }
 
 /**
- * Fills the provided array with the squares of this generator's next set of 53-bit floating 
+ * Fills the provided array with the squares of this generator's next set of floating 
  * point numbers in range [-1, 1).
  * 
  * Utilizes SIMD.

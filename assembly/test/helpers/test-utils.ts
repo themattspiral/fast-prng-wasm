@@ -204,7 +204,7 @@ export const SIMD_INTERLEAVE_DIVISOR: i32 = 2;
  * - Call next() once
  * - Compare result to C reference implementation
  *
- * These values are generated and verified by src/assembly/test/c-reference/validate-jump.c
+ * These values are generated and verified by assembly/test/c-reference/validate-jump.c
  * which implements the official reference code from https://prng.di.unimi.it/
  *
  * To regenerate/verify these values:
@@ -219,7 +219,7 @@ export namespace JUMP_REFERENCE {
    * Test seeds: TEST_SEEDS.DOUBLE_0, TEST_SEEDS.DOUBLE_1
    * Result after jump() then next(): 17359279474558191039
    *
-   * Verified by: src/assembly/test/c-reference/validate-jump.c
+   * Verified by: assembly/test/c-reference/validate-jump.c
    */
   export const XOROSHIRO128PLUS: u64 = 17359279474558191039;
 
@@ -228,7 +228,7 @@ export namespace JUMP_REFERENCE {
    * Test seeds: TEST_SEEDS.QUAD_0, TEST_SEEDS.QUAD_1, TEST_SEEDS.QUAD_2, TEST_SEEDS.QUAD_3
    * Result after jump() then next(): 1569848409778915303
    *
-   * Verified by: src/assembly/test/c-reference/validate-jump.c
+   * Verified by: assembly/test/c-reference/validate-jump.c
    */
   export const XOSHIRO256PLUS: u64 = 1569848409778915303;
 }

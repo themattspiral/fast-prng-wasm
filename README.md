@@ -94,8 +94,8 @@ console.log(gen.int64());               // unsigned 64-bit int (bigint)
 console.log(gen.int53());               // unsigned 53-bit int (number)
 console.log(gen.int32());               // unsigned 32-bit int (number)
 console.log(gen.float());               // 53-bit float (number) in [0, 1)
-console.log(gen.coord());               // 53-bit float (number) in (-1, 1)
-console.log(gen.coordSquared());        // 53-bit float (number) in (-1, 1) squared
+console.log(gen.coord());               // 53-bit float (number) in [-1, 1)
+console.log(gen.coordSquared());        // 53-bit float (number) in [-1, 1) squared
 
 const pcgGen = new RandomGenerator(PRNGType.PCG);
 console.log(pcgGen.int64());
@@ -106,7 +106,7 @@ The internal WASM binary is instantiated automatically when a `RandomGenerator` 
 
 ### Array Output (Bulk Array Fill)
 
-The fastest way to get random numbers **in bulk** is to use the `*Array()` methods of `RandomGenerator`. Each call fills a WASM memory buffer with the next 1000 (by default) random numbers, and returns a view of the buffer as an appropriate [`TypedArray`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray): either `BigUint64Array` for `int64Array()`, or `Float64Array` for all methods.
+The fastest way to get random numbers **in bulk** is to use the `*Array()` methods of `RandomGenerator`. Each call fills a WASM memory buffer with the next 1000 (by default) random numbers, and returns a view of the buffer as an appropriate [`TypedArray`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray): either `BigUint64Array` for `int64Array()`, or `Float64Array` for all other methods.
 
 > **💡 SIMD Performance:** Array methods **MUST** be used to realize the additional throughput offered by SIMD-enabled PRNG algorithms. These have higher throughput because they produce 2 random numbers at the same time with WASM's 128-bit SIMD support) .
 
@@ -247,7 +247,7 @@ console.log(num2 === num3);           // true: using same seeds and same uniqueS
 // import the namespace(es) you want to use
 import { PCG, Xoroshiro128Plus } from 'fast-prng-wasm/assembly';
 
-Xoroshiro128Plus.setSeeds(57n, 1000123n);             // manually seeded - seed64Array() only in JS
+Xoroshiro128Plus.setSeeds(u64(57), u64(1000123));     // manually seeded - seed64Array() only in JS
 
 const rand: u64 = Xoroshiro128Plus.uint64();          // using the AS interface
 const rand2: f64 = Xoroshiro128Plus.uint53AsFloat();  // return types are cast for JS runtime usage

@@ -33,7 +33,7 @@ Can be used to estimate pi (π).
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `count` | `number` | The number of random (x,y) coordinate points in (-1, 1) to generate and check. |
+| `count` | `number` | The number of random (x,y) coordinate points in [-1, 1) to generate and check. |
 
 #### Returns
 

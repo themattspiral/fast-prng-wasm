@@ -37,7 +37,7 @@
   "exclude": [
     "node_modules",
     "**/*.spec.*",
-    "src/assembly/**/*.ts",
+    "assembly/**/*.ts",
     "examples",
     "dist",
     "docs",

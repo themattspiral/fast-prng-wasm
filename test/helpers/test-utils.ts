@@ -173,11 +173,11 @@ export const INSTANCE_TEST_SAMPLE_COUNT = 5;
  * These are the expected first float values after calling jump() once with TEST_SEEDS,
  * then generating the next value (via float(), floatArray()[0], etc.).
  *
- * Generated and verified by: src/assembly/test/c-reference/validate-jump.c
+ * Generated and verified by: assembly/test/c-reference/validate-jump.c
  * To regenerate: npm run test:c-ref
  *
  * When updating these values, also update the corresponding AS values in
- * src/assembly/test/test-utils.ts (JUMP_REFERENCE namespace)
+ * assembly/test/test-utils.ts (JUMP_REFERENCE namespace)
  */
 export const JUMP_REFERENCE = {
     /** Xoroshiro128Plus with TEST_SEEDS.double, first value after jump() */

@@ -54,7 +54,7 @@ Reports will be generated in `coverage/`
 
 ### Writing AssemblyScript Unit Tests
 
-**Location**: `src/assembly/test/` directory
+**Location**: `assembly/test/` directory
 
 **Example**:
 ```typescript
@@ -99,7 +99,7 @@ describe('AlgorithmName', () => {
    - **Thresholds**: Use named constants like `QUARTILE_MIN`, `QUARTILE_MAX`, `PI_ESTIMATE_TOLERANCE`
 2. **Aggregation**: Count errors in a loop, then assert once — checking a single aggregated result avoids an `expect()` call per sample (each crosses the WASM→JS boundary) and produces one clear failure instead of thousands
 3. **Inline Comments**: Add comments after `expect()` calls to explain what's being tested
-4. **Template**: See `src/assembly/test/prng/xoroshiro128plus.test.ts` for complete example
+4. **Template**: See `assembly/test/prng/xoroshiro128plus.test.ts` for complete example
 
 **Sample Size Rationale**:
 - **10K** (DETERMINISTIC_SAMPLE_SIZE): Used for deterministic tests (uniqueness, sequence matching, range validation). Collision probability from 2^64 space is negligible (~10^-15), making 10K samples statistically robust.
@@ -169,7 +169,7 @@ This layered approach provides comprehensive coverage while avoiding redundant t
 ## Code Style
 
 ### AssemblyScript
-- Follow existing patterns in `src/assembly/`
+- Follow existing patterns in `assembly/`
 - Use `@inline` decorator to optimize all performance critical functions
 - Include TypeDoc comments for public functions
 - Use explicit types: `u64`, `u32`, `f64`

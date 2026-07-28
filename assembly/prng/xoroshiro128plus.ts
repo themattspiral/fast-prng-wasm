@@ -1,138 +1,95 @@
 /**
- * An AssemblyScript implementation of the PCG pseudo random number generator,
- * a 32-bit generator with 64 bits of state and unique stream selection.
+ * An AssemblyScript implementation of the Xoroshiro128+ pseudo random number generator,
+ * a 64-bit generator with 128 bits of state (2^128 period) and a jump function for
+ * unique sequence selection.
  * @packageDocumentation
- */
+*/
 
 /*
-* Based on the PCG Minimal C Implementation
-* (c) 2014 M.E. O'Neill / pcg-random.org
-* https://www.pcg-random.org/download.html
-* 
-* Which is licensed under Apache License 2.0
-* https://www.apache.org/licenses/LICENSE-2.0
+* Based on the xoroshiro128+ C reference implementation
+* Public Domain, 2016-2018 by David Blackman and Sebastiano Vigna (vigna@acm.org)
+* https://prng.di.unimi.it/xoroshiro128plus.c
 */
 
 import {
     uint64_to_uint53AsFloat,
+    uint64_to_uint32AsFloat,
     uint64_to_float53,
     uint64_to_coord53,
-    uint64_to_coord53Squared
+    uint64_to_coord53Squared,
+    JUMP_128
 } from '../common/conversion';
 
 // Expose array memory management functions for this WASM module to JS consumers
 export { allocUint64Array, allocFloat64Array } from '../common/memory';
 
-// @ts-ignore: top level decorators are supported in AssemblyScript
-@inline
-const MULTIPLIER: u64 = 6364136223846793005;
-
-// In PCG, the stream increment is used to provide a unique random stream.
-// Note: This number must always be odd! This is enforced below.
-let streamIncrement: u64 = 1442695040888963407;
-
-// Internal PCG state
-let state: u64 = 0;
+// Internal state
+let s0: u64 = 0;
+let s1: u64 = 0;
 
 /** Number of seeds required for this generator's {@link setSeeds} function. */
-export const SEED_COUNT: i32 = 1;
+export const SEED_COUNT: i32 = 2;
+
+/** Initializes this generator's internal state with the provided random seeds. */
+// @ts-ignore: top level decorators are supported in AssemblyScript
+@inline
+export function setSeeds(a: u64, b: u64): void {
+    s0 = a;
+    s1 = b;
+};
 
 /**
- * Initializes this generator's internal state with the provided random seed.
- *
- * Follows the PCG reference implementation initialization pattern from
- * https://github.com/imneme/pcg-c-basic/blob/master/pcg_basic.c
- *
- * The reference implementation (pcg32_srandom_r):
- * 1. Sets state to 0
- * 2. Advances state once (with current stream increment)
- * 3. Adds the seed value to state
- * 4. Advances state again
- *
- * This "stirs" the seed using the current stream increment to ensure
- * proper initialization.
- *
- * IMPORTANT: If using a custom stream increment, call setStreamIncrement()
- * BEFORE calling this function, as the increment must be set before the
- * seed is mixed in.
+ * Advances the state by 2^64 steps every call. Can be used to generate 2^64 
+ * non-overlapping subsequences (with the same seed) for parallel computations.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
-export function setSeeds(seed: u64): void {
-    state = 0;
-    uint32();       // First advancement
-    state += seed;  // Mix in seed
-    uint32();       // Second advancement
-}
+export function jump(): void {  
+    let jump_s0: u64 = 0;
+    let jump_s1: u64 = 0;
 
-/**
- * Optionally chooses the unique stream to be provided by this generator.
- *
- * Two generators given the same seed value(s) will still provide a unique stream
- * of random numbers as long as they use different stream increments.
- *
- * IMPORTANT: Must be called BEFORE setSeeds() to take effect properly.
- * The seed initialization process "stirs" the seed using the current stream
- * increment. If you change the increment after seeding, the initialization
- * will not match the PCG reference implementation behavior.
- *
- * See: https://github.com/imneme/pcg-c-basic/blob/master/pcg_basic.c
- * and: https://github.com/imneme/pcg-cpp/issues/91
- *
- * @param inc Any integer. It should be unique amongst stream increments used
- * for other parallel generator instances that have been seeded uniformly.
- */
-// @ts-ignore: top level decorators are supported in AssemblyScript
-@inline
-export function setStreamIncrement(inc: u64): void {
-    // Ensure the increment is odd regardless of value given, in a way
-    // that allows for consecutive integers and still achieves uniqueness.
-    streamIncrement = (inc << 1) | 1;
+    // loop through each 64-bit value in the jump array
+    for (let i: i32 = 0; i < JUMP_128.length; i++) {
+        // loop through each bit of the jump value, and if bit is 1, compute a new jump state
+        for (let b: i32 = 0; b < 64; b++) {
+            // Explicit u64 cast for clarity (AS infers correctly, matches C reference)
+            if ((JUMP_128[i] & ((<u64>1) << b)) != 0) {
+                jump_s0 ^= s0;
+                jump_s1 ^= s1;
+            }
+            uint64();
+        }
+    }
 
-    // Note: Unlike previous versions, we do NOT advance state here.
-    // State advancement must only happen during setSeeds() to match
-    // the reference implementation's initialization pattern.
-}
-
-/**
- * Gets this generator's next unsigned 32-bit integer.
- * 
- * @returns This generator's next unsigned 32-bit integer.
- */
-// @ts-ignore: top level decorators are supported in AssemblyScript
-@inline
-export function uint32(): u32 {
-    const oldState: u64 = state;
-
-    // PCG
-    state = oldState * MULTIPLIER + streamIncrement;
-
-    // Calculate output function (XSH RR)
-    const xorshifted: u32 = <u32>(((oldState >> 18) ^ oldState) >> 27);
-    const rot: u32 = <u32>(oldState >>> 59);
-
-    // 32-bit branch-free rotate right
-    // >>> always performs logical shift (zero-fill); >> depends on operand signedness in AS
-    return (xorshifted >>> rot) | (xorshifted << ((-rot) & 31));
+    // Set the new state
+    s0 = jump_s0;
+    s1 = jump_s1;
 }
 
 /**
  * Gets this generator's next unsigned 64-bit integer.
  * 
- * @returns This generator's next unsigned 64-bit integer.
+ * @returns An unsigned 64-bit integer.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function uint64(): u64 {
-    // chain the next two u32s together to get a `u64`
-    return (<u64>uint32() << 32) | <u64>uint32();
-}
+    // output
+    const result: u64 = s0 + s1;
+    
+    // xoroshiro128+
+    const t: u64 = s1 ^ s0;
+    s0 = ((s0 << 24) | (s0 >> 40)) ^ t ^ (t << 16);
+    s1 = ((t << 37) | (t >> 27));
+
+    return result;
+};
 
 /**
  * Gets this generator's next unsigned 53-bit integer.
  * 
- * @returns This generator's next unsigned 53-bit integer, returned
- * as an `f64` so that the JS runtime converts it to a `number`.
+ * @returns An unsigned 53-bit integer, returned as an `f64`
+ * so that the JS runtime converts it to a `number`.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
@@ -143,13 +100,13 @@ export function uint53AsFloat(): f64 {
 /**
  * Gets this generator's next unsigned 32-bit integer.
  * 
- * @returns An unsigned 32-bit integer, returned as an `f64` so that
- * the JS runtime converts it to a `number`.
+ * @returns An unsigned 32-bit integer, returned as an `f64`
+ * so that the JS runtime converts it to a `number`.
  */
 // @ts-ignore: top level decorators are supported in AssemblyScript
 @inline
 export function uint32AsFloat(): f64 {
-    return <f64>uint32();
+    return uint64_to_uint32AsFloat(uint64());
 }
 
 /**
@@ -214,7 +171,7 @@ export function coord53Squared(): f64 {
  * 
  * Can be used to estimate pi (π).
  * 
- * @param count The number of random (x,y) coordinate points in (-1, 1) to generate and check.
+ * @param count The number of random (x,y) coordinate points in [-1, 1) to generate and check.
  * 
  * @returns The number of random points which fell *inside* of the unit circle with radius 1.
  */
@@ -312,7 +269,7 @@ export function coord53Array(arr: Float64Array): void {
 }
 
 /**
- * Fills the provided array with the squares of this generator's next set of floating 
+ * Fills the provided array with the squares of this generator's next set of 53-bit floating 
  * point numbers in range [-1, 1).
  * 
  * Useful for Monte Carlo simulation.

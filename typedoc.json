@@ -6,7 +6,7 @@
   "exclude": [
     "**/node_modules/**",
     "**/*.test.*",
-    "src/assembly",
+    "assembly",
     "examples",
     "dist",
     "docs",

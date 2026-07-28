@@ -137,13 +137,13 @@ Useful for Monte Carlo simulation.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `pointCount` | `number` | Number of random points in (-1, 1) to generate and test. |
+| `pointCount` | `number` | Number of random points in [-1, 1) to generate and test. |
 
 ###### Returns
 
 `number`
 
-Number of random points in (-1, 1) which fell *inside* of the
+Number of random points in [-1, 1) which fell *inside* of the
 unit circle with radius 1.
 
 ##### coord()

@@ -21,7 +21,7 @@ flag_management:
   individual_flags:
     - name: assemblyscript
       paths:
-        - src/assembly/
+        - assembly/
       carryforward: true
     - name: javascript
       paths:
@@ -32,7 +32,7 @@ flag_management:
 ignore:
   - "node_modules/**"
   - "src/types/**"
-  - "src/assembly/test/**"
+  - "assembly/test/**"
   - "test/**"
   - "examples/**"
   - "docs/**"
