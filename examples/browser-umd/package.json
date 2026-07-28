@@ -1,0 +1,15 @@
+{
+  "name": "browser-umd",
+  "version": "1.0.0",
+  "description": "Browser demo of fast-prng-wasm using the UMD build via a plain <script> tag",
+  "author": "Matt Ritter <matthew.d.ritter@gmail.com>",
+  "license": "MIT",
+  "type": "module",
+  "main": "index.html",
+  "scripts": {
+    "start": "node serve.mjs"
+  },
+  "dependencies": {
+    "fast-prng-wasm": "file:../.."
+  }
+}

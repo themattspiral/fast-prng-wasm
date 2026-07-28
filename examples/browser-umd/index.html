@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>fast-prng-wasm — Browser Demo (UMD)</title>
+
+  <!--
+    Loads the LOCAL UMD build so the demo reflects working-tree code and works
+    offline (the WASM binaries are base64-inlined into this bundle, so there is
+    no separate file to fetch — you can even open this page over file://).
+    Build the library first from the repo root:  npm run build
+    For real-world CDN usage, see this example's README.
+  -->
+  <script src="../../dist/index.umd.js"></script>
+
+  <style>
+    :root { color-scheme: light dark; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      max-width: 820px; margin: 0 auto; padding: 1.5rem; line-height: 1.5;
+    }
+    h1 { margin-bottom: 0.25rem; }
+    .sub { opacity: 0.7; margin-top: 0; }
+    section { border: 1px solid rgba(128,128,128,0.35); border-radius: 10px; padding: 1rem 1.25rem; margin: 1rem 0; }
+    h2 { margin-top: 0; font-size: 1.1rem; }
+    button {
+      font: inherit; padding: 0.5rem 0.9rem; border-radius: 8px; cursor: pointer;
+      border: 1px solid rgba(128,128,128,0.5); background: rgba(128,128,128,0.12);
+    }
+    button:hover { background: rgba(128,128,128,0.22); }
+    select { font: inherit; padding: 0.4rem; border-radius: 8px; }
+    code, output, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    output { display: block; margin-top: 0.6rem; white-space: pre-wrap; }
+    canvas { max-width: 100%; height: auto; margin-top: 0.75rem; border: 1px solid rgba(128,128,128,0.35); border-radius: 6px; }
+    .status { padding: 0.6rem 0.8rem; border-radius: 8px; background: rgba(80,160,255,0.12); }
+    .error { color: #c0392b; }
+    .row { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
+  </style>
+</head>
+<body>
+  <h1>fast-prng-wasm</h1>
+  <p class="sub">Browser demo using the UMD build — no bundler, no build step in this folder.</p>
+
+  <section>
+    <h2>Generator</h2>
+    <div class="row">
+      <label for="algo">Algorithm:</label>
+      <select id="algo">
+        <option value="__auto__">Auto — best available (default)</option>
+      </select>
+      <button id="rebuild">Create generator</button>
+    </div>
+    <output id="status" class="status"></output>
+  </section>
+
+  <section>
+    <h2>Single values</h2>
+    <div class="row">
+      <button data-single="float">float() → [0, 1)</button>
+      <button data-single="int53">int53()</button>
+      <button data-single="int64">int64() → bigint</button>
+      <button data-single="coord">coord() → [-1, 1)</button>
+    </div>
+    <output id="single-out" class="mono"></output>
+  </section>
+
+  <section>
+    <h2>Array fill — distribution of 1000 floats</h2>
+    <button id="hist-btn">Fill &amp; draw histogram</button>
+    <canvas id="hist" width="760" height="220"></canvas>
+  </section>
+
+  <section>
+    <h2>Monte Carlo π</h2>
+    <button id="pi-btn">Estimate π (10,000 points)</button>
+    <canvas id="scatter" width="300" height="300"></canvas>
+    <output id="pi-out" class="mono"></output>
+  </section>
+
+  <script>
+    const { RandomGenerator, PRNGType } = fastPRNGWasm;
+
+    // Populate the algorithm dropdown from the exported enum, so it always
+    // matches the library. "__auto__" maps to the default (env-aware) generator.
+    const algoSelect = document.getElementById('algo');
+    for (const type of Object.values(PRNGType)) {
+      const opt = document.createElement('option');
+      opt.value = type; opt.textContent = type;
+      algoSelect.appendChild(opt);
+    }
+
+    let gen = null;
+
+    function buildGenerator() {
+      const choice = algoSelect.value;
+      const statusEl = document.getElementById('status');
+      try {
+        // Omitting the type triggers the environment-aware default: the SIMD
+        // algorithm where WebAssembly SIMD is available, otherwise its non-SIMD
+        // sibling. Do NOT hard-code an *_SIMD type — it would throw on browsers
+        // without SIMD.
+        gen = choice === '__auto__' ? new RandomGenerator() : new RandomGenerator(choice);
+        statusEl.className = 'status';
+        const auto = choice === '__auto__'
+          ? ` — SIMD ${gen.prngType.endsWith('_SIMD') ? 'available' : 'unavailable, degraded gracefully'}`
+          : '';
+        statusEl.textContent = `Active generator: ${gen.prngType} (needs ${gen.seedCount} seeds)${auto}`;
+      } catch (err) {
+        gen = null;
+        statusEl.className = 'status error';
+        // The SIMD availability guard throws when an *_SIMD type is requested
+        // explicitly on a runtime without SIMD.
+        statusEl.textContent = String(err.message || err);
+      }
+    }
+
+    document.getElementById('rebuild').addEventListener('click', buildGenerator);
+    algoSelect.addEventListener('change', buildGenerator);
+
+    // --- Single values ---
+    for (const btn of document.querySelectorAll('[data-single]')) {
+      btn.addEventListener('click', () => {
+        if (!gen) return;
+        const method = btn.getAttribute('data-single');
+        document.getElementById('single-out').textContent = `${method}()  →  ${gen[method]()}`;
+      });
+    }
+
+    // --- Histogram of floatArray() ---
+    document.getElementById('hist-btn').addEventListener('click', () => {
+      if (!gen) return;
+      const values = gen.floatArray();          // 1000 floats in [0, 1); consumed immediately below
+      const binCount = 25;
+      const bins = new Array(binCount).fill(0);
+      for (let i = 0; i < values.length; i++) {
+        bins[Math.min(binCount - 1, Math.floor(values[i] * binCount))]++;
+      }
+      const canvas = document.getElementById('hist');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const max = Math.max(...bins);
+      const barW = canvas.width / binCount;
+      ctx.fillStyle = '#4a90d9';
+      for (let i = 0; i < binCount; i++) {
+        const h = (bins[i] / max) * (canvas.height - 10);
+        ctx.fillRect(i * barW + 1, canvas.height - h, barW - 2, h);
+      }
+    });
+
+    // --- Monte Carlo π with a scatter plot ---
+    document.getElementById('pi-btn').addEventListener('click', () => {
+      if (!gen) return;
+      const canvas = document.getElementById('scatter');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const w = canvas.width, h = canvas.height;
+
+      const targetPoints = 10000;
+      let inside = 0, points = 0;
+      while (points < targetPoints) {
+        // coordArray() yields values in [-1, 1); consecutive values form (x, y)
+        // pairs. Consume the reused buffer before the next call.
+        const coords = gen.coordArray();
+        for (let i = 0; i + 1 < coords.length && points < targetPoints; i += 2) {
+          const x = coords[i], y = coords[i + 1];
+          const isInside = x * x + y * y <= 1;
+          if (isInside) inside++;
+          points++;
+          ctx.fillStyle = isInside ? '#2ecc71' : '#e67e22';
+          ctx.fillRect((x + 1) / 2 * w, (y + 1) / 2 * h, 2, 2);
+        }
+      }
+      const pi = 4 * inside / points;
+      document.getElementById('pi-out').textContent =
+        `π ≈ ${pi.toFixed(5)}   (error ${Math.abs(pi - Math.PI).toFixed(5)}, from ${points.toLocaleString()} points)`;
+    });
+
+    // Build the default generator on load.
+    buildGenerator();
+  </script>
+</body>
+</html>
