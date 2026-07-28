@@ -88,8 +88,55 @@ jobs:
           disable_search: true
           token: ${{ secrets.CODECOV_TOKEN }}
 
+  examples:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout code
+        uses: actions/checkout@v6
+
+      - name: 🛠️ Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: ⬇️ Download build artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: build-output
+          path: .
+
+      - name: ▶️ basic-usage
+        working-directory: examples/basic-usage
+        run: npm install && npm start
+
+      - name: ▶️ pmc
+        working-directory: examples/pmc
+        run: npm install && npm start
+
+      - name: ▶️ assemblyscript-consumer
+        working-directory: examples/assemblyscript-consumer
+        run: npm install && npm run asbuild && npm start
+
+      - name: ▶️ browser-umd (UMD bundle API surface)
+        # The page is static; this loads the exact UMD bundle it <script>-loads and
+        # asserts the API surface, which catches an API/packaging break without a browser.
+        run: |
+          node -e "
+          const m = require('./dist/index.umd.js');
+          for (const n of ['RandomGenerator', 'PRNGType', 'seed64Array']) {
+            if (!(n in m)) { console.error('Missing UMD export:', n); process.exit(1); }
+          }
+          const g = new m.RandomGenerator();
+          if (typeof g.float() !== 'number' || typeof g.int64() !== 'bigint') {
+            console.error('UMD API check failed'); process.exit(1);
+          }
+          console.log('browser-umd UMD bundle OK; default algorithm:', g.prngType);
+          "
+
   version_and_release:
-    needs: [build, test]
+    needs: [build, test, examples]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
