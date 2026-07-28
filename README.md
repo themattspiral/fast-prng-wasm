@@ -340,6 +340,22 @@ For a detailed explanation of **why array methods are 3-5× faster** than single
 
 ## Compatibility
 
+### Automatic SIMD Selection
+
+`new RandomGenerator()` automatically selects the best available algorithm for the current runtime — the SIMD-accelerated default (`Xoroshiro128Plus_SIMD`) where WebAssembly SIMD is supported, and the equivalent non-SIMD algorithm (`Xoroshiro128Plus`) where it isn't. **The default works everywhere with no action required**, including the "Partial (No SIMD)" browsers in the table below.
+
+Requesting a SIMD algorithm *explicitly* (an `*_SIMD` type) on a runtime without WASM SIMD **throws** — naming the non-SIMD algorithm to use instead — rather than silently substituting a different algorithm:
+
+```typescript
+// Works on every supported runtime (auto-selects SIMD when available):
+const gen = new RandomGenerator();
+
+// Throws on a runtime without WASM SIMD (SIMD is available on all modern platforms):
+const simdOnly = new RandomGenerator(PRNGType.Xoroshiro128Plus_SIMD);
+```
+
+> **⚠️ Cross-platform reproducibility:** the SIMD and non-SIMD variants of an algorithm produce **different** streams from the same seeds. The auto-selected default is "best available," not "identical everywhere" — so if you need the *same* output on every platform (e.g. a shared simulation seed), choose a **non-SIMD** type explicitly.
+
 ### Node
 | Version | Notes |
 |---------|-------|

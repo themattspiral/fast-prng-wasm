@@ -8,7 +8,7 @@
  * to verify the bundled output works correctly with real WASM.
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { PRNGType } from '../../src/types/prng';
 import { getSeedsForPRNG } from '../helpers/test-utils';
 
@@ -602,6 +602,59 @@ describe('RandomGenerator Unit Tests', () => {
             const gen = new RandomGenerator(PRNGType.Xoshiro256Plus_SIMD, getSeedsForPRNG(PRNGType.Xoshiro256Plus_SIMD));
             expect(gen.prngType).toBe(PRNGType.Xoshiro256Plus_SIMD);
             expect(gen.seedCount).toBe(8);
+        });
+    });
+
+    describe('SIMD availability guard', () => {
+        // WebAssembly.validate is spied so both branches can be exercised without
+        // a real non-SIMD runtime. Restored after each test to avoid leaking into
+        // the rest of the suite.
+        afterEach(() => {
+            vi.restoreAllMocks();
+        });
+
+        describe('when the runtime supports SIMD', () => {
+            beforeEach(() => {
+                vi.spyOn(WebAssembly, 'validate').mockReturnValue(true);
+            });
+
+            it('default (no type argument) selects the SIMD algorithm', () => {
+                const gen = new RandomGenerator();
+                expect(gen.prngType).toBe(PRNGType.Xoroshiro128Plus_SIMD);
+            });
+
+            it('an explicit SIMD request is honored (no throw)', () => {
+                expect(() => new RandomGenerator(PRNGType.Xoroshiro128Plus_SIMD)).not.toThrow();
+                expect(() => new RandomGenerator(PRNGType.Xoshiro256Plus_SIMD)).not.toThrow();
+            });
+        });
+
+        describe('when the runtime lacks SIMD', () => {
+            beforeEach(() => {
+                vi.spyOn(WebAssembly, 'validate').mockReturnValue(false);
+            });
+
+            it('default (no type argument) degrades to the non-SIMD sibling', () => {
+                const gen = new RandomGenerator();
+                expect(gen.prngType).toBe(PRNGType.Xoroshiro128Plus);
+            });
+
+            it('an explicit SIMD request throws, naming the non-SIMD sibling to use', () => {
+                expect(() => new RandomGenerator(PRNGType.Xoroshiro128Plus_SIMD))
+                    .toThrow(/requires WebAssembly SIMD/);
+                expect(() => new RandomGenerator(PRNGType.Xoroshiro128Plus_SIMD))
+                    .toThrow(/Use Xoroshiro128Plus for/);
+                expect(() => new RandomGenerator(PRNGType.Xoshiro256Plus_SIMD))
+                    .toThrow(/requires WebAssembly SIMD/);
+                expect(() => new RandomGenerator(PRNGType.Xoshiro256Plus_SIMD))
+                    .toThrow(/Use Xoshiro256Plus for/);
+            });
+
+            it('non-SIMD algorithms never throw', () => {
+                expect(() => new RandomGenerator(PRNGType.PCG)).not.toThrow();
+                expect(() => new RandomGenerator(PRNGType.Xoroshiro128Plus)).not.toThrow();
+                expect(() => new RandomGenerator(PRNGType.Xoshiro256Plus)).not.toThrow();
+            });
         });
     });
 });
