@@ -80,11 +80,13 @@ const { RandomGenerator, PRNGType, seed64Array } = require('fast-prng-wasm');
 
 #### UMD (browser script tag)
 ```html
+<!-- unpkg (or jsDelivr: https://cdn.jsdelivr.net/npm/fast-prng-wasm) -->
 <script src="https://unpkg.com/fast-prng-wasm"></script>
 <script>
   const { RandomGenerator, PRNGType, seed64Array } = fastPRNGWasm;
 </script>
 ```
+Pin a version for production, e.g. `https://unpkg.com/fast-prng-wasm@1.2.3`. See the [`browser-umd` example](examples/browser-umd) for a full interactive demo.
 
 ### The Basics
 
@@ -256,6 +258,8 @@ const arr = new Uint64Array(1000);                    // create array in WASM me
 Xoroshiro128Plus.uint64Array(arr);                    // generate & fill
 ```
 
+See the [`assemblyscript-consumer` example](examples/assemblyscript-consumer) for a complete, compilable project (including both the barrel and direct import patterns).
+
 > **⚠️ Thread Safety Warning ⚠️:**
 > WASM PRNG implemetations use top-level internal state and functions to
 > prevent the accumulation of small overhead that comes with using classes.
@@ -289,6 +293,16 @@ A Monte Carlo statistical estimation of π (pi) using a large quantity of random
 - Node CLI app for advanced users
 - Uses parallel generator instances in `worker_threads`
 - Shares seeds across instances, using a unique jump count / stream increment for each
+
+#### [**`browser-umd` - Browser Demo (UMD)**](examples/browser-umd)
+An interactive browser demo using the UMD build via a plain `<script>` tag
+- Single values, an array-fill histogram, and a Monte Carlo π scatter plot
+- Demonstrates the environment-aware default (works with or without SIMD)
+
+#### [**`assemblyscript-consumer` - AssemblyScript Integration**](examples/assemblyscript-consumer)
+Using the PRNGs directly from another AssemblyScript project (no JS wrapper)
+- Imports the AssemblyScript sources and compiles them into your own WASM
+- Manual seeding, bulk array fill, and in-WASM Monte Carlo π estimation
 
 ## Testing & Verification
 
