@@ -101,15 +101,13 @@ export class RandomGenerator {
      *
      * @param prngType The PRNG algorithm to use. When omitted, the best available
      * algorithm is selected automatically: `Xoroshiro128Plus_SIMD` on runtimes with
-     * WebAssembly SIMD, or `Xoroshiro128Plus` where SIMD is unavailable. The default
-     * therefore works everywhere with no action required by the caller.
+     * WebAssembly SIMD, or `Xoroshiro128Plus` where SIMD is unavailable.
      * <br><br>
      *
      * Explicitly requesting a SIMD algorithm (an `*_SIMD` type) on a runtime without
      * WASM SIMD throws, because the SIMD and non-SIMD variants produce different
      * random streams. For output that is identical on every platform, choose a
-     * non-SIMD type explicitly — the auto-selected default is "best available," not
-     * "identical everywhere."
+     * non-SIMD type explicitly.
      *
      * @param seeds Collection of 64-bit integers used to initialize this
      * generator's internal state. 1-8 seeds are required depending on generator 
@@ -143,11 +141,7 @@ export class RandomGenerator {
         uniqueStreamId: bigint | number | null = null,
         outputArraySize: number = 1000
     ) {
-        // An explicitly requested SIMD generator throws on a runtime without WASM
-        // SIMD, because the SIMD and non-SIMD algorithms produce *different* streams
-        // (silently substituting would hand the caller different results). When no
-        // type is given, the default instead degrades to the best available
-        // generator, so `new RandomGenerator()` works everywhere.
+        // An explicitly requested SIMD generator throws on a runtime without WASM SIMD.
         if (prngType !== undefined && isSimdType(prngType) && !isSimdSupported()) {
             throw new Error(
                 `${prngType} requires WebAssembly SIMD, which is unavailable in this runtime. ` +

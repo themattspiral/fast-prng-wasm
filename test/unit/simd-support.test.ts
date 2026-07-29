@@ -1,10 +1,11 @@
 /**
  * Unit tests for the WASM SIMD support detection module.
  *
- * `isSimdSupported()` is exercised against a mocked `WebAssembly.validate` for
- * both branches (support present / absent), since a real runtime cannot have its
- * SIMD support toggled off. The un-mocked probe is also asserted to validate on
- * this (SIMD-capable) runtime, guarding against a malformed probe module.
+ * `isSimdSupported()` is exercised against a mocked `WebAssembly.validate` so both
+ * branches (support present / absent) are covered deterministically, independent of
+ * whether the host runtime happens to support SIMD. The un-mocked probe is also
+ * asserted to validate on this (SIMD-capable) runtime, guarding against a malformed
+ * probe module.
  */
 
 import { describe, it, expect, vi, afterEach } from 'vitest';

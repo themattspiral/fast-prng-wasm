@@ -9,10 +9,6 @@ import { PRNGType } from './types/prng';
  * a runtime without the WASM SIMD proposal rejects outright, and the body uses a
  * SIMD opcode. `WebAssembly.validate()` therefore returns `true` only where SIMD
  * is available.
- *
- * The exact bytes were verified empirically (validate → `true` on a SIMD runtime);
- * the widely-quoted "one-liner" probe bytes were found to be malformed and to
- * validate `false` even where SIMD is supported.
  */
 const SIMD_PROBE_MODULE = new Uint8Array([
     0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, // "\0asm", version 1
@@ -25,10 +21,8 @@ const SIMD_PROBE_MODULE = new Uint8Array([
 ]);
 
 /**
- * The SIMD PRNG algorithms mapped to their non-SIMD sibling. The two flavors of
- * an algorithm produce *different* random streams (different lane/state layout),
- * so this mapping is used to choose a fallback, never to silently substitute a
- * caller's explicit request.
+ * Each SIMD PRNG algorithm mapped to its non-SIMD sibling, used to pick a
+ * fallback for the environment-aware default.
  */
 export const NON_SIMD_SIBLING: Partial<Record<PRNGType, PRNGType>> = {
     [PRNGType.Xoroshiro128Plus_SIMD]: PRNGType.Xoroshiro128Plus,
@@ -62,8 +56,7 @@ export function isSimdSupported(): boolean {
 
 /**
  * The environment-aware default PRNG algorithm: the SIMD flavor of the default
- * algorithm where WASM SIMD is available, otherwise its non-SIMD sibling. This
- * is what makes `new RandomGenerator()` work on every supported runtime.
+ * algorithm where WASM SIMD is available, otherwise its non-SIMD sibling.
  */
 export function defaultPRNGType(): PRNGType {
     return isSimdSupported()
