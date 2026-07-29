@@ -246,7 +246,8 @@ console.log(num2 === num3);           // true: using same seeds and same uniqueS
 
 ### Using from AssemblyScript Projects
 ```typescript
-// import the namespace(es) you want to use
+// each generator is exposed as a namespace - they share function names, so the
+// namespaces are what keep them from colliding
 import { PCG, Xoroshiro128Plus } from 'fast-prng-wasm/assembly';
 
 Xoroshiro128Plus.setSeeds(u64(57), u64(1000123));     // manually seeded - seed64Array() only in JS
@@ -258,7 +259,7 @@ const arr = new Uint64Array(1000);                    // create array in WASM me
 Xoroshiro128Plus.uint64Array(arr);                    // generate & fill
 ```
 
-See the [`assemblyscript-consumer` example](examples/assemblyscript-consumer) for a complete, compilable project (including both the barrel and direct import patterns).
+See the [`assemblyscript-consumer` example](examples/assemblyscript-consumer) for a complete, compilable project.
 
 > **⚠️ Thread Safety Warning ⚠️:**
 > WASM PRNG implemetations use top-level internal state and functions to
@@ -354,22 +355,6 @@ For a detailed explanation of **why array methods are 3-5× faster** than single
 
 ## Compatibility
 
-### Automatic SIMD Selection
-
-`new RandomGenerator()` automatically selects the best available algorithm for the current runtime — the SIMD-accelerated default (`Xoroshiro128Plus_SIMD`) where WebAssembly SIMD is supported, and the equivalent non-SIMD algorithm (`Xoroshiro128Plus`) where it isn't. **The default works everywhere with no action required**, including the "Partial (No SIMD)" browsers in the table below.
-
-Requesting a SIMD algorithm *explicitly* (an `*_SIMD` type) on a runtime without WASM SIMD **throws** — naming the non-SIMD algorithm to use instead — rather than silently substituting a different algorithm:
-
-```typescript
-// Works on every supported runtime (auto-selects SIMD when available):
-const gen = new RandomGenerator();
-
-// Throws on a runtime without WASM SIMD (SIMD is available on all modern platforms):
-const simdOnly = new RandomGenerator(PRNGType.Xoroshiro128Plus_SIMD);
-```
-
-> **⚠️ Cross-platform reproducibility:** the SIMD and non-SIMD variants of an algorithm produce **different** streams from the same seeds. The auto-selected default is "best available," not "identical everywhere" — so if you need the *same* output on every platform (e.g. a shared simulation seed), choose a **non-SIMD** type explicitly.
-
 ### Node
 | Version | Notes |
 |---------|-------|
@@ -396,6 +381,14 @@ Check caniuse.com for other browser support:
  - [WASM SIMD](https://caniuse.com/wasm-simd) - Indicates Full Support
  - [WASM bigint](https://caniuse.com/wasm-bigint) - Support for everything except SIMD
  - [WASM](https://caniuse.com/wasm) - Basic support (53-bit int and float `number` but no 64-bit `bigint`)
+
+### Automatic SIMD Selection
+
+`new RandomGenerator()` automatically selects the best available algorithm for the current runtime — the SIMD-accelerated default (`Xoroshiro128Plus_SIMD`) where WebAssembly SIMD is supported, and the equivalent non-SIMD algorithm (`Xoroshiro128Plus`) where it isn't. **The default works everywhere with no action required**, including the "Partial (No SIMD)" browsers in the table above.
+
+Requesting a SIMD algorithm *explicitly* (an `*_SIMD` type) on a runtime without WASM SIMD **throws** — naming the non-SIMD algorithm to use instead — rather than silently substituting a different algorithm.
+
+> **⚠️ Cross-platform reproducibility:** the SIMD and non-SIMD variants of an algorithm produce **different** streams from the same seeds. The auto-selected default is "best available," not "identical everywhere" — so if you need the *same* output on every platform (e.g. a shared simulation seed), choose a **non-SIMD** type explicitly.
 
 ## Contributing
 
