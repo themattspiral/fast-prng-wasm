@@ -14,33 +14,30 @@ Unlike `basic-usage` and `pmc`, this example does **not** require you to build t
 This project uses a local dependency for `fast-prng-wasm` (`file:../..`), resolved by `npm install`. In your own project you would instead `npm install fast-prng-wasm`.
 
 ```sh
-npm install       # installs assemblyscript + links fast-prng-wasm
-npm run asbuild   # compiles assembly/main.ts -> build/release.wasm
-npm start         # runs index.js against the compiled WASM
+npm install     # installs assemblyscript + links fast-prng-wasm
+npm run build   # compiles assembly/main.ts -> build/release.wasm
+npm start       # runs index.js against the compiled WASM
 ```
 
 ## Output
 The runner prints a few single values, the mean of a bulk-filled array (≈ 0.5 for uniform floats), and a Monte Carlo π estimate over 1,000,000 samples (entirely in WASM).
 
 ## Import patterns
-Both of these are verified working; pick based on whether you want the SIMD generators:
-
-**Barrel (matches the main README):**
 ```typescript
+// Import from the package index: each generator is a namespace (they share function
+// names). This pulls in the SIMD generators, so compiling requires `--enable simd`
+// (see asconfig.json), even if you only use a non-SIMD algorithm.
 import { PCG, Xoroshiro128Plus } from 'fast-prng-wasm/assembly';
-```
-Each generator is a namespace, kept out of your global namespace. The barrel pulls in the SIMD generators, so compiling it requires `--enable simd` (see `asconfig.json`), even if you only use a non-SIMD algorithm.
 
-**Direct (one algorithm, no SIMD flag needed):**
-```typescript
+// Or import one generator directly: compiles only that algorithm, and needs no SIMD
+// flag for the non-SIMD generators — the leaner choice when you want just one.
 import * as Xoroshiro128Plus from 'fast-prng-wasm/assembly/prng/xoroshiro128plus';
 ```
-Compiles only the algorithm you import, and needs no SIMD flag for the non-SIMD generators — the leaner choice when you want a single algorithm.
 
 ## Notes for AssemblyScript consumers
 - **Seeding is manual.** `seed64Array()` is JavaScript-only. Seed with `setSeeds(...)`, using the explicit `u64(...)` form — AssemblyScript has no BigInt `123n` literal syntax.
 - **Each generator needs a specific number of seeds** (`SEED_COUNT`): PCG 1, Xoroshiro128+ 2, Xoshiro256+ 4, Xoroshiro128+ SIMD 4, Xoshiro256+ SIMD 8. Passing the wrong count is a compile error.
-- **Pass typed arrays directly** to the array-fill methods (e.g. `float53Array(arr)`). The `alloc*` memory helpers exist only to bridge the JS/WASM boundary in the JavaScript wrapper and are not needed here.
+- **Pass typed arrays directly** to the array-fill methods (e.g. `float53Array(arr)`).
 
 ---
 

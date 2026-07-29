@@ -117,7 +117,7 @@ jobs:
 
       - name: ▶️ assemblyscript-consumer
         working-directory: examples/assemblyscript-consumer
-        run: npm install && npm run asbuild && npm start
+        run: npm install && npm run build && npm start
 
       - name: ▶️ browser-umd (UMD bundle API surface)
         # The page is static; this loads the exact UMD bundle it <script>-loads and

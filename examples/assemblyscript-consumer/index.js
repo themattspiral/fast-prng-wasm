@@ -5,7 +5,7 @@
  * Uses the plain WebAssembly API (no loader): every export here returns a scalar
  * (number or bigint), so no array-marshalling glue is required.
  *
- * Build the WASM first (see README):  npm run asbuild
+ * Build the WASM first (see README):  npm run build
  * Then run:                           npm start
  */
 
@@ -20,7 +20,7 @@ let wasmBytes;
 try {
     wasmBytes = readFileSync(wasmPath);
 } catch {
-    console.error(`\nCould not read ${wasmPath}\nDid you compile the WASM first?  npm run asbuild\n`);
+    console.error(`\nCould not read ${wasmPath}\nDid you compile the WASM first?  npm run build\n`);
     process.exit(1);
 }
 

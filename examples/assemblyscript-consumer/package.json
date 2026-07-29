@@ -7,7 +7,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "asbuild": "asc assembly/main.ts --config asconfig.json --target release",
+    "build": "asc assembly/main.ts --config asconfig.json --target release",
     "start": "node index.js"
   },
   "dependencies": {

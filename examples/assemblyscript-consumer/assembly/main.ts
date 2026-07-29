@@ -6,15 +6,15 @@
  * (see asconfig.json) and driven by index.js.
  */
 
-// `fast-prng-wasm/assembly` is a barrel that re-exports each generator as its own
-// namespace, keeping them out of your project's global namespace. This is the
-// documented import surface (README "Using from AssemblyScript Projects").
-//
-// The barrel pulls in the SIMD generators too, so compiling it requires
-// `--enable simd` (set in asconfig.json). To compile only one algorithm without
-// the SIMD flag, import the generator directly instead, e.g.:
-//   import * as Xoroshiro128Plus from 'fast-prng-wasm/assembly/prng/xoroshiro128plus';
+// `fast-prng-wasm/assembly` re-exports each generator as its own namespace. Every
+// generator exports the same function names (float53, uint64, ...), so the
+// namespaces are what keep them from colliding. Importing it pulls in the SIMD
+// generators too, so compiling requires `--enable simd` (set in asconfig.json).
 import { Xoroshiro128Plus } from 'fast-prng-wasm/assembly';
+
+// To compile only one algorithm - and, for the non-SIMD generators, without the
+// SIMD flag - import that generator directly instead, e.g.:
+//   import * as Xoroshiro128Plus from 'fast-prng-wasm/assembly/prng/xoroshiro128plus';
 
 // Seed manually — seed64Array() is JavaScript-only. Xoroshiro128+ takes 2 seeds
 // (SEED_COUNT differs per generator; a wrong count is a compile error). The
