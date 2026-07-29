@@ -23,16 +23,18 @@ npm start       # runs index.js against the compiled WASM
 The runner prints a few single values, the mean of a bulk-filled array (≈ 0.5 for uniform floats), and a Monte Carlo π estimate over 1,000,000 samples (entirely in WASM).
 
 ## Import patterns
-```typescript
-// Import from the package index: each generator is a namespace (they share function
-// names). This pulls in the SIMD generators, so compiling requires `--enable simd`
-// (see asconfig.json), even if you only use a non-SIMD algorithm.
-import { PCG, Xoroshiro128Plus } from 'fast-prng-wasm/assembly';
 
-// Or import one generator directly: compiles only that algorithm, and needs no SIMD
-// flag for the non-SIMD generators — the leaner choice when you want just one.
+**Whole package (all generators):**
+```typescript
+import { PCG, Xoroshiro128Plus } from 'fast-prng-wasm/assembly';
+```
+Each generator is a namespace — they share function names, so the namespaces keep them from colliding. This pulls in the SIMD generators, so compiling requires `--enable simd` (see `asconfig.json`), even if you only use a non-SIMD algorithm.
+
+**One generator directly:**
+```typescript
 import * as Xoroshiro128Plus from 'fast-prng-wasm/assembly/prng/xoroshiro128plus';
 ```
+Compiles only the algorithm you import, and needs no SIMD flag for the non-SIMD generators — the leaner choice when you want just one.
 
 ## Notes for AssemblyScript consumers
 - **Seeding is manual.** `seed64Array()` is JavaScript-only. Seed with `setSeeds(...)`, using the explicit `u64(...)` form — AssemblyScript has no BigInt `123n` literal syntax.
