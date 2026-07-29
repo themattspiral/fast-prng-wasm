@@ -121,19 +121,8 @@ jobs:
 
       - name: ▶️ browser-umd (UMD bundle API surface)
         # The page is static; this loads the exact UMD bundle it <script>-loads and
-        # asserts the API surface, which catches an API/packaging break without a browser.
-        run: |
-          node -e "
-          const m = require('./dist/index.umd.js');
-          for (const n of ['RandomGenerator', 'PRNGType', 'seed64Array']) {
-            if (!(n in m)) { console.error('Missing UMD export:', n); process.exit(1); }
-          }
-          const g = new m.RandomGenerator();
-          if (typeof g.float() !== 'number' || typeof g.int64() !== 'bigint') {
-            console.error('UMD API check failed'); process.exit(1);
-          }
-          console.log('browser-umd UMD bundle OK; default algorithm:', g.prngType);
-          "
+        # asserts the API surface, catching an API/packaging break without a browser.
+        run: node examples/browser-umd/smoke.mjs
 
   version_and_release:
     needs: [build, test, examples]
