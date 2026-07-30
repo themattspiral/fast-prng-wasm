@@ -1,12 +1,13 @@
 /**
  * assemblyscript-consumer - JS runner
  *
- * Instantiates the WASM compiled from assembly/main.ts and calls its exports.
- * Uses the plain WebAssembly API (no loader): every export here returns a scalar
- * (number or bigint), so no array-marshalling glue is required.
+ * Instantiates the WASM compiled from assembly/main.ts and drives its bootstrap.
+ * Uses the plain WebAssembly API (no loader): the module computes everything in
+ * WASM and exposes the results through scalar getters, so no array marshalling is
+ * required.
  *
  * Build the WASM first (see README):  npm run build
- * Then run:                           npm start
+ * Then run:                           npm start   (or: node index.js [resamples])
  */
 
 import { readFileSync } from 'node:fs';
@@ -34,19 +35,35 @@ const { instance } = await WebAssembly.instantiate(wasmBytes, {
     }
 });
 
-const { randomFloat, randomInt, randomCoord, estimatePi, sumRandomFloats } = instance.exports;
+const {
+    run, observedCorrelation, standardError, confidenceLow, confidenceHigh, validReplicates, sampleSize
+} = instance.exports;
 
-console.log('fast-prng-wasm consumed directly from AssemblyScript\n');
+// Number of bootstrap resamples. A few thousand already gives a stable interval;
+// the large default mainly shows off how fast the generator feeds the resampling.
+const resamples = Number(process.argv[2]) || 1_000_000;
 
-console.log('Random float [0, 1):  ', randomFloat());
-console.log('Random int (u64):     ', randomInt());
-console.log('Random coord [-1, 1): ', randomCoord());
+console.log('Bootstrap: Pearson correlation of LSAT vs GPA across law schools');
+console.log('(Efron & Tibshirani "law school" data, direct from AssemblyScript)\n');
 
-const size = 1000;
-const sum = sumRandomFloats(size);
-console.log(`\nBulk fill: mean of ${size} floats = ${(sum / size).toFixed(5)} (expected ~0.5)`);
+// run() computes the observed statistic and the bootstrap results together.
+const draws = resamples * sampleSize();
+const start = process.hrtime.bigint();
+run(resamples);
+const elapsedMs = Number(process.hrtime.bigint() - start) / 1e6;
 
-const samples = 1_000_000;
-const pi = estimatePi(samples);
-console.log(`\nMonte Carlo pi over ${samples.toLocaleString()} samples: ${pi.toFixed(6)}`);
-console.log(`Error vs Math.PI: ${Math.abs(pi - Math.PI).toFixed(6)}`);
+console.log(`Sample size:                  ${sampleSize()} schools`);
+console.log(`Observed correlation:         ${observedCorrelation().toFixed(4)}`);
+
+console.log(`\nResampled ${resamples.toLocaleString()} times (${draws.toLocaleString()} random draws)`);
+console.log(`  in ${elapsedMs.toFixed(0)} ms  —  ${(draws / elapsedMs / 1e3).toFixed(1)}M draws/sec\n`);
+
+console.log(`Bootstrap standard error:     ${standardError().toFixed(4)}`);
+console.log(`95% percentile interval:      [${confidenceLow().toFixed(4)}, ${confidenceHigh().toFixed(4)}]`);
+
+console.log(
+    `\nThe interval is wide but well clear of 0: with only ${sampleSize()} schools the\n` +
+    `correlation is clearly positive, yet its magnitude stays uncertain. The bootstrap\n` +
+    `quantifies that uncertainty with no formula for the correlation's standard error —\n` +
+    `it just needs a lot of high-quality random draws, which is what this library provides.`
+);
