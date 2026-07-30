@@ -1,6 +1,6 @@
 # browser-umd - fast-prng-wasm in the Browser (UMD)
 
-A single-page, no-bundler browser demo. It loads `fast-prng-wasm` with a plain `<script>` tag (the UMD build) and exercises the core API interactively: single values, an array-fill histogram, and a Monte Carlo π scatter plot.
+A single-page, no-bundler browser demo. It loads `fast-prng-wasm` with a plain `<script>` tag (the UMD build) and exercises the core API interactively: single values, editable seeds (type the same seeds twice to see the stream reproduce), an array-fill histogram with a sample-size control, and a Monte Carlo π scatter plot.
 
 It also demonstrates the **environment-aware default**: the page creates its generator with `new RandomGenerator()` (no explicit type), which auto-selects the SIMD algorithm where WebAssembly SIMD is available and the non-SIMD sibling where it isn't — so the demo works on every browser, including those without SIMD. Selecting a SIMD algorithm *explicitly* from the dropdown on a non-SIMD browser shows the guard's thrown error.
 
