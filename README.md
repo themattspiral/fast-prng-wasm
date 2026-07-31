@@ -50,9 +50,9 @@ console.log(gen.int64());           // random 64-bit int (bigint)
 
 | Algorithm | Description | Native Output | State Size | Period | SIMD |
 |-----------|-------------|---------------|------------|--------|------|
-| **Xoshiro256+** | Very fast, large state, very long period - best for applications needing maximum randomness guarantees | 64-bit | 256 bits | 2<sup>256</sup> | ✅ |
+| **Xoshiro256+** | Very fast, large state, very long period — best when you need the largest period and the most non-overlapping parallel streams | 64-bit | 256 bits | 2<sup>256</sup> | ✅ |
 | **Xoroshiro128+** | *Very* fast, smaller state - excellent balance for most applications, fastest provided here | 64-bit | 128 bits | 2<sup>128</sup> | ✅ |
-| **PCG (XSH RR)** | Small state, fast, possibly best randomness (read Learn More links) | 32-bit | 64 bits | 2<sup>64</sup> | ❌ |
+| **PCG (XSH RR)** | Small state, fast; excellent statistical quality with no weak low-order bits, and the least predictable of the three — the most compact generator here, with a 2<sup>64</sup> period that's ample for typical use | 32-bit | 64 bits | 2<sup>64</sup> | ❌ |
 
 The included algorithms were chosen for their high speed, parallelization support, and statistical quality. They pass rigorous statistical tests (BigCrush, PractRand) and provide excellent uniformity, making them suitable for Monte Carlo simulations and other applications requiring high-quality pseudo-randomness. They offer a significant improvement over `Math.random()`, which varies by JavaScript engine and may exhibit statistical flaws.
 
@@ -384,11 +384,11 @@ Check caniuse.com for other browser support:
 
 ### Automatic SIMD Selection
 
-`new RandomGenerator()` automatically selects the best available algorithm for the current runtime — the SIMD-accelerated default (`Xoroshiro128Plus_SIMD`) where WebAssembly SIMD is supported, and the equivalent non-SIMD algorithm (`Xoroshiro128Plus`) where it isn't. **The default works everywhere with no action required**, including the "Partial (No SIMD)" browsers in the table above.
+`new RandomGenerator()` automatically selects the SIMD-accelerated default (`Xoroshiro128Plus_SIMD`) where WebAssembly SIMD is supported, and the equivalent non-SIMD algorithm (`Xoroshiro128Plus`) where it isn't. **The default works everywhere with no action required**, including the "Partial (No SIMD)" browsers in the table above.
 
 Requesting a SIMD algorithm *explicitly* (an `*_SIMD` type) on a runtime without WASM SIMD **throws** — naming the non-SIMD algorithm to use instead — rather than silently substituting a different algorithm.
 
-> **⚠️ Cross-platform reproducibility:** the SIMD and non-SIMD variants of an algorithm produce **different** streams from the same seeds. The auto-selected default is "best available," not "identical everywhere" — so if you need the *same* output on every platform (e.g. a shared simulation seed), choose a **non-SIMD** type explicitly.
+> **⚠️ Cross-platform reproducibility:** the SIMD and non-SIMD variants of an algorithm produce **different** streams from the same seeds. The auto-selected default adapts to the current runtime, not to identical output across runtimes — so if you need the *same* output on every platform (e.g. a shared simulation seed), choose a **non-SIMD** type explicitly.
 
 ## Contributing
 

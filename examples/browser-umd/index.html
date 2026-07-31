@@ -9,11 +9,13 @@
     Loads the LOCAL UMD build so the demo reflects working-tree code and works
     offline (the WASM binaries are base64-inlined into this bundle, so there is
     no separate file to fetch — you can even open this page over file://).
-    Build the library first from the repo root:  npm run build
 
-    In a real page you would load the published package from a CDN instead — no
-    install or build required (see this example's README):
-      <script src="https://unpkg.com/fast-prng-wasm"></script>
+     Build the library first from the repo root:  `npm run build`
+
+    You may load a published version of the package from a CDN instead, with no
+    install or build required:
+        <script src="https://unpkg.com/fast-prng-wasm"></script>
+        <script src="https://cdn.jsdelivr.net/npm/fast-prng-wasm"></script>
   -->
   <script src="../../dist/index.umd.js"></script>
 
@@ -22,7 +24,7 @@
     * { box-sizing: border-box; }
     body {
       font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      max-width: 820px; margin: 0 auto; padding: 1.5rem; line-height: 1.5;
+      max-width: 960px; margin: 0 auto; padding: 1.5rem; line-height: 1.5;
     }
     h1 { margin-bottom: 0.25rem; }
     .sub { opacity: 0.7; margin-top: 0; }
@@ -34,15 +36,32 @@
     }
     button:hover { background: rgba(128,128,128,0.22); }
     select { font: inherit; padding: 0.4rem; border-radius: 8px; }
-    input.seed { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.9rem; padding: 0.35rem 0.5rem; width: 13rem; border-radius: 6px; border: 1px solid rgba(128,128,128,0.5); }
+    input.seed {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.9rem;
+      padding: 0.35rem 0.5rem; width: 13rem; border-radius: 6px; border: 1px solid rgba(128,128,128,0.5);
+    }
+    input.seed:disabled { opacity: 0.55; cursor: not-allowed; }
+    input[type="range"] { width: 200px; vertical-align: middle; }
     code, output, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-    output { display: block; margin-top: 0.6rem; white-space: pre-wrap; }
+    output { display: block; white-space: pre-wrap; }
     canvas { max-width: 100%; height: auto; margin-top: 0.75rem; border: 1px solid rgba(128,128,128,0.35); border-radius: 6px; }
-    .status { padding: 0.6rem 0.8rem; border-radius: 8px; background: rgba(80,160,255,0.12); }
+    .status { padding: 0.6rem 0.8rem; border-radius: 8px; background: rgba(80,160,255,0.12); margin-top: 0.6rem; }
     .error { color: #c0392b; }
     .row { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
-    .stack { margin-top: 0.75rem; }
+    .stack { margin-top: 0.85rem; }
     .hint { opacity: 0.7; font-size: 0.9rem; margin: 0.75rem 0 0; }
+    .single-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.4rem 0.6rem; align-items: start; }
+    .single-grid button { width: 100%; }
+    .single-grid output { min-height: 1.2em; font-size: 0.85rem; word-break: break-all; }
+    button.mini { padding: 0.3rem 0.55rem; font-size: 0.85rem; }
+    .single-head { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+    .slider-val { min-width: 5rem; }
+    .pi-row { display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap; }
+    .pi-readout { min-width: 12rem; }
+    .pi-value { font-size: 2.3rem; font-weight: 600; line-height: 1.1; }
+    .pi-error { font-size: 1.05rem; margin-top: 0.35rem; }
+    .pi-error .num { font-weight: 600; }
+    .pi-error .pct { opacity: 0.75; }
   </style>
 </head>
 <body>
@@ -54,71 +73,75 @@
     <div class="row">
       <label for="algo">Algorithm:</label>
       <select id="algo">
-        <option value="__auto__">Auto — best available (default)</option>
+        <option value="__auto__">Default — Xoroshiro128+ (SIMD when supported)</option>
       </select>
-    </div>
-    <div class="row stack">
-      <span>Seeds:</span>
-      <div id="seed-inputs" class="row"></div>
-    </div>
-    <div class="row stack">
-      <button id="recreate">Recreate (use these seeds)</button>
-      <button id="reseed">Reseed (random)</button>
     </div>
     <output id="status" class="status"></output>
-    <p class="hint">
-      Note a value below, then <b>Reseed</b> (it changes) and <b>Recreate</b> with the same
-      seeds (it returns) — identical seeds reproduce the identical stream.
-    </p>
-  </section>
 
-  <section>
-    <h2>Single values</h2>
-    <div class="row">
-      <button data-single="float">float() → [0, 1)</button>
-      <button data-single="int53">int53()</button>
-      <button data-single="int64">int64() → bigint</button>
-      <button data-single="coord">coord() → [-1, 1)</button>
+    <div class="row stack">
+      <strong>Current Random Seeds</strong>
+      <label><input type="checkbox" id="randomize" checked /> Randomize Seeds</label>
     </div>
-    <output id="single-out" class="mono"></output>
+    <p class="hint">
+      With <b>Randomize Seeds</b> on, <b>Recreate Generator</b> draws new random seeds. Turn it off to
+      type your own — identical seeds reproduce an identical stream. Creating or recreating a generator
+      refreshes every panel below.
+    </p>
+    <div id="seed-inputs" class="row stack"></div>
+    <div class="row stack">
+      <button id="recreate">Recreate Generator</button>
+    </div>
   </section>
 
   <section>
-    <h2>Array fill — float distribution</h2>
+    <h2 class="single-head">Single values <button id="advance-all" class="mini">Advance All</button></h2>
+    <div class="single-grid">
+      <button data-single="float" class="mini">float()</button>
+      <button data-single="int53" class="mini">int53()</button>
+      <button data-single="int64" class="mini">int64()</button>
+      <button data-single="coord" class="mini">coord()</button>
+      <output id="out-float" class="mono"></output>
+      <output id="out-int53" class="mono"></output>
+      <output id="out-int64" class="mono"></output>
+      <output id="out-coord" class="mono"></output>
+    </div>
+  </section>
+
+  <section>
+    <h2>Array fill — float distribution (Uniformity)</h2>
     <div class="row">
       <label for="hist-n">Samples:</label>
-      <select id="hist-n">
-        <option value="100">100</option>
-        <option value="1000" selected>1,000</option>
-        <option value="10000">10,000</option>
-        <option value="100000">100,000</option>
-      </select>
-      <button id="hist-btn">Fill &amp; draw histogram</button>
+      <input type="range" id="hist-n" min="0" max="5" step="1" value="3" />
+      <output id="hist-n-val" class="mono slider-val"></output>
     </div>
-    <canvas id="hist" width="760" height="280"></canvas>
+    <canvas id="hist" width="760" height="210"></canvas>
     <p class="hint">Bars are per-bin counts; the dashed line is the count a perfectly uniform generator would put in each bin. More samples → bars settle toward it.</p>
+    <p class="hint" id="hist-time"></p>
   </section>
 
   <section>
     <h2>Monte Carlo π</h2>
     <div class="row">
       <label for="pi-n">Points:</label>
-      <select id="pi-n">
-        <option value="1000">1,000</option>
-        <option value="10000" selected>10,000</option>
-        <option value="100000">100,000</option>
-        <option value="1000000">1,000,000</option>
-      </select>
-      <button id="pi-btn">Estimate π</button>
+      <input type="range" id="pi-n" min="0" max="4" step="1" value="3" />
+      <output id="pi-n-val" class="mono slider-val"></output>
     </div>
-    <canvas id="scatter" width="300" height="300"></canvas>
-    <output id="pi-out" class="mono"></output>
+    <div class="pi-row">
+      <canvas id="scatter" width="300" height="300"></canvas>
+      <div class="pi-readout">
+        <div class="pi-value">π ≈ <span id="pi-val" class="mono">—</span></div>
+        <div class="pi-error">error <span id="pi-abs" class="mono num">—</span> <span class="pct">(<span id="pi-pct">—</span>)</span></div>
+      </div>
+    </div>
+    <p class="hint" id="pi-time"></p>
   </section>
 
   <script>
     const { RandomGenerator, PRNGType, seed64Array } = fastPRNGWasm;
 
     const AUTO = '__auto__';
+    const HIST_SIZES = [100, 1000, 10000, 100000, 1000000, 10000000];   // slider index -> sample count
+    const PI_SIZES = [1000, 10000, 100000, 1000000, 10000000];          // slider index -> point count
 
     // Populate the algorithm dropdown from the exported enum, so it always
     // matches the library. AUTO maps to the default (env-aware) generator.
@@ -131,9 +154,18 @@
 
     const statusEl = document.getElementById('status');
     const seedInputsEl = document.getElementById('seed-inputs');
+    const randomizeEl = document.getElementById('randomize');
+    const histSlider = document.getElementById('hist-n');
+    const histSliderVal = document.getElementById('hist-n-val');
+    const piSlider = document.getElementById('pi-n');
+    const piSliderVal = document.getElementById('pi-n-val');
     let gen = null;
 
+    const histSize = () => HIST_SIZES[Number(histSlider.value)];
+    const piSize = () => PI_SIZES[Number(piSlider.value)];
+
     // Render one text input per active seed, prefilled with the seed's decimal value.
+    // Inputs are locked while "Randomize Seeds" is on.
     function renderSeedInputs(seeds) {
       seedInputsEl.replaceChildren();
       seeds.forEach((seed, i) => {
@@ -141,6 +173,7 @@
         input.type = 'text';
         input.className = 'seed';
         input.value = seed.toString();
+        input.disabled = randomizeEl.checked;
         input.setAttribute('aria-label', `seed ${i}`);
         seedInputsEl.appendChild(input);
       });
@@ -151,16 +184,14 @@
       return Array.from(seedInputsEl.querySelectorAll('input.seed'), (input) => BigInt(input.value.trim()));
     }
 
-    // (Re)build the generator from an explicit seed collection. Passing the type
-    // through unchanged: AUTO omits it (env-aware default), anything else is an
-    // explicit request that the SIMD guard may reject on a non-SIMD runtime.
+    // Build the generator from an explicit seed collection. AUTO omits the type
+    // (env-aware default); anything else is an explicit request that the SIMD guard
+    // may reject on a non-SIMD runtime. Returns true on success.
     function buildGenerator(seeds) {
       const choice = algoSelect.value;
       try {
-        // Omitting the type triggers the environment-aware default: the SIMD
-        // algorithm where WebAssembly SIMD is available, otherwise its non-SIMD
-        // sibling. Do NOT hard-code an *_SIMD type — it would throw on browsers
-        // without SIMD.
+        // Do NOT hard-code an *_SIMD type — omitting it degrades gracefully where
+        // WebAssembly SIMD is unavailable.
         gen = choice === AUTO ? new RandomGenerator(undefined, seeds) : new RandomGenerator(choice, seeds);
         // Show exactly the seeds this generator uses (seed64Array() returns 8,
         // but each algorithm consumes only its own seedCount).
@@ -170,23 +201,48 @@
           ? ` — SIMD ${gen.prngType.endsWith('_SIMD') ? 'available' : 'unavailable, degraded gracefully'}`
           : '';
         statusEl.textContent = `Active generator: ${gen.prngType} (uses ${gen.seedCount} seeds)${auto}`;
+        return true;
       } catch (err) {
         gen = null;
         seedInputsEl.replaceChildren();
         statusEl.className = 'status error';
-        // The SIMD availability guard throws when an *_SIMD type is requested
-        // explicitly on a runtime without SIMD.
+        // The SIMD guard throws when an *_SIMD type is requested explicitly on a
+        // runtime without SIMD.
         statusEl.textContent = String(err.message || err);
+        return false;
       }
     }
 
-    // Fresh random seeds (always 8; the generator uses the first seedCount of them).
-    function reseed() {
-      buildGenerator(seed64Array());
+    // Rebuild the generator, then immediately refresh every demo panel — the same
+    // as clicking each panel's run button once.
+    function rebuildAndRun(seeds) {
+      if (buildGenerator(seeds)) refreshAllPanels();
+      else clearPanels();
     }
 
-    // Rebuild from whatever is currently typed into the seed inputs.
+    function refreshAllPanels() {
+      showAllSingleValues();
+      drawHistogram(histSize());
+      estimatePi(piSize());
+    }
+
+    function clearPanels() {
+      for (const m of ['float', 'int53', 'int64', 'coord']) document.getElementById(`out-${m}`).textContent = '';
+      const histCanvas = document.getElementById('hist');
+      histCanvas.getContext('2d').clearRect(0, 0, histCanvas.width, histCanvas.height);
+      const scatterCanvas = document.getElementById('scatter');
+      scatterCanvas.getContext('2d').clearRect(0, 0, scatterCanvas.width, scatterCanvas.height);
+      document.getElementById('pi-val').textContent = '—';
+      document.getElementById('pi-abs').textContent = '—';
+      document.getElementById('pi-pct').textContent = '—';
+    }
+
+    // Recreate button: random seeds when "Randomize Seeds" is on, else the typed seeds.
     function recreate() {
+      if (randomizeEl.checked) {
+        rebuildAndRun(seed64Array());
+        return;
+      }
       let seeds;
       try {
         seeds = readSeedInputs();
@@ -195,22 +251,29 @@
         statusEl.textContent = 'Seeds must be whole numbers (e.g. 12345678901234567890).';
         return;
       }
-      buildGenerator(seeds);
+      rebuildAndRun(seeds);
     }
 
-    document.getElementById('reseed').addEventListener('click', reseed);
     document.getElementById('recreate').addEventListener('click', recreate);
     // Switching algorithms needs fresh seeds: the required seedCount differs per type.
-    algoSelect.addEventListener('change', reseed);
+    algoSelect.addEventListener('change', () => rebuildAndRun(seed64Array()));
+    // The checkbox only toggles whether the seed inputs are editable.
+    randomizeEl.addEventListener('change', () => {
+      for (const input of seedInputsEl.querySelectorAll('input.seed')) input.disabled = randomizeEl.checked;
+    });
 
-    // --- Single values ---
-    for (const btn of document.querySelectorAll('[data-single]')) {
-      btn.addEventListener('click', () => {
-        if (!gen) return;
-        const method = btn.getAttribute('data-single');
-        document.getElementById('single-out').textContent = `${method}()  →  ${gen[method]()}`;
-      });
+    // --- Single values (one output per method) ---
+    function showSingleValue(method) {
+      if (!gen) return;
+      document.getElementById(`out-${method}`).textContent = String(gen[method]());
     }
+    function showAllSingleValues() {
+      for (const method of ['float', 'int53', 'int64', 'coord']) showSingleValue(method);
+    }
+    for (const btn of document.querySelectorAll('[data-single]')) {
+      btn.addEventListener('click', () => showSingleValue(btn.getAttribute('data-single')));
+    }
+    document.getElementById('advance-all').addEventListener('click', showAllSingleValues);
 
     // --- Histogram of floatArray() over a chosen sample size ---
     function drawHistogram(sampleCount) {
@@ -221,6 +284,7 @@
       let collected = 0;
       // floatArray() fills outputArraySize values per call (reused buffer), so we
       // loop and bin each fill until we've counted the requested number of samples.
+      const genStart = performance.now();
       while (collected < sampleCount) {
         const values = gen.floatArray();
         const take = Math.min(values.length, sampleCount - collected);
@@ -229,6 +293,7 @@
         }
         collected += take;
       }
+      const genMs = performance.now() - genStart;
 
       const canvas = document.getElementById('hist');
       const ctx = canvas.getContext('2d');
@@ -236,15 +301,16 @@
       ctx.clearRect(0, 0, W, H);
 
       // Leave margins for the axis labels.
-      const marginLeft = 52, marginRight = 12, marginTop = 14, marginBottom = 30;
+      const marginLeft = 56, marginRight = 12, marginTop = 16, marginBottom = 34;
       const plotW = W - marginLeft - marginRight;
       const plotH = H - marginTop - marginBottom;
       const baseY = marginTop + plotH;
 
       const textColor = getComputedStyle(document.body).color;
+      const expectedColor = '#c81e1e';
       const maxCount = Math.max(...bins);
       const expected = sampleCount / binCount;
-      ctx.font = '11px system-ui, sans-serif';
+      ctx.font = '13px system-ui, sans-serif';
 
       // Bars.
       const barW = plotW / binCount;
@@ -254,25 +320,26 @@
         ctx.fillRect(marginLeft + i * barW + 1, baseY - barH, barW - 2, barH);
       }
 
-      // Expected-uniform reference line.
+      // Expected-uniform reference line (higher-contrast red, slightly thicker).
       if (maxCount) {
         const y = baseY - (expected / maxCount) * plotH;
-        ctx.strokeStyle = '#e74c3c';
-        ctx.setLineDash([5, 4]);
+        ctx.strokeStyle = expectedColor;
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 4]);
         ctx.beginPath();
         ctx.moveTo(marginLeft, y);
         ctx.lineTo(marginLeft + plotW, y);
         ctx.stroke();
         ctx.setLineDash([]);
-        ctx.fillStyle = '#e74c3c';
+        ctx.lineWidth = 1;
+        ctx.fillStyle = expectedColor;
         ctx.textAlign = 'right';
         ctx.textBaseline = 'bottom';
-        ctx.fillText(`expected ${Math.round(expected).toLocaleString()}`, marginLeft + plotW, y - 2);
+        ctx.fillText(`expected ${Math.round(expected).toLocaleString()}`, marginLeft + plotW, y - 3);
       }
 
       // Axes.
       ctx.strokeStyle = 'rgba(128,128,128,0.5)';
-      ctx.setLineDash([]);
       ctx.beginPath();
       ctx.moveTo(marginLeft, marginTop);
       ctx.lineTo(marginLeft, baseY);
@@ -286,7 +353,7 @@
       ctx.fillText('0', marginLeft - 8, baseY);
       ctx.fillText(maxCount.toLocaleString(), marginLeft - 8, marginTop + 4);
       ctx.save();
-      ctx.translate(14, marginTop + plotH / 2);
+      ctx.translate(16, marginTop + plotH / 2);
       ctx.rotate(-Math.PI / 2);
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -294,21 +361,24 @@
       ctx.restore();
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
-      ctx.fillText('0', marginLeft, baseY + 6);
-      ctx.fillText('0.5', marginLeft + plotW / 2, baseY + 6);
-      ctx.fillText('1', marginLeft + plotW, baseY + 6);
-      ctx.fillText('value in [0, 1)', marginLeft + plotW / 2, baseY + 18);
+      ctx.fillText('0', marginLeft, baseY + 7);
+      ctx.fillText('0.5', marginLeft + plotW / 2, baseY + 7);
+      ctx.fillText('1', marginLeft + plotW, baseY + 7);
+      ctx.fillText('value in [0, 1)', marginLeft + plotW / 2, baseY + 20);
+
+      document.getElementById('hist-time').textContent = `Generation time: ${genMs.toFixed(3)} ms`;
     }
 
-    document.getElementById('hist-btn').addEventListener('click', () => {
-      drawHistogram(Number(document.getElementById('hist-n').value));
-    });
-
     // --- Monte Carlo π with a scatter plot ---
-    // Estimate over every requested point, but cap the dots actually drawn: a
-    // 300×300 canvas saturates well before a million points, and drawing them all
-    // would be slow for no visual gain.
-    const MAX_PLOT_POINTS = 4000;
+    // Estimate over every requested point. The scatter draws a distinct count at every
+    // slider step: the smallest sample size maps to the lower bound and the largest to
+    // MAX_PLOT_POINTS, scaling by sqrt(N) in between so dot density grows smoothly with
+    // the sample size (a strictly N-proportional count leaves the low end near-empty).
+    const MAX_PLOT_POINTS = 40000;
+    const scatterPointCount = (targetPoints) => {
+      const largest = PI_SIZES[PI_SIZES.length - 1];
+      return Math.min(targetPoints, Math.round(MAX_PLOT_POINTS * Math.sqrt(targetPoints / largest)));
+    };
 
     function estimatePi(targetPoints) {
       if (!gen) return;
@@ -316,8 +386,10 @@
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const w = canvas.width, h = canvas.height;
+      const plotCap = scatterPointCount(targetPoints);
 
       let inside = 0, points = 0, plotted = 0;
+      const genStart = performance.now();
       while (points < targetPoints) {
         // coordArray() yields values in [-1, 1); consecutive values form (x, y)
         // pairs. Consume the reused buffer before the next call.
@@ -327,25 +399,36 @@
           const isInside = x * x + y * y <= 1;
           if (isInside) inside++;
           points++;
-          if (plotted < MAX_PLOT_POINTS) {
+          if (plotted < plotCap) {
             ctx.fillStyle = isInside ? '#2ecc71' : '#e67e22';
             ctx.fillRect((x + 1) / 2 * w, (y + 1) / 2 * h, 2, 2);
             plotted++;
           }
         }
       }
+      const genMs = performance.now() - genStart;
       const pi = 4 * inside / points;
-      const plotNote = plotted < points ? `; showing first ${plotted.toLocaleString()}` : '';
-      document.getElementById('pi-out').textContent =
-        `π ≈ ${pi.toFixed(5)}   (error ${Math.abs(pi - Math.PI).toFixed(5)}, from ${points.toLocaleString()} points${plotNote})`;
+      const absErr = Math.abs(pi - Math.PI);
+      document.getElementById('pi-val').textContent = pi.toFixed(5);
+      document.getElementById('pi-abs').textContent = absErr.toFixed(5);
+      document.getElementById('pi-pct').textContent = `${(absErr / Math.PI * 100).toFixed(3)}%`;
+      document.getElementById('pi-time').textContent = `Generation time: ${genMs.toFixed(3)} ms`;
     }
 
-    document.getElementById('pi-btn').addEventListener('click', () => {
-      estimatePi(Number(document.getElementById('pi-n').value));
+    // --- Sliders drive their panels live (no separate run button) ---
+    histSlider.addEventListener('input', () => {
+      histSliderVal.textContent = histSize().toLocaleString();
+      drawHistogram(histSize());
+    });
+    piSlider.addEventListener('input', () => {
+      piSliderVal.textContent = piSize().toLocaleString();
+      estimatePi(piSize());
     });
 
-    // Build the default generator on load.
-    reseed();
+    // Initial render.
+    histSliderVal.textContent = histSize().toLocaleString();
+    piSliderVal.textContent = piSize().toLocaleString();
+    rebuildAndRun(seed64Array());
   </script>
 </body>
 </html>

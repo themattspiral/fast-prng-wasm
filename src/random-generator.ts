@@ -99,9 +99,9 @@ export class RandomGenerator {
     /**
      * Creates a WASM pseudo random number generator.
      *
-     * @param prngType The PRNG algorithm to use. When omitted, the best available
-     * algorithm is selected automatically: `Xoroshiro128Plus_SIMD` on runtimes with
-     * WebAssembly SIMD, or `Xoroshiro128Plus` where SIMD is unavailable.
+     * @param prngType The PRNG algorithm to use. When omitted, `Xoroshiro128Plus_SIMD`
+     * is selected on runtimes with WebAssembly SIMD, or `Xoroshiro128Plus` where SIMD
+     * is unavailable.
      * <br><br>
      *
      * Explicitly requesting a SIMD algorithm (an `*_SIMD` type) on a runtime without
@@ -146,7 +146,7 @@ export class RandomGenerator {
             throw new Error(
                 `${prngType} requires WebAssembly SIMD, which is unavailable in this runtime. ` +
                 `Use ${NON_SIMD_SIBLING[prngType]} for a non-SIMD stream, or omit the type ` +
-                `argument to auto-select the best available generator.`
+                `argument to let the default adapt to this runtime's SIMD support.`
             );
         }
 

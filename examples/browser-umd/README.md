@@ -22,9 +22,9 @@ Then, from this directory, either **open `index.html` directly** in your browser
 npm start        # zero-dependency static server → http://localhost:8080/...
 ```
 
-## Real-World Usage (CDN)
+## Loading from a CDN
 
-In a real page you would load the published package from a CDN instead of a local path — no install or build required. The UMD bundle attaches a global named `fastPRNGWasm`:
+You can also load the published package from a CDN — no install or build required. The UMD bundle attaches a global named `fastPRNGWasm`:
 
 ```html
 <!-- unpkg -->
@@ -35,7 +35,7 @@ In a real page you would load the published package from a CDN instead of a loca
 
 <script>
   const { RandomGenerator, PRNGType, seed64Array } = fastPRNGWasm;
-  const gen = new RandomGenerator();   // auto-selects the best available algorithm
+  const gen = new RandomGenerator();   // auto-selects Xoroshiro128+ (SIMD when the runtime supports it)
   console.log(gen.float());
 </script>
 ```
