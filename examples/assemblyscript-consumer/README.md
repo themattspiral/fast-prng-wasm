@@ -34,6 +34,9 @@ The runner prints the observed correlation (≈ 0.776, a fixed property of the d
 
 The BCa interval's lower bound sits noticeably below the percentile one: a correlation is skewed and bounded at ±1, so the plain percentiles are slightly off and BCa corrects for that (which is why Efron recommends it for a statistic like this). The generators are seeded from the host's cryptographic randomness on each run, so the exact standard-error and interval digits vary slightly run to run; the observed correlation does not. The time column is a rough, this-machine cost — not a benchmark.
 
+## Verifying the results
+BCa is non-trivial (a normal CDF and inverse plus a jackknife, all implemented in `main.ts`), so [`verify/`](verify/) cross-checks the demo's output against an **independent** Python-stdlib implementation — a different language, a different normal CDF/inverse, and a different RNG. Run it by hand with `node verify/verify.mjs` after `npm run build` (needs `python3`; not part of CI). See [`verify/README.md`](verify/README.md) for details.
+
 ## Import patterns
 
 **Whole package (all generators):**

@@ -131,7 +131,7 @@ console.log(
     '\nReading the results:\n' +
     '  SE  - how much r typically wobbles from resample to resample (~0.13 here).\n' +
     '  percentile CI - the simplest interval: the 2.5th-97.5th percentiles of the\n' +
-    '        resampled correlations. Taught first, but not the most accurate.\n' +
+    '        resampled correlations. Simple, but not the most accurate.\n' +
     '  BCa CI - bias-corrected and accelerated. A correlation is skewed and bounded\n' +
     '        at +/-1, so the plain percentiles are off; BCa corrects for that, which\n' +
     '        is why its lower bound sits below the percentile one. Efron recommends\n' +
