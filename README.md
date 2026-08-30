@@ -3,7 +3,7 @@
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE.md) [![npm package version](https://img.shields.io/npm/v/fast-prng-wasm.svg?style=flat&logo=npm)](https://www.npmjs.com/package/fast-prng-wasm) [![CI/CD Pipeline](https://github.com/themattspiral/fast-prng-wasm/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/themattspiral/fast-prng-wasm/actions/workflows/ci-cd.yml) [![codecov](https://codecov.io/gh/themattspiral/fast-prng-wasm/branch/main/graph/badge.svg)](https://codecov.io/gh/themattspiral/fast-prng-wasm)
 
 
-High-performance, SIMD-enabled, WebAssembly pseudo random number generators (PRNGs) with a seamless TypeScript interface. Faster and better statistical quality than `Math.random()`.
+High-performance, SIMD-accelerated WebAssembly pseudo random number generators (PRNGs) with a seamless TypeScript interface. Offers seeding for reproducible streams, parallel generation, and bulk throughput.
 
 **Perfect for:** Simulations, Monte Carlo methods, games, procedural generation, parallel computations
 
@@ -36,7 +36,7 @@ console.log(gen.int64());           // random 64-bit int (bigint)
 ## Features
 
 - **🚀 High Performance** - Optimized for speed and SIMD-accelerated
-- **📊 Better Statistical Quality** - Superior uniformity and randomness vs. `Math.random()`
+- **📊 Vetted Algorithms** - Pass BigCrush & PractRand; PCG has no weak low-order bits
 - **⚡ Bulk Generation** - Single values or bulk array fills
 - **🎯 Simple API** - Clean TypeScript interface, no memory-management required
 - **🔢 Multiple Formats** - 64-bit `bigint`, 53-bit int, 32-bit int, and 53-bit float
@@ -54,7 +54,9 @@ console.log(gen.int64());           // random 64-bit int (bigint)
 | **Xoroshiro128+** | *Very* fast, smaller state - excellent balance for most applications, fastest provided here | 64-bit | 128 bits | 2<sup>128</sup> | ✅ |
 | **PCG (XSH RR)** | Small state, fast; excellent statistical quality with no weak low-order bits, and the least predictable of the three — the most compact generator here, with a 2<sup>64</sup> period that's ample for typical use | 32-bit | 64 bits | 2<sup>64</sup> | ❌ |
 
-The included algorithms were chosen for their high speed, parallelization support, and statistical quality. They pass rigorous statistical tests (BigCrush, PractRand) and provide excellent uniformity, making them suitable for Monte Carlo simulations and other applications requiring high-quality pseudo-randomness. They offer a significant improvement over `Math.random()`, which varies by JavaScript engine and may exhibit statistical flaws.
+The included algorithms were chosen for their high speed, parallelization support, and statistical quality. They pass rigorous statistical tests (BigCrush, PractRand) and provide excellent uniformity, making them suitable for Monte Carlo simulations and other applications requiring high-quality pseudo-randomness.
+
+The ECMAScript spec leaves `Math.random()`'s algorithm implementation-defined, which means it can vary by engine (the major engines have in practice [converged on xorshift128+](https://v8.dev/blog/math-random)). In contrast, this library offers fixed algorithms that produce identical results on every engine and are appropriate for more tailored use cases.
 
 **SIMD (Single Instruction, Multiple Data)** generates 2 random numbers simultaneously, theoretically doubling throughput when using array output methods.
 
@@ -334,7 +336,7 @@ All algorithms are tested for uniqueness, full-range output, array method consis
 
 ## Performance
 
-The goal is to provide random number generation in WASM that's faster and higher-quality than `Math.random()`, and faster than any equivalent JavaScript implementation of these PRNG algorithms.
+The goal is fast **bulk** random number generation in WASM: array fills that amortize the JS/WASM boundary, with SIMD able to nearly double array throughput for supported algorithms. For a single value, `Math.random()` is a native intrinsic and hard to beat, but the advantage this lib brings instead is amortized bulk generation and the capabilities `Math.random()` lacks (such as seeding, parallel streams, multiple output formats, and potentially much larger periods).
 
 Generator algorithms are implemented in [AssemblyScript](https://www.assemblyscript.org/), a variant of TypeScript that compiles to WASM.
 
@@ -351,7 +353,7 @@ Generator algorithms are implemented in [AssemblyScript](https://www.assemblyscr
 
 #### Arrays Deep Dive
 
-For a detailed explanation of **why array methods are 3-5× faster** than single-value methods, see **[Understanding Performance: Why Array Methods Are Faster](examples/basic-usage#understanding-performance-why-array-methods-are-faster)**
+For a detailed explanation of **why array methods are several times faster** than single-value methods, see **[Understanding Performance: Why Array Methods Are Faster](examples/basic-usage#understanding-performance-why-array-methods-are-faster)**
 
 ## Compatibility
 

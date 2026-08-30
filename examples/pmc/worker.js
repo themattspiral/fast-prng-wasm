@@ -39,8 +39,10 @@ if (!isMainThread) {
     }
 
     // ArrayFill mode consumes random numbers out of the WASM memory buffer and tests them
-    // here in the JavaScript runtime. This is a demonstration of the fastest strategy for
-    // consuming random numbers from fast-prng-wasm's JavaScript API
+    // here in the JavaScript runtime. When you actually need the generated numbers in JS,
+    // pulling them in bulk arrays like this is the fastest approach (unlike GeneratorBatch, 
+    // which is faster still but keeps all heavy processing in WASM and only reports results to
+    // JS for the final pi calculation)
     else if (workerData.batchMode === WorkerBatchMode.ArrayFill) {
         // each (x,y) coordinate pair consumes 2 random coordinate numbers from the output array
         const maxPointsPerRandomArray = generator.outputArraySize / 2;

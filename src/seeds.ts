@@ -57,9 +57,9 @@ function seed64(): bigint {
 
 
 /**
- * Splitmix64 is the default pseudo random number generator algorithm in Java.
- * It's a good generator for 64 bit seeds, and is is included for seeding
- * the other generators within this library.
+ * SplitMix64 is a fast 64-bit generator, and is the fixed-increment variant of Java 8's
+ * `SplittableRandom`. It's a good generator for producing 64-bit seeds, and is
+ * included for seeding the other generators within this library.
  */
 export class SplitMix64 {
     _state: bigint;

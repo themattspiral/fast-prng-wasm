@@ -28,11 +28,11 @@ npm i fast-prng-wasm@latest
 From this directory:
 ``` sh
 npm i
-node start
+npm start
 ```
 
 ## Output
-This example will estimate the value of π by generating 1 billion (x,y) coordinate pairs (2 billion random numbers) using all availavle CPU cores and the default (and fastest) PRNG that `fast-prng-wasm` provides, `Xoroshiro128Plus_SIMD`.
+This example will estimate the value of π by generating 1 billion (x,y) coordinate pairs (2 billion random numbers) using all available CPU cores and the `Xoshiro256Plus_SIMD` PRNG that `fast-prng-wasm` provides.
 
 ## Runtime Parameters
 Modify parameters within `pmc.js` to alter characteristics of the PRNGs used:

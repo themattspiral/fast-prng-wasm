@@ -1,9 +1,9 @@
 /**
  * basic-usage - Getting Started with fast-prng-wasm
  *
- * This example demonstrates the core features of the fast-prng-wasm library
- * wit way. Each section builds on the previous one
- * to help you understand how to use high-quality PRNGs in your projects.
+ * This example demonstrates the core features of the fast-prng-wasm library.
+ * Each section builds on the previous one to help you understand how to use
+ * high-quality PRNGs in your projects.
  *
  * Run: npm start
  */
@@ -47,7 +47,7 @@ section('2. ARRAY GENERATION - Bulk Operations');
 // Generate random numbers in bulk using array methods
 // For bulk generation, this is much faster than calling gen.float() in a loop!
 //
-// For a detailed explanation of why array methods are 3-5× faster, see:
+// For a detailed explanation of why array methods are several times faster, see:
 // README.md "Understanding Performance: Why Array Methods Are Faster"
 
 console.log('>> Performance Comparison: Bulk Generation (100 million numbers)\n');

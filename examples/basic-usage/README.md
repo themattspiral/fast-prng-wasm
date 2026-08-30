@@ -70,11 +70,11 @@ Every time you call a WASM function from the JS runtime, there's overhead involv
 4. **Return value conversion** (converting WASM types back to JS types)
 5. **V8 engine bookkeeping**
 
-While this overhead is small per call (~50-200 nanoseconds), **it compounds dramatically** when making many calls.
+This overhead is small per call, but it **compounds dramatically** when you make many calls.
 
 ### Single Value Generation: Overhead Dominates
 
-When generating **1 billion random numbers** using `float()`:
+Generating a large batch one value at a time crosses the JS/WASM boundary once per number:
 
 ```javascript
 for (let i = 0; i < 1_000_000_000; i++) {
@@ -83,46 +83,36 @@ for (let i = 0; i < 1_000_000_000; i++) {
 }
 ```
 
-**Time breakdown:**
-- **WASM boundary crossings:** 1 billion × ~100ns = **~100 seconds**
-- **Actual RNG generation:** 1 billion × ~30-50ns = **~30-50 seconds**
-- **Total time:** **~130-150 seconds**
-
-**Result:** ~70% of execution time is spent on boundary crossing overhead, only ~30% on actual random number generation!
+At this scale the boundary crossings (rather than the random-number generation itself) dominate the time.
 
 ### Array Generation: Minimize Boundary Crossings
 
-When generating the same **1 billion random numbers** using `floatArray()`:
+An array method fills many values per call, so the same billion numbers cross the boundary far fewer times:
 
 ```javascript
 for (let i = 0; i < 1_000_000; i++) {
-    const batch = gen.floatArray();  // only 1M boundary crossings
-    for (let j = 0; j < 1000) {
+    const batch = gen.floatArray();  // 1000 numbers per call → only 1M crossings
+    for (let j = 0; j < batch.length; j++) {
         // use batch values...
     }
 }
 ```
 
-**Time breakdown:**
-- **WASM boundary crossings:** 1 million × ~100ns = **~0.1 seconds**
-- **Actual RNG generation:** 1 billion × ~30-50ns = **~30-50 seconds**
-- **Total time:** **~30-50 seconds**
-
-**Result:** ~0.3% boundary crossing overhead, ~99.7% actual work. **This is 3-5× faster overall!**
+Now almost all of the time goes to generating numbers rather than crossing the boundary, so the array methods run several times faster overall. The example prints the measured speedup on your machine.
 
 ### Does Array Size Matter?
 
-Yes, but with diminishing returns. Larger arrays mean fewer boundary crossings:
+Yes, but with diminishing returns. A larger array means fewer boundary crossings per billion numbers:
 
-| Array Size | Boundary Crossings (per 1B numbers) | Overhead Time |
-|------------|--------------------------------|---------------|
-| 1 (single) | 1 billion | ~100 seconds |
-| 100 | 10 million | ~1 second |
-| 1,000 (default) | 1 million | ~0.1 seconds |
-| 10,000 | 100,000 | ~0.01 seconds |
-| 1,000,000 | 1,000 | ~0.0001 seconds |
+| Array Size | Boundary Crossings (per 1B numbers) |
+|------------|-------------------------------------|
+| 1 (single) | 1 billion |
+| 100 | 10 million |
+| 1,000 (default) | 1 million |
+| 10,000 | 100,000 |
+| 1,000,000 | 1,000 |
 
-**However:** The default of 1,000 already reduces overhead to negligible levels for most use cases (0.3% of total time). Going larger saves ~0.1 seconds per billion numbers.
+The default of 1,000 already brings the crossing count low enough that the overhead is negligible for most use cases; going larger yields little further benefit and uses more memory.
 
 ## Troubleshooting
 
